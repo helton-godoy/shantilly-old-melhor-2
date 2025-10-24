@@ -1,0 +1,59 @@
+# .golangci.yml
+# Configuração otimizada para projetos do ecossistema Charm, com foco em
+# fornecer feedback rico e estruturado para desenvolvedores e agentes de IA.
+
+run:
+  timeout: 5m
+
+linters-settings:
+  gocyclo:
+    # A função Update pode legitimamente ser um pouco mais complexa. O padrão é 10.
+    min-complexity: 15
+  funlen:
+    # Permite funções um pouco mais longas antes de sinalizar.
+    lines: 100
+    statements: 50
+  mnd:
+    # Exclui números comuns que não são "mágicos" (ex: em loops, índices, etc.).
+    ignored-numbers: 0,1,2,3
+  gocritic:
+    # Habilita checagens de "opinião" que promovem um código mais idiomático.
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+
+linters:
+  # Desabilita todos por padrão para garantir que apenas nossa lista selecionada seja usada.
+  disable-all: true
+  # Habilita um conjunto curado de linters de alto valor.
+  enable:
+    # --- Categoria 1: Essenciais (Bugs, Complexidade, Erros Críticos) ---
+    - errcheck # Garante que erros não sejam ignorados.
+    - staticcheck # Análise estática extremamente poderosa.
+    - gocyclo # Controla a complexidade de funções.
+    - govet # Ferramenta de análise padrão do Go.
+    - errorlint # Força o uso correto de `errors.Is/As`.
+    - copyloopvar # Previne um bug comum com goroutines em loops.
+    - unused # Remove código morto.
+    - ineffassign # Remove atribuições inúteis.
+    - gosimple # Sugere simplificações no código.
+
+    # --- Categoria 2: Altamente Recomendados (Performance, Legibilidade, Boas Práticas) ---
+    - prealloc # Sugere pré-alocação de slices para performance.
+    - funlen # Evita funções excessivamente longas.
+    - gocritic # Um conjunto enorme de checagens de estilo e performance.
+    - stylecheck # Alternativa moderna ao `golint`.
+    - gofumpt # Um formatador mais estrito que o `gofmt`.
+    - unconvert # Remove conversões de tipo desnecessárias.
+    - wrapcheck # Garante que erros de pacotes externos sejam encapsulados.
+
+    # --- Categoria 3: Situacionais (Clareza, Manutenibilidade Específica) ---
+    - nestif # Alerta sobre `if`s aninhados profundamente.
+    - mnd # Detecta "números mágicos", incentivando o uso de constantes.
+    - noctx # Garante que chamadas HTTP tenham um contexto.
+    - goconst # Encontra strings repetidas que deveriam ser constantes.
+    - ireturn # Incentiva o padrão "aceite interfaces, retorne tipos concretos".
+    - exhaustivestruct # Garante que structs sejam inicializadas completamente.

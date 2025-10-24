@@ -1,0 +1,58 @@
+# .goreleaser.yaml
+# Configuração para o GoReleaser, a ferramenta que automatiza a criação de binários e releases.
+version: 2
+
+# Nome do projeto, usado na nomenclatura dos artefatos.
+project_name: your-project-name # TODO: Altere para o nome do seu projeto.
+
+# Hooks executados antes do processo de build.
+before:
+  hooks:
+    - go mod tidy
+
+# Configurações do Go.
+gomod:
+  proxy: true
+
+# Define como os binários serão construídos.
+builds:
+  - env: ["CGO_ENABLED=0"]
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags: ["-trimpath"]
+    # Define as plataformas para as quais o build será feito.
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+
+# Configuração da geração do changelog a partir dos commits do Git.
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore"
+      - Merge pull request
+      - Merge remote-tracking branch
+      - Merge branch
+      - go mod tidy
+  groups:
+    - title: "New Features"
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 0
+    - title: "Bug fixes"
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 10
+    - title: Other work
+      order: 999
+
+# Configurações adicionais para o release no GitHub.
+release:
+  footer: |
+    ---
+    _Released with [GoReleaser](https://goreleaser.com)!_
