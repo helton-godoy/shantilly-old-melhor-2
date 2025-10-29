@@ -68,7 +68,70 @@ Comece analisando o arquivo `main.go`. Ele contém um esqueleto funcional de uma
   ```
 
 - **Para verificar a formatação do código:**
-  
+
   ```bash
   gofumpt -l .
   ```
+
+## Exemplos de Configuração YAML
+
+### Campos Avançados com Validação
+
+```yaml
+title: "Formulário Avançado com Validação"
+fields:
+  - key: "idade"
+    label: "Idade"
+    type: "number"
+    required: true
+    min: 0
+    max: 120
+    placeholder: "Digite sua idade"
+
+  - key: "data_nascimento"
+    label: "Data de Nascimento"
+    type: "date"
+    required: true
+    placeholder: "YYYY-MM-DD, DD/MM/YYYY ou MM/DD/YYYY"
+
+  - key: "documento"
+    label: "Documento PDF"
+    type: "file"
+    required: true
+    fileTypes: [".pdf", ".docx"]
+    placeholder: "Caminho do arquivo (tipos aceitos: .pdf, .docx)"
+
+  - key: "email"
+    label: "Email"
+    type: "input"
+    required: true
+    pattern: "email"
+    placeholder: "seu.email@exemplo.com"
+
+  - key: "comentarios"
+    label: "Comentários"
+    type: "textarea"
+    minLength: 10
+    maxLength: 500
+    placeholder: "Digite seus comentários (10-500 caracteres)"
+```
+
+### Tipos de Campo Disponíveis
+
+- `input`: Campo de texto simples
+- `textarea`: Campo de texto multilinha
+- `select`: Seleção de uma opção
+- `multiselect`: Seleção múltipla de opções
+- `confirm`: Confirmação sim/não
+- `note`: Texto informativo (somente leitura)
+- `number`: Campo numérico com validação de intervalo
+- `date`: Campo de data com formatos flexíveis
+- `file`: Seleção de arquivo com filtro de tipos
+
+### Regras de Validação
+
+- `required`: Campo obrigatório (boolean)
+- `min`/`max`: Limites numéricos para campos `number`
+- `minLength`/`maxLength`: Limites de comprimento para campos `input` e `textarea`
+- `pattern`: Padrões especiais (ex: "email")
+- `fileTypes`: Tipos de arquivo permitidos para campos `file` (array de strings)

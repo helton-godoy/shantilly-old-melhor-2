@@ -1,0 +1,22 @@
+title: Formulário com Multiselect
+fields:
+  - key: nome
+    label: Nome
+    type: input
+    placeholder: Digite seu nome
+  - key: interesses
+    label: Interesses
+    type: multiselect
+    options:
+      - Tecnologia
+      - Música
+      - Esportes
+      - Arte
+      - Literatura
+    value: Tecnologia, Música
+    limit: 3
+  - key: confirmacao
+    label: Confirma participação?
+    type: confirm
+    affirmative: Sim, confirmo
+    negative: Não, obrigado

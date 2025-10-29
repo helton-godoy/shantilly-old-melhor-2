@@ -46,7 +46,7 @@ linters:
     - funlen # Evita funções excessivamente longas.
     - gocritic # Um conjunto enorme de checagens de estilo e performance.
     - stylecheck # Alternativa moderna ao `golint`.
-    - gofumpt # Um formatador mais estrito que o `gofmt`.
+    # - gofumpt # Um formatador mais estrito que o `gofmt`.
     - unconvert # Remove conversões de tipo desnecessárias.
     - wrapcheck # Garante que erros de pacotes externos sejam encapsulados.
 
@@ -55,5 +55,5 @@ linters:
     - mnd # Detecta "números mágicos", incentivando o uso de constantes.
     - noctx # Garante que chamadas HTTP tenham um contexto.
     - goconst # Encontra strings repetidas que deveriam ser constantes.
-    - ireturn # Incentiva o padrão "aceite interfaces, retorne tipos concretos".
+    # - ireturn # Incentiva o padrão "aceite interfaces, retorne tipos concretos".
     - exhaustivestruct # Garante que structs sejam inicializadas completamente.

@@ -1,0 +1,30 @@
+title: Formulário Básico de Exemplo
+fields:
+  - key: nome
+    label: Nome Completo
+    type: input
+    placeholder: Digite seu nome completo
+  - key: email
+    label: Email
+    type: input
+    placeholder: seu.email@exemplo.com
+  - key: tipo_usuario
+    label: Tipo de Usuário
+    type: select
+    options:
+      - Estudante
+      - Professor
+      - Administrador
+  - key: bio
+    label: Biografia
+    type: textarea
+    placeholder: Conte um pouco sobre você...
+  - key: newsletter
+    label: Deseja receber nossa newsletter?
+    type: confirm
+    affirmative: Sim
+    negative: Não
+  - key: info
+    label: Informações Importantes
+    type: note
+    detail: Este formulário coleta informações para melhorar nossos serviços.
