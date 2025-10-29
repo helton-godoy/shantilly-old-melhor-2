@@ -14,7 +14,7 @@ set -e
 echo "🔎 Verificando a formatação com gofumpt..."
 # O comando 'gofumpt -l .' lista os arquivos que precisam de formatação.
 # O bloco 'if' verifica se a saída do comando não está vazia.
-if [[ -n $(gofumpt -l .) ]]; then
+if [[ -n $(/home/helton/go/bin/gofumpt -l .) ]]; then
     echo "❌ Alguns arquivos precisam de formatação. Execute 'gofumpt -w .' para corrigi-los."
     exit 1
 fi

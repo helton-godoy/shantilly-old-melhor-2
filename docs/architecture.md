@@ -123,38 +123,39 @@ This table is the single source of truth for project dependencies. Versions are 
 **Key Attributes (Go Structs):**
 
 ```go
-// Location: internal/config/models.go
+// Location: internal/config/config.go
 
 package config
 
 // FormConfig is the root structure parsed from YAML.
 type FormConfig struct {
- Title  string        `yaml:"title,omitempty"` // Optional title (PRD).
- Fields []FieldConfig `yaml:"fields"`          // Required list of fields (PRD).
+ Title  string  `yaml:"title,omitempty" json:"title,omitempty"` // Optional title (PRD).
+ Fields []Field `yaml:"fields" json:"fields"`                   // Required list of fields (PRD).
 }
 
-// FieldConfig defines a single form field (component).
-type FieldConfig struct {
+// Field defines a single form field (component).
+type Field struct {
  // --- Required Attributes (MVP) ---
- Key   string `yaml:"key"`   // Unique ID for JSON output (FR6).
- Label string `yaml:"label"` // Display text in TUI.
- Type  string `yaml:"type"`  // Maps to 'huh' component (FR3).
+ Key   string `yaml:"key" json:"key"`   // Unique ID for JSON output (FR6).
+ Label string `yaml:"label" json:"label"` // Display text in TUI.
+ Type  string `yaml:"type" json:"type"`  // Maps to 'huh' component (FR3).
                            // Expected: "input", "textarea", "select", "multiselect", "confirm", "note"
 
  // --- Optional Attributes (Based on PRD examples) ---
- Placeholder string   `yaml:"placeholder,omitempty"` // Hint text for input/textarea.
- Value       string   `yaml:"value,omitempty"`       // Default value.
- Options     []string `yaml:"options,omitempty"`     // Choices for select/multiselect.
- Limit       int      `yaml:"limit,omitempty"`       // Max selections for multiselect (0=unlimited).
- Affirmative string   `yaml:"affirmative,omitempty"` // "Yes" text for confirm.
- Negative    string   `yaml:"negative,omitempty"`    // "No" text for confirm.
- Detail      string   `yaml:"detail,omitempty"`      // Body text for note.
+ Placeholder string   `yaml:"placeholder,omitempty" json:"placeholder,omitempty"` // Hint text for input/textarea.
+ Value       string   `yaml:"value,omitempty" json:"value,omitempty"`       // Default value.
+ Options     []string `yaml:"options,omitempty" json:"options,omitempty"`     // Choices for select/multiselect.
+ Limit       int      `yaml:"limit,omitempty" json:"limit,omitempty"`       // Max selections for multiselect (0=unlimited).
+ Affirmative string   `yaml:"affirmative,omitempty" json:"affirmative,omitempty"` // "Yes" text for confirm.
+ Negative    string   `yaml:"negative,omitempty" json:"negative,omitempty"`    // "No" text for confirm.
+ Title       string   `yaml:"title,omitempty" json:"title,omitempty"`        // Optional field title.
+ Detail      string   `yaml:"detail,omitempty" json:"detail,omitempty"`      // Body text for note.
 }
 ```
 
 **Relationships:**
 
-* A `FormConfig` HAS MANY `FieldConfig`.
+* A `FormConfig` HAS MANY `Field`.
 
 ### FormData (Output - JSON)
 
@@ -164,13 +165,88 @@ type FieldConfig struct {
 
 * As keys are user-defined in YAML (`key`), this is not a static Go struct.
 * The Go type used for collection and serialization will be: `map[string]interface{}`
-* The `string` key is the `key` from `FieldConfig`, and the `interface{}` value is the user input (`string`, `[]string`, or `bool`).
+* The `string` key is the `key` from `Field`, and the `interface{}` value is the user input (`string`, `[]string`, or `bool`).
 
 **Relationships:**
 
 * This map is the final output of the `huh.Form` interaction, generated from `FormConfig`.
 
 ## Components
+
+### Frontend Architecture (TUI)
+
+#### Centralized Styling Theme
+
+**Lipgloss Theme Definition:**
+
+To ensure consistent styling across all TUI components and prevent styling-related rendering issues, define a centralized theme using `lipgloss`:
+
+```go
+// Location: internal/tui/theme.go
+
+package tui
+
+import "github.com/charmbracelet/lipgloss"
+
+// Theme defines the centralized styling for all TUI components
+type Theme struct {
+    // Base styles
+    Base lipgloss.Style
+
+    // Form-specific styles
+    FormTitle lipgloss.Style
+    FieldLabel lipgloss.Style
+    FieldInput lipgloss.Style
+    FieldError lipgloss.Style
+
+    // Layout styles
+    Container lipgloss.Style
+    Border lipgloss.Style
+}
+
+// NewTheme creates a new theme with consistent styling
+func NewTheme() Theme {
+    return Theme{
+        Base: lipgloss.NewStyle().
+            Padding(1, 2),
+
+        FormTitle: lipgloss.NewStyle().
+            Bold(true).
+            Foreground(lipgloss.Color("#FAFAFA")).
+            Background(lipgloss.Color("#7D56F4")).
+            Padding(0, 1),
+
+        FieldLabel: lipgloss.NewStyle().
+            Bold(true).
+            Foreground(lipgloss.Color("#FAFAFA")),
+
+        FieldInput: lipgloss.NewStyle().
+            Border(lipgloss.RoundedBorder()).
+            BorderForeground(lipgloss.Color("#7D56F4")).
+            Padding(0, 1),
+
+        FieldError: lipgloss.NewStyle().
+            Foreground(lipgloss.Color("#FF0000")).
+            Italic(true),
+
+        Container: lipgloss.NewStyle().
+            Border(lipgloss.RoundedBorder()).
+            BorderForeground(lipgloss.Color("#7D56F4")).
+            Padding(1, 2),
+
+        Border: lipgloss.NewStyle().
+            Border(lipgloss.RoundedBorder()).
+            BorderForeground(lipgloss.Color("#7D56F4")),
+    }
+}
+```
+
+**Usage Guidelines:**
+
+* **Mandatory Application:** All TUI components must use styles from the centralized theme.
+* **Consistency:** Apply theme styles uniformly across all form fields and layout elements.
+* **Responsive Design:** Theme styles should work across different terminal sizes (validated via `teatest`).
+* **Maintenance:** Update theme definitions in one place to maintain visual coherence.
 
 ### Component List
 
@@ -190,7 +266,7 @@ type FieldConfig struct {
 
 **`TUIEngine`**
 
-* **Responsibility:** (`internal/tui`). Core interactive component. Receives `config.FormConfig`. Dynamically builds `huh.Form` by mapping `FieldConfig` to `huh` components. Wraps the form in a `bubbletea.Model` to manage TUI state and lifecycle.
+* **Responsibility:** (`internal/tui`). Core interactive component. Receives `config.FormConfig`. Dynamically builds `huh.Form` by mapping `Field` to `huh` components. Wraps the form in a `bubbletea.Model` to manage TUI state and lifecycle.
 * **Key Interfaces:** `func Run(config *config.FormConfig) (map[string]interface{}, error)`
 * **Dependencies:** `bubbletea`, `huh`, `lipgloss`, `config.FormConfig`.
 * **Technology:** `charmbracelet/bubbletea`, `charmbracelet/huh`, `charmbracelet/lipgloss`.
@@ -362,16 +438,19 @@ shantilly/                     # Project Root (replace with actual name later)
 │       └── main.go            # Entry point: Cobra setup, CLI logic, stdin/file reading
 ├── internal/
 │   ├── config/                # Configuration parsing and validation
-│   │   ├── models.go        # Go structs (FormConfig, FieldConfig)
+│   │   ├── config.go        # Go structs (FormConfig, Field)
 │   │   ├── parser.go        # ConfigParser component (YAML parsing logic)
 │   │   └── parser_test.go   # Unit tests for parser
 │   ├── tui/                   # TUI rendering and interaction logic
-│   │   ├── engine.go        # TUIEngine component (Bubbletea model)
-│   │   └── mapper.go        # Logic to map config.FieldConfig -> huh components
+│   │   ├── model.go        # TUIEngine component (Bubbletea model)
+│   │   ├── model_test.go    # Unit tests for TUI model
+│   │   ├── integration_test.go # Integration tests for TUI
+│   │   └── navigation_test.go # Navigation tests for TUI
 │   └── util/                  # Shared utility functions
 │       └── errorhandler.go    # ErrorHandler component (stderr output, exit codes)
 ├── examples/                  # Example YAML form definitions for testing/docs
-│   └── basic_form.yaml
+│   ├── basic_form.yaml
+│   └── multiselect_form.yaml
 ├── Makefile                   # Build, Lint, Test scripts (integrates lint.sh logic)
 ├── go.mod                     # Go module definition (from template, adjusted)
 ├── go.sum                     # Go module checksums
@@ -540,6 +619,29 @@ Defined primarily by the user-provided template files. Adherence is mandatory an
 5. **No Magic Numbers (`mnd`):** Use named constants.
 6. **Full Struct Init (`exhaustivestruct`):** Initialize all struct fields explicitly.
 
+### TUI-Specific Guidelines (Bubble Tea + Charm)
+
+**Preventing TUI Rendering Failures:**
+
+1. **Window Size Handling (`tea.WindowSizeMsg`):**
+   * **Mandatory:** Always handle `tea.WindowSizeMsg` in the `Update` function to ensure responsive behavior.
+   * **Pattern:** Update model dimensions and trigger re-renders when terminal size changes.
+   * **Testing:** Use `teatest.WithInitialTermSize` in integration tests to validate different terminal dimensions.
+
+2. **Layout Primitives (`lipgloss`):**
+   * **Strong Recommendation:** Use `lipgloss` primitives (`Width`, `Height`, `JoinHorizontal`, `JoinVertical`) for layout management.
+   * **Purpose:** Ensures consistent spacing, alignment, and responsive behavior across different terminal sizes.
+   * **Pattern:** Define layout constraints explicitly rather than relying on hardcoded spacing.
+
+3. **Responsive Components:**
+   * **Terminal Width Awareness:** Always consider terminal width constraints when designing TUI layouts.
+   * **Truncation Strategy:** Implement text truncation or responsive components (`bubbles/list`, `bubbles/viewport`) for content that may exceed terminal width.
+   * **Component Selection:** Prefer existing `bubbles` components over custom implementations for complex UI patterns.
+
+4. **Centralized Styling:**
+   * **Theme Definition:** Define a centralized `lipgloss` theme to ensure consistent styling across all TUI components.
+   * **Consistency:** Apply theme styles uniformly to maintain visual coherence and prevent styling-related rendering issues.
+
 ### Language-Specific Guidelines (Go)
 
 * Follow "Effective Go".
@@ -550,9 +652,9 @@ Defined primarily by the user-provided template files. Adherence is mandatory an
 
 ### Testing Philosophy
 
-* **Approach:** Test-After for MVP. Focus on unit tests first. Manual TUI testing.
-* **Coverage Goals:** No strict % target for MVP, but high coverage (\>80%) for `internal/config`.
-* **Test Pyramid (MVP):** Heavy on Unit Tests, complemented by Manual TUI tests.
+* **Approach:** Test-After for MVP. Focus on unit tests first, with integration tests for TUI components using `teatest`.
+* **Coverage Goals:** No strict % target for MVP, but high coverage (\>80%) for `internal/config` and critical TUI flows.
+* **Test Pyramid (MVP):** Heavy on Unit Tests, complemented by TUI Integration Tests using `teatest`, and Manual TUI tests.
 
 ### Test Types and Organization
 
@@ -560,9 +662,20 @@ Defined primarily by the user-provided template files. Adherence is mandatory an
 
 * **Framework:** Go `testing` package (v1.24.2+).
 * **File Convention:** `_test.go` in the same package.
-* **Location:** Primarily `internal/config/`.
+* **Location:** Primarily `internal/config/` and `internal/tui/`.
 * **Mocking:** No external dependencies to mock in MVP. Use interfaces for potential future manual fakes/stubs if needed between internal components.
-* **AI Agent Requirements:** Generate comprehensive tests for `internal/config/parser.go`, covering valid/invalid YAML cases. Follow AAA pattern.
+* **AI Agent Requirements:** Generate comprehensive tests for `internal/config/parser.go`, covering valid/invalid YAML cases. Follow AAA pattern. Maintain pure unit tests for `Update` logic in TUI components.
+
+**TUI Integration Tests (teatest)**
+
+* **Framework:** `charmbracelet/bubbles/teatest` for testing Bubble Tea components.
+* **Purpose:** Validate critical user flows and assert on textual output (string output), including basic layout and presence of styled elements via `lipgloss`.
+* **Key Features:**
+  * Use `teatest.WithInitialTermSize` to run tests with different terminal sizes for responsive behavior validation.
+  * Focus on testing complete TUI workflows rather than individual component rendering.
+  * Assert on final rendered output strings to verify layout and styling.
+* **Location:** `internal/tui/` alongside unit tests.
+* **AI Agent Requirements:** Create integration tests for critical TUI flows using `teatest`, ensuring proper handling of `tea.WindowSizeMsg` and responsive layout across different terminal dimensions.
 
 **Integration Tests**
 
@@ -589,7 +702,7 @@ Defined primarily by the user-provided template files. Adherence is mandatory an
 * **Focus:** YAML input via `stdin` or `--file`.
 * **Location:** `ConfigParser` (`internal/config/parser.go`).
 * **Required Rules:**
-  * Validate `FieldConfig.Type` against known `huh` component types (e.g., "input", "textarea", "select", "multiselect", "confirm", "note"). Reject invalid types via `ErrorHandler` (NFR8).
+  * Validate `Field.Type` against known `huh` component types (e.g., "input", "textarea", "select", "multiselect", "confirm", "note"). Reject invalid types via `ErrorHandler` (NFR8).
   * Handle malformed YAML gracefully via `ErrorHandler` (NFR8).
 
 ### AuthN / AuthZ / Secrets / API Security / Data Protection
@@ -643,7 +756,7 @@ Defined primarily by the user-provided template files. Adherence is mandatory an
 
 * **Must-fix:** None.
 * **Should-fix:** None identified at architecture level.
-* **Nice-to-have:** Consider adding specific examples in `examples/` for each supported `FieldConfig.Type`.
+* **Nice-to-have:** Consider adding specific examples in `examples/` for each supported `Field.Type`.
 
 **AI Implementation Readiness**
 
