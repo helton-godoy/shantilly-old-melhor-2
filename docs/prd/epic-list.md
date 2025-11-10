@@ -1,22 +1,31 @@
-# Epic List
+# Epic List (Roadmap v2.0)
 
-* **Epic 1: MVP - Core Form Functionality**
-  * **Goal:** Establish the CLI structure, implement YAML parsing from stdin, render the linear TUI form using `huh`, allow keyboard navigation and submission, and return the collected data as JSON on stdout, delivering the core MVP functionality.
+Este arquivo descreve o roadmap de épicos vigente para o Runtime TUI Declarativo v2.0.
+Os épicos v1.x focados em "Form Functionality" são considerados material legado de referência e não representam mais o plano principal do produto.
 
-* **Epic 2: Advanced Form Features & User Experience**
-  * **Goal:** Expand form capabilities with advanced field types (numeric, date, file), validation, and improved user experience through better error handling and feedback.
+* **Épico 1: Runtime TUI Declarativo — Fundação do Runtime**
+  * **Meta:** Construir o motor central: layout (`column`/`row`/`box`), componentes essenciais (`list`, `viewport`, `form`, `buttongroup`), lógica de eventos (`on:`), runner genérico (`run: { script: ... }`), `args`, `stdin`, `update_target` e segurança JIT com pilha de modais.
+  * **Detalhamento:** Ver [`docs/prd/epic-1-runtime-tui-foundation.md`](docs/prd/epic-1-runtime-tui-foundation.md:1).
 
-* **Epic 3: Advanced Layouts & Multi-Panel Forms**
-  * **Goal:** Support complex layouts with multiple panels, form sections, and progressive disclosure for sophisticated form experiences.
+* **Épico 2: Runner Especialista (Ansible)**
+  * **Meta:** Introduzir `run: { ansible_playbook: ... }` como runner especializado sobre a fundação genérica, com suporte a `vars`, descoberta de inventário e prompts seguros (ex.: `ask_vault_pass`).
 
-* **Epic 4: SSH Server Mode & Remote Forms**
-  * **Goal:** Implement SSH server mode for remote form execution, enabling administration and distributed system integration.
+* **Épico 3: Runtime Preditivo**
+  * **Meta:** Adicionar componentes de descoberta inteligente (ex.: `playbook_explorer`, `inventory_explorer`) que consomem e apresentam informações no Runtime TUI Declarativo, construídos sobre a fundação do Épico 1.
 
-* **Epic 5: Advanced Components & Interactions**
-  * **Goal:** Add advanced UI components like modals, enhanced selection controls, progress indicators, and sophisticated keyboard navigation.
+* **Épico 4: Administração SSH**
+  * **Meta:** Permitir servir o Runtime TUI Declarativo via SSH (ex.: integração com `wish`), mantendo o mesmo modelo declarativo e políticas de segurança.
 
-* **Epic 6: Form Templates & Reusability**
-  * **Goal:** Create template system and component library for rapid form development and consistency across applications.
+---
 
-* **Epic 7: Internationalization & Localization**
-  * **Goal:** Implement full internationalization support for global adoption with multiple language support and cultural adaptation.
+## Apêndice: Épicos v1.x (Legado / Referência)
+
+Os épicos abaixo NÃO representam mais o roadmap principal, mas servem como insumo histórico e fonte para a refatoração do `FormComponent` dentro do Runtime TUI Declarativo:
+
+* Epic 1: MVP - Core Form Functionality
+* Epic 2: Advanced Form Features & User Experience
+* Epic 3: Advanced Layouts & Multi-Panel Forms
+* Epic 4: SSH Server Mode & Remote Forms
+* Epic 5: Advanced Components & Interactions
+* Epic 6: Form Templates & Reusability
+* Epic 7: Internationalization & Localization

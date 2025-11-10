@@ -1,0 +1,49 @@
+name: "Gate Cross-cutting — Sem os.Exit no core do runtime"
+status: "implemented"
+owner: "bmad-qa"
+severity: "blocker"
+
+scope:
+  - "cmd/shantilly/main.go"
+  - "internal/**"
+  - "docs/architecture/**"
+  - "AGENTS.md"
+
+checks:
+  - id: "osexit-only-in-cli"
+    type: "static_scan"
+    description: "Garantir que os.Exit só exista na casca CLI principal."
+    paths:
+      - "cmd/"
+      - "internal/"
+    patterns_required:
+      - "os.Exit(" # apenas permitido em cmd/shantilly/main.go
+    patterns_forbidden:
+      - "os.Exit("
+    exceptions:
+      - "cmd/shantilly/main.go"
+    expectations:
+      - "Qualquer uso de os.Exit fora de cmd/shantilly/main.go falha o gate."
+    notes:
+      - "Alinhado a AGENTS.md e docs/architecture/introduction.md (constraints invioláveis)."
+
+  - id: "doc-alignment-no-osexit"
+    type: "consistency_check"
+    description: "Documentação deve tratar 'sem os.Exit no core' como regra normativa."
+    paths:
+      - "docs/architecture/introduction.md"
+      - "docs/architecture/error-handling-strategy.md"
+      - "docs/architecture/governance-runtime-tui-v2.0.md"
+      - "AGENTS.md"
+    expectations:
+      - "Documentos mantêm a proibição de os.Exit no core como requisito arquitetural/QA."
+    notes:
+      - "Mudanças nesses documentos que afrouxem a regra devem ser bloqueadas."
+
+enforcement:
+  on_pr:
+    - "run: git grep -n \"os.Exit(\" -- . ':!cmd/shantilly/main.go' || true"
+    - "fail_if_any_forbidden_pattern" # se grep encontrar algo em internal/**, reprovar
+  on_main_branch:
+    - "block_release_if_violations"
+    - "require_all_gate_checks_green"

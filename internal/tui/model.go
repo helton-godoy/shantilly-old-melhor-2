@@ -27,6 +27,16 @@ type Model struct {
 	theme             *Theme           // Tema centralizado para styling
 	terminalWidth     int              // Largura atual do terminal
 	terminalHeight    int              // Altura atual do terminal
+	// Novos campos para UX aprimorada
+	errors    map[string]string // field key -> error message
+	helpTexts map[string]string // field key -> help text
+	completed map[string]bool   // field key -> completion status
+	progress  float64           // completion percentage
+	showHelp  bool              // flag to show/hide help text
+	// Componentes de UX aprimorada
+	errorDisplay      *components.ErrorDisplay
+	helpText          *components.HelpText
+	progressIndicator *components.ProgressIndicator
 }
 
 const (
@@ -38,13 +48,48 @@ const (
 func NewModel(formConfig *config.FormConfig) tea.Model {
 	multiselectValues := &multiselectData{values: make(map[string]*[]string)}
 	form := createForm(formConfig, multiselectValues)
+
+	// Inicializar help texts dos campos
+	helpTexts := make(map[string]string)
+	for _, field := range formConfig.Fields {
+		if field.Help != "" {
+			helpTexts[field.Key] = field.Help
+		}
+	}
+
+	// Criar componentes de UX aprimorada
+	theme := DefaultTheme()
+	errorDisplay := components.NewErrorDisplay(&components.Theme{
+		FieldError: theme.FieldError,
+	})
+	helpText := components.NewHelpText(&components.Theme{
+		FieldInput: theme.FieldInput,
+	})
+	// Inicializar help texts no componente
+	for key, text := range helpTexts {
+		helpText.SetHelpText(key, text)
+	}
+	progressIndicator := components.NewProgressIndicator(&components.Theme{
+		FieldLabel: theme.FieldLabel,
+	})
+
 	return &Model{
 		form:              form,
 		formConfig:        formConfig,
 		multiselectValues: multiselectValues,
-		theme:             DefaultTheme(),
+		theme:             theme,
 		terminalWidth:     defaultTerminalWidth,  // Largura padrão inicial
 		terminalHeight:    defaultTerminalHeight, // Altura padrão inicial
+		// Inicializar novos campos para UX aprimorada
+		errors:    make(map[string]string),
+		helpTexts: helpTexts,
+		completed: make(map[string]bool),
+		progress:  0.0,
+		showHelp:  false,
+		// Inicializar componentes
+		errorDisplay:      errorDisplay,
+		helpText:          helpText,
+		progressIndicator: progressIndicator,
 	}
 }
 
@@ -79,6 +124,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch keyMsg.String() {
 		case "ctrl+c", "q", "esc":
 			return m, tea.Quit
+		case "?":
+			// Toggle help display
+			m.showHelp = !m.showHelp
+			m.helpText.ToggleHelp()
 		}
 	}
 
@@ -88,7 +137,36 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View renderiza a interface do usuário.
 func (m *Model) View() string {
+	// Atualizar o progresso antes de renderizar
+	m.updateProgress()
+
 	formView := m.form.View()
+
+	// Adicionar indicadores de progresso
+	progressView := m.renderProgressIndicator()
+	if progressView != "" {
+		formView = progressView + "\n\n" + formView
+	}
+
+	// Adicionar erros se houver
+	errorView := m.errorDisplay.Render()
+	if errorView != "" {
+		formView += "\n\n" + errorView
+	}
+
+	// Adicionar texto de ajuda se ativado
+	if m.showHelp {
+		helpView := m.renderHelpText()
+		if helpView != "" {
+			formView += "\n\n" + helpView
+		}
+	}
+
+	// Adicionar atalhos de teclado
+	shortcutsView := m.renderKeyboardShortcuts()
+	if shortcutsView != "" {
+		formView += "\n\n" + shortcutsView
+	}
 
 	// Aplicar container styling com padding
 	containerStyle := m.theme.Container
@@ -105,25 +183,6 @@ func (m *Model) View() string {
 	return containerView
 }
 
-// Styles define os estilos para a TUI.
-type Styles struct {
-	Title lipgloss.Style
-	Body  lipgloss.Style
-}
-
-// DefaultStyles retorna os estilos padrão.
-func DefaultStyles() Styles {
-	return Styles{
-		Title: lipgloss.NewStyle().
-			Foreground(lipgloss.Color("205")).
-			Bold(true).
-			Align(lipgloss.Center),
-		Body: lipgloss.NewStyle().
-			Foreground(lipgloss.Color("241")).
-			Align(lipgloss.Center),
-	}
-}
-
 // createForm cria um huh.Form a partir da configuração e retorna os valores multiselect.
 func createForm(formConfig *config.FormConfig, multiselectValues *multiselectData) *huh.Form {
 	var fields []huh.Field
@@ -131,6 +190,12 @@ func createForm(formConfig *config.FormConfig, multiselectValues *multiselectDat
 	// Create fields based on configuration
 	for i := range formConfig.Fields {
 		field := &formConfig.Fields[i] // Use pointer to avoid copying
+
+		// Inicializar help text se disponível
+		if field.Help != "" {
+			// helpTexts será inicializado no NewModel
+		}
+
 		switch field.Type {
 		case "input":
 			fields = append(fields, huh.NewInput().
@@ -283,29 +348,24 @@ func (m *Model) collectFormData() map[string]interface{} {
 
 // displayValidationErrors exibe os erros de validação na tela
 func (m *Model) displayValidationErrors(results map[string]config.ValidationResult) {
-	fmt.Print("\033[2J\033[H") // Limpar tela
+	// Limpar erros anteriores
+	m.errorDisplay.ClearErrors()
 
 	validator := config.NewFieldValidator()
 	allErrors := validator.GetAllErrors(results)
 
-	fmt.Println(m.theme.FormTitle.Render("Erros de Validação"))
-	fmt.Println()
+	// Adicionar erros ao componente de exibição
+	for _, err := range allErrors {
+		m.errorDisplay.SetError(err.Field, err.Message)
+		// Populate the model's own error map for other logic to use
+		m.errors[err.Field] = err.Message
+	}
 
-	if len(allErrors) == 0 {
-		fmt.Println("Nenhum erro encontrado.")
+	// Se houver erros, não submeter - manter formulário ativo
+	if len(allErrors) > 0 {
+		// Os erros serão exibidos na próxima renderização da View()
 		return
 	}
-
-	for _, err := range allErrors {
-		errorStyle := m.theme.FieldError
-		fmt.Println(errorStyle.Render(err.Message))
-	}
-
-	fmt.Println()
-	fmt.Println("Pressione Enter para continuar e corrigir os erros...")
-
-	// Aguardar entrada do usuário
-	fmt.Scanln()
 }
 
 // Start inicia a aplicação Bubble Tea.
@@ -317,3 +377,114 @@ func Start(cfg *config.FormConfig) error {
 	}
 	return nil
 }
+
+// setError define uma mensagem de erro para um campo específico
+func (m *Model) setError(fieldKey, message string) {
+	m.errors[fieldKey] = message
+}
+
+// clearError remove o erro de um campo específico
+func (m *Model) clearError(fieldKey string) {
+	delete(m.errors, fieldKey)
+}
+
+// getFieldHelp retorna o texto de ajuda para um campo específico
+func (m *Model) getFieldHelp(fieldKey string) string {
+	if help, exists := m.helpTexts[fieldKey]; exists {
+		return help
+	}
+	return ""
+}
+
+// updateProgress calcula e atualiza a porcentagem de progresso do formulário
+func (m *Model) updateProgress() {
+	totalFields := 0
+	completedFields := 0
+
+	formData := m.collectFormData()
+
+	for _, field := range m.formConfig.Fields {
+		if field.Type == "note" {
+			continue // Notes não contam para progresso
+		}
+		totalFields++
+		// Check if the field has a non-empty value
+		if val, ok := formData[field.Key]; ok && val != nil {
+			isCompleted := false
+			switch v := val.(type) {
+			case string:
+				if v != "" {
+					isCompleted = true
+				}
+			case []string:
+				if len(v) > 0 {
+					isCompleted = true
+				}
+			case bool:
+				if v { // Consider 'true' for confirm as completed
+					isCompleted = true
+				}
+			default:
+				// For other types like number, date, file, a non-nil value is enough
+				isCompleted = true
+			}
+			m.completed[field.Key] = isCompleted
+		}
+
+		if m.completed[field.Key] {
+			completedFields++
+		}
+	}
+
+	if totalFields > 0 {
+		m.progress = (float64(completedFields) / float64(totalFields)) * 100
+	} else {
+		m.progress = 0
+	}
+	m.progressIndicator.UpdateProgress(completedFields, totalFields)
+}
+
+// renderProgressIndicator renderiza o indicador de progresso
+func (m *Model) renderProgressIndicator() string {
+	completed := 0
+	total := 0
+	for _, field := range m.formConfig.Fields {
+		if field.Type != "note" {
+			total++
+			if m.completed[field.Key] {
+				completed++
+			}
+		}
+	}
+	m.progressIndicator.UpdateProgress(completed, total)
+	return m.progressIndicator.Render()
+}
+
+// renderHelpText renderiza o texto de ajuda atual
+func (m *Model) renderHelpText() string {
+	// Solução simplificada: mostra a ajuda para o primeiro campo com erro.
+	if len(m.errors) > 0 {
+		for key := range m.errors {
+			// Apenas pegue o primeiro erro que encontrarmos. A ordem não é garantida.
+			m.helpText.SetCurrentField(key)
+			return m.helpText.Render()
+		}
+	}
+
+	// Se não houver erros, não mostre nenhuma ajuda contextual.
+	m.helpText.SetCurrentField("")
+	return m.helpText.Render()
+}
+
+// renderKeyboardShortcuts renderiza os atalhos de teclado disponíveis
+func (m *Model) renderKeyboardShortcuts() string {
+	shortcuts := []string{
+		"? - Mostrar/ocultar ajuda",
+		"Ctrl+C - Sair",
+	}
+	return m.theme.Base.Render("Atalhos: " + strings.Join(shortcuts, " | "))
+}
+
+// navigateToNextError (removido) - A API do huh não suporta foco programático
+// de uma forma que torne esta funcionalidade trivial. A sinalização visual
+// do erro é a principal forma de feedback por agora.

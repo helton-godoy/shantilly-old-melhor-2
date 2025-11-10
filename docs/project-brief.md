@@ -2,7 +2,30 @@
 
 ## Executive Summary
 
-shantilly is a modern command-line tool designed to build complex and interactive TUI (Terminal User Interfaces) for shell scripts in a declarative and simplified manner. The project aims to solve the limitations of traditional tools like `dialog` and `whiptail`, offering script developers (Linux, macOS, Windows) a powerful and easy way to create rich UIs, including forms, layouts, mouse support, and themes, distributed as a single static binary. The key value proposition lies in simplifying the creation of modern and portable TUIs for automation and interaction in terminal environments.
+shantilly nasce para resolver o problema clássico identificado neste brief: as limitações de ferramentas como `dialog` e `whiptail` para criar experiências interativas ricas em scripts. Esse problema permanece 100% válido.
+
+A visão v2.0, consolidada a partir dos documentos em `docs/chats` e formalizada em [`docs/prd.md`](docs/prd.md:1) e [`docs/architecture.md`](docs/architecture.md:1), pivota o shantilly de um simples "subcomando de formulário" para um **Runtime TUI Declarativo** completo.
+
+Em vez de ser apenas uma ferramenta chamada por scripts para exibir um único formulário, shantilly torna-se um motor declarativo que:
+
+- Consome um YAML único como fonte de verdade.
+- Constrói um layout hierárquico (`column`, `row`, `box`) com múltiplos componentes TUI.
+- Orquestra eventos (`on:`) e ações (`run:`) para automações de backend.
+- Expõe um fluxo de dados claro via `args` e `stdin` para scripts.
+- Garante segurança Just-In-Time (JIT) com confirmações e coleta de segredos via modais em pilha.
+- Opera como um binário único, portátil e cross-platform.
+
+A solução é estruturada em duas camadas estratégicas:
+
+1. Fundação Genérica (Épico 1):
+   - Runtime TUI Declarativo orientado a eventos.
+   - Motores centrais: `LayoutManager` (layout + foco + pilha modal), `EventManager` (roteamento de eventos para `on:`) e `ScriptRunner` (execução de ações `run:` com `args`/`stdin` e `update_target`).
+   - Componentes essenciais integrados: `form` (refatorado do v1.0 como `FormComponent`), `list`, `viewport`, `buttongroup`.
+
+2. Especializações (Épicos 2+):
+   - Runners e componentes de alto nível, como `run: { ansible_playbook: ... }`, exploradores preditivos (playbooks/inventory) e modo SSH, construídos sobre a fundação genérica.
+
+Com isso, o shantilly continua atendendo o problema original dos desenvolvedores de scripts, mas agora como um runtime declarativo robusto para dashboards TUI e automação interativa, em vez de um utilitário restrito a um único formulário.
 
 ## Problem Statement
 

@@ -1,0 +1,82 @@
+name: "Gate E1.5 — Modal Stack única + Segurança JIT (Wave 5, parte 1)"
+status: "implemented"
+owner: "bmad-qa"
+severity: "blocker"
+
+scope:
+  - "internal/runtime/modal/**"
+  - "internal/runtime/event/**"
+  - "internal/runtime/layout/**"
+  - "docs/architecture/**"
+  - "AGENTS.md"
+
+checks:
+  - id: "modalstack-location"
+    type: "static_scan"
+    description: "Implementações de Modal Stack só podem existir em internal/runtime/modal/**."
+    paths:
+      - "internal/"
+    patterns_required:
+      - "type ModalStack"
+    patterns_forbidden:
+      - "ModalStack"
+    allow_paths:
+      - "internal/runtime/modal/"
+    expectations:
+      - "Qualquer uso de ModalStack fora de internal/runtime/modal/** é violação."
+    notes:
+      - "Ver docs/architecture/components.md#6-modal-stack--e15 e governance-runtime-tui-v2.0.md#4-wave-5--modal-stack--seguranca-jit-e15--parte-1."
+
+  - id: "no-loose-modals"
+    type: "static_scan"
+    description: "Proibir abertura/gestão de modais fora do pipeline ShantillyEvent → EventManager → on: → ModalRequest → Modal Stack."
+    paths:
+      - "internal/"
+    patterns_forbidden:
+      - "OpenModal("
+      - "ShowModal("
+      - "prompt("
+      - "confirm("
+    exceptions:
+      - "internal/runtime/modal/"
+      - "internal/runtime/event/"
+    expectations:
+      - "Nenhum componente, LayoutManager ou legado cria modais diretos ou prompts soltos."
+    notes:
+      - "Alinha com AGENTS.md e docs/architecture/components.md (proibição de modais soltos)."
+
+  - id: "top-only-focus"
+    type: "test_policy"
+    description: "Testes garantem que apenas o topo da pilha recebe eventos e foco; fundo bloqueado com modal ativo."
+    required_tests:
+      - "internal/runtime/modal"
+    expectations:
+      - "Com múltiplos modais empilhados, somente o topo processa input."
+      - "Enquanto houver modal, plano de fundo não recebe eventos."
+    notes:
+      - "Coberto em internal/runtime/modal/stack_test.go e futuros testes de integração."
+
+  - id: "jit-security-confirm-and-secrets"
+    type: "test_policy"
+    description: "Confirm/prompt_secrets sempre via Modal Stack; segredos nunca logados/persistidos."
+    required_tests:
+      - "internal/runtime/modal"
+      - "internal/runtime/event"
+      - "internal/runtime/runner"
+    expectations:
+      - "RunAction.Confirm gera ModalRequest antes de ScriptRunner."
+      - "RunAction.PromptSecrets gera ModalRequest com campos secretos."
+      - "Segredos apenas em memória; não aparecem em logs/arquivos."
+    notes:
+      - "Rastreado em docs/architecture/security.md#4-modal-stack-e-seguranca-jit-e15."
+
+enforcement:
+  on_pr:
+    - "run: go test ./internal/runtime/modal/..."
+    - "run: go vet ./internal/runtime/modal/..."
+    - "run: golangci-lint run ./internal/runtime/modal/..."
+    - "fail_if_any_forbidden_pattern"
+    - "fail_if_missing_required_tests"
+  on_main_branch:
+    - "block_release_if_violations"
+    - "require_all_gate_checks_green"

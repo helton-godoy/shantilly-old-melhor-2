@@ -27,4 +27,6 @@ type Field struct {
 	FileTypes []string `yaml:"fileTypes,omitempty" json:"fileTypes,omitempty"`
 	MinLength int      `yaml:"minLength,omitempty" json:"minLength,omitempty"`
 	MaxLength int      `yaml:"maxLength,omitempty" json:"maxLength,omitempty"`
+	// Novos campos para UX aprimorada
+	Help string `yaml:"help,omitempty" json:"help,omitempty"`
 }

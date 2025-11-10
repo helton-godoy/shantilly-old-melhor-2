@@ -65,7 +65,7 @@ var ErrAborted = errors.New("operation aborted by user")
 // It assumes successful exit (code 0) if err is nil.
 func Handle(err error) {
  if err == nil {
-  os.Exit(ExitOK) // Success path
+  os.Exit (apenas permitido em cmd/shantilly; é proibido em internal/runtime/** conforme governance-runtime-tui-v2.0)(ExitOK) // Success path
  }
 
  exitCode := ExitError // Default to general error
@@ -83,6 +83,6 @@ func Handle(err error) {
   // e.g., check for YAML parsing errors and provide line numbers if possible from yaml.v3.
  }
 
- os.Exit(exitCode)
+ os.Exit (apenas permitido em cmd/shantilly; é proibido em internal/runtime/** conforme governance-runtime-tui-v2.0)(exitCode)
 }
 ```

@@ -1,282 +1,402 @@
-# shantilly Architecture Document
+# Documento de Arquitetura Shantilly (v2.0)
 
-## Introduction
+## 1. Introdução
 
-This document outlines the overall technical architecture for the `shantilly` project. Its primary goal is to serve as the guiding architectural blueprint for AI-driven development, ensuring consistency and adherence to chosen patterns and technologies.
+Este documento descreve a arquitetura geral do projeto Shantilly v2.0, focando no **Runtime TUI Declarativo (Épico 1)** .
+ Ele serve como o plano arquitetônico orientador para o desenvolvimento
+ orientado por IA, garantindo consistência e adesão aos padrões e
+ tecnologias escolhidos.
 
-`shantilly` is a monolithic Command Line Interface (CLI) application, written in Go. It operates as a terminal pipeline: receiving a TUI definition in YAML format via `stdin` or `--file`, rendering an interactive TUI (using `charmbracelet/bubbletea` and `charmbracelet/huh`), collecting user input, and upon submission, emitting the collected data as a structured JSON object to `stdout`.
+### Fundação do Projeto (Refatoração do v1.0)
 
-This document focuses on the backend/CLI systems and non-web UI concerns.
-
-### Starter Template or Existing Project
-
-N/A. This is a greenfield project that will not be based on a starter template. The structure will be built from scratch, following standard Go conventions and utilizing the core libraries identified in the PRD (Go, `spf13/cobra`, `charmbracelet/bubbletea`, `charmbracelet/huh`, `charmbracelet/lipgloss`, `gopkg.in/yaml.v3`) and the user-provided project template files.
+Esta arquitetura v2.0 não se baseia em um *template* inicial (starter) externo. Em vez disso, ela **absorve e refatora** o código validado do MVP v1.0 (analisado do repositório, ex: `internal/tui/model.go`, `internal/config/parser.go`), conforme definido no PRD v2.0 (Estória 1.4) . O código v1.0 existente (implementando `type: form` ) servirá como a fundação para o componente de formulário dentro do novo Runtime TUI.
 
 ### Change Log
 
-| Date       | Version | Description                                          | Author              |
-|:-----------|:--------|:-----------------------------------------------------|:--------------------|
-| 2025-10-23 | 0.1.0   | Initial draft based on PRD v0.2.0.                   | Winston (Architect) |
-| 2025-10-23 | 0.2.0   | Incorporated user template files and decisions.      | Winston (Architect) |
-| 2025-10-23 | 0.2.1   | Added `--file` input, cancel workflow, wizard logic. | Winston (Architect) |
-| 2025-10-23 | 0.3.0   | Added Checklist Results and Next Steps sections.     | Winston (Architect) |
+| Data       | Versão | Descrição                                          | Autor               |
+| ---------- | ------ | -------------------------------------------------- | ------------------- |
+| 08/11/2025 | 2.0.0  | Rascunho inicial da arquitetura v2.0 (Runtime TUI) | Winston (Arquiteto) |
 
-## High Level Architecture
+## 2. Arquitetura de Alto Nível
 
-### Technical Summary
+Esta seção estabelece a fundação da arquitetura v2.0 do Runtime TUI.
 
-The `shantilly` architecture is a **Monolithic CLI Application**, written in Go (v1.24.2+) and distributed as a single static binary. It operates as a terminal pipeline application, adhering to a strictly linear, declarative data flow: `YAML (stdin/--file) -> TUI -> JSON (stdout)`. `spf13/cobra` manages the CLI command structure, while `gopkg.in/yaml.v3` parses the input. `charmbracelet/bubbletea` (based on The Elm Architecture) manages the TUI state, and `charmbracelet/huh` is used to dynamically render form components based on the parsed YAML configuration. `charmbracelet/lipgloss` will provide basic styling and layout. Error conditions result in messages on `stderr` and non-zero exit codes.
+#### Resumo Técnico
 
-### High Level Overview
+A arquitetura do Shantilly v2.0 é um **Runtime TUI Declarativo orientado a eventos**. A aplicação consumirá um único arquivo YAML que define (1) um layout de UI complexo (usando `column`, `row`, `box` ), (2) os componentes TUI (`list`, `viewport`, `form` ) dentro desse layout, e (3) a lógica de automação (`on:`) que reage a eventos da UI. A arquitetura é baseada em Go, utilizando `bubbletea` para o ciclo de vida da UI, `lipgloss` para o motor de layout/estilo, e `huh` (refatorado do v1.0) para o componente de formulário.
 
-Based on the PRD requirements:
+#### Visão Geral de Alto Nível
 
-1. **Architectural Style:** Monolithic CLI Application. The application executes, processes input, and terminates. No network services or data persistence are within the MVP scope.
-2. **Repository Structure:** Simple Go Monorepo (`cmd/` and `internal/`), based on the user-provided template.
-3. **Service Architecture:** N/A (Monolithic).
-4. **Primary Data Flow:**
-    * A shell script executes `shantilly form` piping YAML to `stdin` OR using `--file path/to/form.yaml`.
-    * The `cobra` command reads input (stdin or file).
-    * The `Parser (gopkg.in/yaml.v3)` decodes the YAML into internal Go structs.
-    * The `TUI Engine (bubbletea + huh)` receives these structs, dynamically builds a `huh.Form`, and renders the interactive TUI.
-    * The user interacts with the TUI (managed by the `bubbletea` event loop).
-    * Upon successful submission, the TUI collects data into Go structs/maps.
-    * The `JSON Encoder` serializes the output data to `stdout`.
-    * Any errors (e.g., YAML parse failure, user cancellation) are reported to `stderr` with non-zero exit codes (NFR8).
-5. **Wizard Implementation:** Multi-step forms (wizards) are orchestrated by the *calling shell script*, which chains multiple `shantilly form` executions, passing data between steps via script logic. `shantilly` itself remains stateless for each invocation.
-6. **Dynamic YAML Data:** Populating YAML templates with dynamic data (e.g., variables) is the responsibility of the *calling shell script* (using tools like `envsubst`, `sed`, `jq`, etc.) *before* passing the final YAML to `shantilly`.
+1. **Estilo Arquitetural:** Runtime TUI Declarativo e Orientado a Eventos.
 
-### High Level Project Diagram
+2. **Estrutura do Repositório:** Monorepo Go (conforme PRD v2.0 e validado no v1.0).
 
-```mermaid
-graph LR
-    subgraph "User / Shell Script"
+- **Fluxo de Dados Conceitual:**
+
+  1. `shantilly` é executado com um YAML.
+
+  2. O **Parser (YAML)** (Estória 1.1) lê a definição de `layout` e `on:`.
+
+- O **Motor de Layout (Lipgloss)** (Estória 1.1) renderiza a UI (`column`/`row`/`box`) .
+
+- Os **Componentes (Bubbles)** (ex: `list`, `form` ) (Estórias 1.3, 1.4) são inseridos no layout.
+
+- O usuário interage (ex: envia um `form` ).
+
+- O Componente emite uma `tea.Msg` padronizada (`shantillyEvent`).
+
+- O **Motor de Eventos (on:)** (Estória 1.2) captura esta mensagem.
+
+- O Motor de Eventos localiza um *handler* correspondente no YAML.
+
+- O **Runner (Script)** (Estória 1.5) é executado, passando dados (via `args:` / `stdin:` ).
+
+- O *stdout* do script é (opcionalmente) roteado para um `viewport` (FR11) .
+
+#### Diagrama do Projeto de Alto Nível (Fluxo v2.0)
+
+Snippet de código
+
+```
+graph TD
+    subgraph Shantilly Runtime
         direction TB
-        YAML_SRC[YAML Source<br/>stdin OR --file] -- YAML --> CLI(shantilly form)
-        CLI -- JSON (on success) --> STDOUT[stdout]
-        CLI -- Errors / Cancel Info --> STDERR[stderr]
+        A[Arquivo YAML] --> B[Parser YAML];
+        B --> C[Motor de Layout (lipgloss)];
+        B --> D[Motor de Eventos (on:)];
+
+        C -- Renderiza --> E[Componentes TUI (bubbles)];
+        E -- Evento de UI (tea.Msg) --> D;
+
+        D -- Dispara Ação --> F[Runner (script:)];
     end
 
-    subgraph "'shantilly' Application (Go)"
-        direction LR
-        CLI -- string / bytes --> PARSER(YAML Parser<br/>gopkg.in/yaml.v3)
-        PARSER -- config.FormConfig --> TUI(TUI Engine<br/>bubbletea + huh)
-        PARSER -- Parse Error --> ERR(Error Handler)
-
-        TUI <--> USER_INTERACTION(User Interaction<br/>Keyboard)
-
-        TUI -- Submitted Data (map) --> ENCODER(JSON Encoder)
-        TUI -- User Cancel / TUI Error --> ERR
-
-        ENCODER -- JSON string --> CLI
-        ERR -- Error message / Exit code --> CLI
+    subgraph Usuário
+        direction TB
+        G[Usuário] <-->|Interage com| E;
     end
 
-    style TUI fill:#f9f,stroke:#333,stroke-width:2px
-    style PARSER fill:#ccf,stroke:#333,stroke-width:2px
-    style ENCODER fill:#ccf,stroke:#333,stroke-width:2px
+    subgraph Sistema Externo
+        direction TB
+        F -- (SIGTERM, args, stdin) --> H[Script.sh];
+        H -- stdout/stderr --> F;
+        F -- (Opcional) Atualiza --> E;
+    end
+
+    style A fill:#FFF,stroke:#333,stroke-width:2px
+    style H fill:#EFEFEF,stroke:#333,stroke-width:2px
 ```
 
-### Architectural and Design Patterns
+#### Padrões Arquiteturais e de Design
 
-* **Command Line Interface (CLI):** Managed by `spf13/cobra` for command structure, flags (`--file`), and stdin reading.
-* **Pipeline / Filter:** Acts as a classic Unix filter: reads data, transforms it (via user interaction), writes data.
-* **Declarative UI:** The core pattern. UI is defined in YAML, not hardcoded.
-* **The Elm Architecture (TEA):** Used by `charmbracelet/bubbletea` to manage TUI state via `Model -> Update -> View`. The `huh.Form` will be embedded within the `bubbletea` Model.
-* **Modular Monolith (Internal):** Code organized into Go packages (`internal/config`, `internal/tui`, `internal/util`) for separation of concerns and testability.
+- **Padrão 1: UI Declarativa (Declarative UI):** A UI é definida por *dados* (YAML), não por código imperativo (FR1) .
 
-## Tech Stack
+- **Padrão 2: Orientado a Eventos (Event-Driven):** O `bubbletea` e o motor `on:` se comunicarão via mensagens (`tea.Msg`).
 
-### Build and Distribution Infrastructure
+- **Refinamento A (Turno 5):** Usaremos um `struct` padronizado `shantillyEvent` para desacoplar componentes (como o `form` v1.0) do `EventManager` (Estória 1.2) .
 
-* **Build Platform:** GitHub Actions.
-* **Key Services:**
-  * `golangci-lint` (for code linting, configured via `.golangci.yml`).
-  * `GoReleaser` (for build automation, cross-compilation, packaging, configured via `.goreleaser.yaml`).
-* **Deployment Target (Distribution):** GitHub Releases.
-* **Regions:** N/A (global binary distribution).
+- **Padrão 3: "Gestor Duplo" (Layout & Foco) (ToT, Turno 6):**
 
-### Technology Stack Table
+  - O `LayoutManager` (Estória 1.1) é um `bubbletea.Model` raiz único que gerencia *tanto* a **Renderização** (em `View`, para NFR2 "flicker-free" ) quanto o **Foco Global** (em `Update`, encaminhando teclas apenas para o filho ativo) (Meta de UI) .
 
-This table is the single source of truth for project dependencies. Versions are based on the user-provided template and current stable releases (as of late 2025).
+- **Padrão 4: Padrão Adaptador (Wrapper) (Estória 1.4):**
 
-| Category           | Technology                | Version | Purpose                                     | Rationale                                                                   |
-|:-------------------|:--------------------------|:--------|:--------------------------------------------|:----------------------------------------------------------------------------|
-| **Language**       | Go                        | 1.24.2+ | Primary development language                | Requirement (NFR3), User Template (`go.mod`). Modern, fast, static builds.  |
-| **CLI Framework**  | `spf13/cobra`             | v1.8.x  | Core CLI structure (commands, flags, stdin) | Requirement (FR1). Go standard.                                             |
-| **TUI Engine**     | `charmbracelet/bubbletea` | v0.26.x | TUI state management (TEA)                  | Requirement (FR4), User Template (`go.mod`). Powerful, flexible.            |
-| **TUI Components** | `charmbracelet/huh`       | v0.4.x  | Declarative TUI form generation             | Requirement (FR3). Drastically simplifies form creation.                    |
-| **TUI Styling**    | `charmbracelet/lipgloss`  | v0.11.x | Terminal styling (colors, layout)           | Requirement (FR7), User Template (`go.mod`). Needed for alignment.          |
-| **YAML Parsing**   | `gopkg.in/yaml.v3`        | v3.0.x  | Decoding `stdin`/file YAML to Go structs    | Requirement (Story 1.2). Robust and widely used.                            |
-| **Testing**        | `testing` (Go Stdlib)     | 1.24.2+ | Unit testing (MVP focus)                    | Go standard (PRD Tech Assumptions).                                         |
-| **Linter**         | `golangci-lint`           | v1.59.x | Static analysis, code quality               | Best practice. User Template (`.golangci.yml`, `.pre-commit-config.yaml`).  |
-| **Formatter**      | `gofumpt`                 | latest  | Strict code formatting                      | Best practice. User Template (`.pre-commit-config.yaml`, `lint.sh`).        |
-| **Build/Release**  | `GoReleaser`              | v1.26.x | Build automation, cross-compilation (NFR2)  | Best practice. User Template (`.goreleaser.yaml`). Simplifies distribution. |
-| **Pre-commit**     | `pre-commit` framework    | latest  | Local quality checks before commit          | Best practice. User Template (`.pre-commit-config.yaml`).                   |
+  - O código `huh.Form` (v1.0) será "embrulhado" (wrapped) por um adaptador (Estória 1.4) que implementa a `ShantillyComponent` (Refinamento A) .
 
-## Data Models
+- Este adaptador irá *traduzir* eventos internos (ex: `huh.SubmitMsg`) para a `shantillyEvent` padronizada (ToT, Turno 7) .
 
-### FormConfig (Input - YAML)
+## 3. Pilha de Tecnologias (Tech Stack)
 
-**Purpose:** Represents the YAML structure read from `stdin` or `--file`. Defines the form to be rendered. Used by `gopkg.in/yaml.v3` for unmarshalling.
+A pilha a seguir é a referência única para o Runtime TUI Declarativo v2.0 (Épico 1). Todos os agentes (Dev/QA/SM/IA) devem considerá-la vinculante.
 
-**Key Attributes (Go Structs):**
+### 3.1. Build e Distribuição
+
+- Build: GitHub Actions.
+- Lint: `golangci-lint` (configurado em `.golangci.yml`).
+- Build/Release: `GoReleaser` (configurado em `.goreleaser.yaml`).
+- Saída: binários estáticos para Linux/macOS/Windows via GitHub Releases.
+
+### 3.2. Stack de Runtime e TUI
+
+| Categoria              | Tecnologia                    | Versão sugerida | Uso Arquitetural                                                                                      |
+|------------------------|------------------------------|-----------------|--------------------------------------------------------------------------------------------------------|
+| Linguagem              | Go                           | 1.24.2+         | Base do runtime, compilação estática.                                                                  |
+| CLI Framework          | `spf13/cobra`                | 1.8.x+          | Organização de comandos/flags; entrada `stdin/--file`.                                                 |
+| Motor TUI              | `charmbracelet/bubbletea`    | 0.26.x+         | Loop TEA; base para `LayoutManager`, `EventManager` e componentes.                                     |
+| Layout/Estilo          | `charmbracelet/lipgloss`     | 0.10.x+         | Layout `column/row/box`, estilos e responsividade.                                                     |
+| Formulários            | `charmbracelet/huh`          | 0.5.x+          | Base do `FormComponent` (wrapper v1.0 → v2.0).                                                         |
+| Componentes TUI        | `charmbracelet/bubbles`      | 0.18.x+         | `list`, `viewport`, etc. para componentes declarativos.                                                |
+| Markdown               | `charmbracelet/glamour`      | 0.7.x+          | Renderização de markdown em `viewport`.                                                               |
+| YAML                   | `gopkg.in/yaml.v3`           | 3.x             | Parser para layout + lógica (`Config`, `LayoutNode`, `Component`, `Logic`).                           |
+| Teste TUI              | `charmbracelet/teatest`      | 0.6.x+          | Testes de integração TUI automatizados (obrigatórios para layout/foco).                               |
+| Teste Unitário         | `testing` (stdlib)           | -               | Cobertura de `config`, `runtime`, componentes.                                                         |
+| Qualidade              | `golangci-lint`, `gofumpt`   | -               | Padrões de código e formatação obrigatórios.                                                           |
+
+Decisões chave:
+
+- Charmbracelet é a pilha oficial completa.
+- `teatest` é obrigatório para validar NFR2 (layout fluido, foco) e mitigações de risco.
+- Não há dependência de frameworks web ou bancos externos no Épico 1.
+
+## 4. Modelos de Dados (Data Models)
+
+Os modelos de dados v2.0 formalizam o YAML como a linguagem declarativa do Runtime TUI. Eles substituem o modelo linear `FormConfig` como fonte de verdade, incorporando layout, componentes e lógica de eventos.
+
+A implementação concreta deve residir em [`pkg/declarative/models.go`](pkg/declarative/models.go:1) e ser usada pelo parser v2.0 e pelos motores `runtime/`.
+
+### 4.1. Config (Raiz)
+
+Representa o documento YAML completo.
+
+Conceito (YAML):
+
+- Raiz contém:
+  - Nós de layout (`type: column|row|box`).
+  - Bloco de lógica `on:` (lista de regras).
+
+Contrato sugerido:
 
 ```go
-// Location: internal/config/config.go
+// pkg/declarative/models.go
 
-package config
-
-// FormConfig is the root structure parsed from YAML.
-type FormConfig struct {
- Title  string  `yaml:"title,omitempty" json:"title,omitempty"` // Optional title (PRD).
- Fields []Field `yaml:"fields" json:"fields"`                   // Required list of fields (PRD).
-}
-
-// Field defines a single form field (component).
-type Field struct {
- // --- Required Attributes (MVP) ---
- Key   string `yaml:"key" json:"key"`   // Unique ID for JSON output (FR6).
- Label string `yaml:"label" json:"label"` // Display text in TUI.
- Type  string `yaml:"type" json:"type"`  // Maps to 'huh' component (FR3).
-                           // Expected: "input", "textarea", "select", "multiselect", "confirm", "note"
-
- // --- Optional Attributes (Based on PRD examples) ---
- Placeholder string   `yaml:"placeholder,omitempty" json:"placeholder,omitempty"` // Hint text for input/textarea.
- Value       string   `yaml:"value,omitempty" json:"value,omitempty"`       // Default value.
- Options     []string `yaml:"options,omitempty" json:"options,omitempty"`     // Choices for select/multiselect.
- Limit       int      `yaml:"limit,omitempty" json:"limit,omitempty"`       // Max selections for multiselect (0=unlimited).
- Affirmative string   `yaml:"affirmative,omitempty" json:"affirmative,omitempty"` // "Yes" text for confirm.
- Negative    string   `yaml:"negative,omitempty" json:"negative,omitempty"`    // "No" text for confirm.
- Title       string   `yaml:"title,omitempty" json:"title,omitempty"`        // Optional field title.
- Detail      string   `yaml:"detail,omitempty" json:"detail,omitempty"`      // Body text for note.
+type Config struct {
+    Root LayoutNode `yaml:",inline"`      // Layout raiz (column/row/box)
+    On   []Logic    `yaml:"on,omitempty"` // Regras de eventos (FR8)
 }
 ```
 
-**Relationships:**
+### 4.2. LayoutNode
 
-* A `FormConfig` HAS MANY `Field`.
-
-### FormData (Output - JSON)
-
-**Purpose:** Represents the data collected from the user upon successful form submission. Will be serialized to `stdout` (FR6).
-
-**Key Attributes (Go Type):**
-
-* As keys are user-defined in YAML (`key`), this is not a static Go struct.
-* The Go type used for collection and serialization will be: `map[string]interface{}`
-* The `string` key is the `key` from `Field`, and the `interface{}` value is the user input (`string`, `[]string`, or `bool`).
-
-**Relationships:**
-
-* This map is the final output of the `huh.Form` interaction, generated from `FormConfig`.
-
-## Components
-
-### Frontend Architecture (TUI)
-
-#### Centralized Styling Theme
-
-**Lipgloss Theme Definition:**
-
-To ensure consistent styling across all TUI components and prevent styling-related rendering issues, define a centralized theme using `lipgloss`:
+Modela a árvore de layout hierárquica (FR1, FR2, FR3).
 
 ```go
-// Location: internal/tui/theme.go
-
-package tui
-
-import "github.com/charmbracelet/lipgloss"
-
-// Theme defines the centralized styling for all TUI components
-type Theme struct {
-    // Base styles
-    Base lipgloss.Style
-
-    // Form-specific styles
-    FormTitle lipgloss.Style
-    FieldLabel lipgloss.Style
-    FieldInput lipgloss.Style
-    FieldError lipgloss.Style
-
-    // Layout styles
-    Container lipgloss.Style
-    Border lipgloss.Style
-}
-
-// NewTheme creates a new theme with consistent styling
-func NewTheme() Theme {
-    return Theme{
-        Base: lipgloss.NewStyle().
-            Padding(1, 2),
-
-        FormTitle: lipgloss.NewStyle().
-            Bold(true).
-            Foreground(lipgloss.Color("#FAFAFA")).
-            Background(lipgloss.Color("#7D56F4")).
-            Padding(0, 1),
-
-        FieldLabel: lipgloss.NewStyle().
-            Bold(true).
-            Foreground(lipgloss.Color("#FAFAFA")),
-
-        FieldInput: lipgloss.NewStyle().
-            Border(lipgloss.RoundedBorder()).
-            BorderForeground(lipgloss.Color("#7D56F4")).
-            Padding(0, 1),
-
-        FieldError: lipgloss.NewStyle().
-            Foreground(lipgloss.Color("#FF0000")).
-            Italic(true),
-
-        Container: lipgloss.NewStyle().
-            Border(lipgloss.RoundedBorder()).
-            BorderForeground(lipgloss.Color("#7D56F4")).
-            Padding(1, 2),
-
-        Border: lipgloss.NewStyle().
-            Border(lipgloss.RoundedBorder()).
-            BorderForeground(lipgloss.Color("#7D56F4")),
-    }
+type LayoutNode struct {
+    Type   string       `yaml:"type"`             // "column" | "row" | "box"
+    ID     string       `yaml:"id,omitempty"`     // ex: "sidebar", "content"
+    Width  string       `yaml:"width,omitempty"`  // ex: "30%", "70%"
+    Height int          `yaml:"height,omitempty"` // linhas fixas
+    Flex   int          `yaml:"flex,omitempty"`   // proporção de espaço
+    Items  []LayoutNode `yaml:"items,omitempty"`  // filhos para column/row
+    // Para type: box
+    Component *Component `yaml:"component,omitempty"`
 }
 ```
 
-**Usage Guidelines:**
+Regras:
 
-* **Mandatory Application:** All TUI components must use styles from the centralized theme.
-* **Consistency:** Apply theme styles uniformly across all form fields and layout elements.
-* **Responsive Design:** Theme styles should work across different terminal sizes (validated via `teatest`).
-* **Maintenance:** Update theme definitions in one place to maintain visual coherence.
+- `column/row` DEVEM usar `items`.
+- `box` PODE conter exatamente um `component`.
+- IDs devem ser únicos na árvore (para foco, eventos, update_target).
 
-### Component List
+### 4.3. Component
 
-**`CLI (CobraCmd)`**
+Abstrai os componentes TUI declarativos (FR3–FR7).
 
-* **Responsibility:** Entry point (`cmd/shantilly/main.go`). Manages `form` command (`spf13/cobra`), reads input (stdin/file), invokes `ConfigParser` and `TUIEngine`, directs results/errors to `stdout`/`stderr`.
-* **Key Interfaces:** `formCmd.RunE(cmd *cobra.Command, args []string) error`
-* **Dependencies:** `ConfigParser`, `TUIEngine`, `ErrorHandler`.
-* **Technology:** `spf13/cobra`.
+```go
+type Component struct {
+    Type   string      `yaml:"type"`             // "list" | "viewport" | "buttongroup" | "form"
+    ID     string      `yaml:"id,omitempty"`     // identificador lógico do componente
+    Items  []Item      `yaml:"items,omitempty"`  // list / buttongroup
+    Source *Source     `yaml:"source,omitempty"` // viewport
+    // Form: payload bruto delegado para parser v1.0 (huh)
+    Fields interface{} `yaml:"fields,omitempty"`
+    Actions interface{} `yaml:"actions,omitempty"`
+    // Conteúdo estático opcional
+    Content string `yaml:"content,omitempty"`
+}
+```
 
-**`ConfigParser`**
+Implementação recomendada:
 
-* **Responsibility:** (`internal/config`). Decodes input YAML into `config.FormConfig` structs. Performs initial validation (e.g., known `Type`).
-* **Key Interfaces:** `func Parse(data []byte) (*config.FormConfig, error)`
-* **Dependencies:** `gopkg.in/yaml.v3`, `config.FormConfig`.
-* **Technology:** `gopkg.in/yaml.v3`.
+- `Component` DEVE implementar `yaml.Unmarshaler` para:
+  - Validar `Type`.
+  - Delegar blocos `form` para o modelo v1.0 existente sem acoplamento rígido.
+- Em runtime, cada `Component` será mapeado para uma implementação de `ShantillyComponent`.
 
-**`TUIEngine`**
+### 4.4. Item
 
-* **Responsibility:** (`internal/tui`). Core interactive component. Receives `config.FormConfig`. Dynamically builds `huh.Form` by mapping `Field` to `huh` components. Wraps the form in a `bubbletea.Model` to manage TUI state and lifecycle.
-* **Key Interfaces:** `func Run(config *config.FormConfig) (map[string]interface{}, error)`
-* **Dependencies:** `bubbletea`, `huh`, `lipgloss`, `config.FormConfig`.
-* **Technology:** `charmbracelet/bubbletea`, `charmbracelet/huh`, `charmbracelet/lipgloss`.
+Itens para `list` e `buttongroup`.
 
-**`ErrorHandler`**
+```go
+type Item struct {
+    ID    string `yaml:"id"`
+    Text  string `yaml:"text,omitempty"`  // list
+    Label string `yaml:"label,omitempty"` // buttongroup
+    Role  string `yaml:"role,omitempty"`  // ex: "primary", "danger"
+}
+```
 
-* **Responsibility:** Utility (`internal/util`). Centralizes error handling (NFR8). Formats errors, writes to `stderr`, exits with non-zero status.
-* **Key Interfaces:** `func Handle(err error)` (Updated based on implementation example).
-* **Dependencies:** `os`, `fmt`, `errors`, `bubbletea`.
-* **Technology:** Go Standard Library, `bubbletea`.
+### 4.5. Source (Viewport)
+
+Define a origem do conteúdo do `viewport` (FR4).
+
+```go
+type Source struct {
+    Type        string `yaml:"type"`                   // "static" | "command"
+    Content     string `yaml:"content,omitempty"`      // texto/markdown estático
+    Exec        string `yaml:"exec,omitempty"`         // comando a executar
+    ContentType string `yaml:"content_type,omitempty"` // ex: "markdown"
+}
+```
+
+### 4.6. Logic e RunAction (on:, FR8–FR11)
+
+Modelam as regras de automação orientadas a eventos.
+
+```go
+type Logic struct {
+    Event         string     `yaml:"event"`                    // ex: "user_form:submit"
+    Run           RunAction  `yaml:"run"`                      // ação obrigatória
+    Confirm       bool       `yaml:"confirm,omitempty"`        // segurança JIT: confirmar antes de executar
+    PromptSecrets []string   `yaml:"prompt_secrets,omitempty"` // segurança JIT: nomes de segredos a coletar via modal
+}
+
+type RunAction struct {
+    Script       string   `yaml:"script,omitempty"`         // FR9: runner genérico de script
+    Args         []string `yaml:"args,omitempty"`           // FR10: templates ex: {{ form.username }}
+    Stdin        string   `yaml:"stdin,omitempty"`          // FR10: template serializado em JSON
+    UpdateTarget string   `yaml:"update_target,omitempty"`  // FR11: id do viewport a atualizar
+}
+```
+
+Regras:
+
+- `event` é obrigatório.
+- `run.script` ou futuros runners especializados (ex: `ansible_playbook`) são obrigatórios.
+- `update_target` ativa o ciclo de vida com SIGTERM do processo anterior.
+- `confirm` e `prompt_secrets` são usados pelo mecanismo de pilha modal JIT (Segurança).
+
+### 4.7. Eventos Internos
+
+Além dos modelos YAML, o runtime define contratos internos para mensagens:
+
+- `ShantillyEvent` (evento emitido por componentes).
+- `RuntimeErrorMsg`, `ScriptStdoutMsg`, `ShowModalMsg`, etc.
+
+Esses tipos residentes em [`pkg/tui/events.go`](pkg/tui/events.go:1) padronizam a comunicação entre:
+
+- `LayoutManager`
+- `EventManager`
+- `ScriptRunner`
+- Componentes TUI (via `ShantillyComponent`)
+
+## 5. Componentes
+
+Esta seção define como o Runtime TUI Declarativo é estruturado em motores centrais e componentes TUI, alinhado aos padrões `ShantillyComponent` e `shantillyEvent`.
+
+### 5.1. Tema Central (Lipgloss)
+
+Um tema único deve ser definido em [`internal/tui/theme.go`](internal/tui/theme.go:1) e utilizado por todos os componentes. Objetivos:
+
+- Garantir consistência visual.
+- Destacar foco, modais e estados de erro.
+- Manter legibilidade em terminais escuros/claro.
+
+(Regra: componentes não definem estilos arbitrários; consomem do tema central.)
+
+### 5.2. Interface ShantillyComponent
+
+Todos os componentes TUI concretos (incluindo wrappers) DEVEM implementar a interface definida em [`pkg/tui/interface.go`](pkg/tui/interface.go:1):
+
+```go
+type ShantillyComponent interface {
+    Init() tea.Cmd
+    Update(tea.Msg) (ShantillyComponent, tea.Cmd)
+    View() string
+    SetDimensions(width, height int)
+    ID() string
+}
+```
+
+Regras:
+
+- `Update` não pode chamar `os.Exit`.
+- Eventos de saída devem ser emitidos via `tea.Msg` padronizado (`ShantillyEvent`).
+
+### 5.3. Eventos Internos (shantillyEvent)
+
+Definidos em [`pkg/tui/events.go`](pkg/tui/events.go:1). Exemplos:
+
+- `ShantillyEvent`:
+  - `ComponentID`
+  - `Type` (`"list_select"`, `"button_press"`, `"form_submit"`, `"script_output"`, `"runtime_error"`)
+  - `Payload` (map/dados específicos)
+
+Esses eventos conectam componentes → `EventManager` → `ScriptRunner` sem acoplamento direto.
+
+### 5.4. Motores do Runtime
+
+1) LayoutManager (`internal/runtime/layout/manager.go`)
+
+- Responsável por:
+  - Interpretar `LayoutNode`.
+  - Instanciar componentes concretos (factory).
+  - Gerenciar foco global (Ctrl+Tab, etc).
+  - Multiplexar `tea.Msg` somente para o componente focado.
+  - Aplicar NFR2: recalcular layout em `tea.WindowSizeMsg` (flicker-free).
+  - Renderizar pilha modal (Arquitetura de Pilha Modal).
+
+2) EventManager (`internal/runtime/event/manager.go`)
+
+- Responsável por:
+  - Receber `ShantillyEvent` dos componentes.
+  - Correlacionar com entradas `on:` (lista `Logic`).
+  - Aplicar regras JIT:
+    - Se `Confirm == true`, emitir `ShowModalMsg` para confirmação.
+    - Se `PromptSecrets` não vazio, emitir modal para coleta de segredos.
+  - Enfileirar `RunRequest` em canal para o `ScriptRunner`.
+
+3) ScriptRunner (`internal/runtime/runner/runner.go`)
+
+- Responsável por:
+  - Consumir `RunRequest` de um canal dedicado.
+  - Executar `run.script` com:
+    - `args` após template.
+    - `stdin` após template (JSON).
+  - Implementar FR11:
+    - Se novo request com mesmo `update_target`: enviar SIGTERM ao anterior.
+  - Emitir:
+    - `ScriptStdoutMsg` (para update em `ViewportComponent` alvo).
+    - `RuntimeErrorMsg` em caso de falhas.
+
+### 5.5. Componentes TUI Concretos
+
+1) FormComponent (Wrapper v1.0) (`internal/components/form/wrapper.go`)
+
+- Embrulha o modelo v1.0 existente (`internal/tui/model.go`) para o contrato `ShantillyComponent`.
+- Traduz:
+  - Submit → `ShantillyEvent{Type:"form_submit", Payload: formData}`.
+
+2) ListComponent (`internal/components/list/model.go`)
+
+- Usa `bubbles/list`.
+- Emite:
+  - `ShantillyEvent{Type:"list_select", Payload:{id:itemID}}` ao selecionar item.
+
+3) ButtonGroupComponent (`internal/components/buttongroup/model.go`)
+
+- Rende botões lógicos (ex: roles `primary`, `danger`).
+- Emite:
+  - `ShantillyEvent{Type:"button_press", Payload:{id:buttonID}}`.
+
+4) ViewportComponent (`internal/components/viewport/model.go`)
+
+- Usa `bubbles/viewport` + `glamour`.
+- Suporta:
+  - `source: static+markdown`.
+  - `source: command` via integração com `ScriptRunner`.
+- Implementa:
+  - Buffer circular para saída longa.
+  - Atualização incremental em resposta a `ScriptStdoutMsg`.
+
+### 5.6. CLI / Borda
+
+CLI (`cmd/shantilly/main.go`):
+
+- Lê YAML (`stdin`/`--file`).
+- Usa parser v2.0 (`pkg/declarative`) para `Config`.
+- Inicializa `LayoutManager`/runtime.
+- Trata erros de inicialização via `ErrorHandler`.
 
 ### Component Diagram (Internal Control Flow)
 
@@ -301,182 +421,197 @@ graph TD
     style P fill:#ccf,stroke:#333,stroke-width:2px
 ```
 
-## External APIs
+## 6. APIs Externas
 
-**N/A:** Not applicable for the MVP. `shantilly` is a self-contained local CLI application and does not interact with external network APIs (NFR1, NFR5).
+N/A para o Épico 1. O runtime:
 
-## Core Workflows
+- Não realiza chamadas HTTP diretas.
+- Não expõe API REST.
+- Interage apenas com:
+  - stdin/stdout/stderr.
+  - Processos locais iniciados via `run.script` (scripts do usuário).
 
-### Workflow 1: Successful Submission (Happy Path)
+Qualquer integração externa acontece dentro do script do usuário e é responsabilidade dele.
 
-Illustrates FR2, FR4, FR6.
+---
 
-```mermaid
-sequenceDiagram
-    actor User
-    participant Shell
-    participant CLI(shantilly form)
-    participant ConfigParser
-    participant TUIEngine(bubbletea + huh)
-    participant JSONEncoder
+## 7. Workflows Principais (Core Workflows)
 
-    User->>Shell: Executes script (e.g., shantilly form --file form.yaml)
-    Shell->>CLI(shantilly form): 1. Reads YAML (file or stdin)
+Os workflows abaixo descrevem o comportamento esperado do Runtime TUI Declarativo, incluindo foco, eventos, execução de scripts e segurança JIT.
 
-    activate CLI
-    CLI->>ConfigParser: 2. Parse(yaml bytes)
-    activate ConfigParser
-    ConfigParser-->>CLI(shantilly form): 3. Returns *config.FormConfig
-    deactivate ConfigParser
+### 7.1. Workflow: Renderização e Foco Global (LayoutManager)
 
-    CLI->>TUIEngine(bubbletea + huh): 4. Run(config)
-    activate TUIEngine
-    TUIEngine->>User: 5. Renders interactive TUI
-
-    User->>TUIEngine(bubbletea + huh): 6. Fills form
-    User->>TUIEngine(bubbletea + huh): 7. Submits form
-
-    TUIEngine-->>CLI(shantilly form): 8. Returns data (map[string]interface{})
-    deactivate TUIEngine
-
-    CLI->>JSONEncoder: 9. Encode(data)
-    activate JSONEncoder
-    JSONEncoder-->>CLI(shantilly form): 10. Returns JSON string
-    deactivate JSONEncoder
-
-    CLI->>Shell: 11. Writes JSON string to stdout
-    deactivate CLI
-    Shell->>User: Displays JSON output
-```
-
-### Workflow 2: YAML Parse Error (Error Path)
-
-Illustrates NFR8.
-
-```mermaid
-sequenceDiagram
-    actor User
-    participant Shell
-    participant CLI(shantilly form)
-    participant ConfigParser
-    participant ErrorHandler
-
-    User->>Shell: Executes script (e.g., shantilly form --file bad_form.yaml)
-    Shell->>CLI(shantilly form): 1. Reads invalid YAML
-
-    activate CLI
-    CLI->>ConfigParser: 2. Parse(yaml bytes)
-    activate ConfigParser
-    ConfigParser-->>CLI(shantilly form): 3. Returns error (e.g., malformed YAML)
-    deactivate ConfigParser
-
-    CLI->>ErrorHandler: 4. Handle(error)
-    activate ErrorHandler
-    ErrorHandler->>Shell: 5. Writes error message to stderr
-    ErrorHandler->>CLI(shantilly form): 6. Signals exit(1) via os.Exit()
-    deactivate ErrorHandler
-
-    deactivate CLI # Already exited
-    Shell->>User: Displays error message
-```
-
-### Workflow 3: User Cancellation (Abort Path - NFR8)
-
-Illustrates NFR8 requirement for clean exit on Esc/Ctrl+C.
+Objetivo: garantir NFR2 (layout fluido, flicker-free) e foco consistente.
 
 ```mermaid
 sequenceDiagram
     participant User
-    participant CLI(shantilly form)
-    participant TUIEngine(bubbletea + huh)
-    participant ErrorHandler
+    participant LM as LayoutManager
+    participant C1 as ComponenteA (List)
+    participant C2 as ComponenteB (Form)
 
-    User->>CLI(shantilly form): 1. Starts TUI
-    activate CLI
-    CLI->>TUIEngine(bubbletea + huh): 2. Run(config)
-    activate TUIEngine
-    TUIEngine->>User: 3. Renders TUI
+    User->>LM: Ctrl+Tab (mudar foco)
+    LM->>LM: Atualiza focusedIndex
+    LM->>C1: SetDimensions(...)
+    LM->>C1: View() (borda inativa)
+    LM->>C2: SetDimensions(...)
+    LM->>C2: View() (borda ativa)
+    LM-->>User: Tela combinada sem flicker
 
-    User->>TUIEngine(bubbletea + huh): 4. Presses 'Esc' or 'Ctrl+C'
-
-    TUIEngine-->>CLI(shantilly form): 5. Returns error (e.g., bubbletea.QuitMsg or ErrAborted)
-    deactivate TUIEngine
-
-    CLI->>ErrorHandler: 6. Handle(ErrAborted or QuitMsg)
-    activate ErrorHandler
-    ErrorHandler->>Shell: 7. Optionally writes "Cancelled" to stderr
-    ErrorHandler->>CLI(shantilly form): 8. Signals exit(2) via os.Exit()
-    deactivate ErrorHandler
-
-    deactivate CLI # Already exited
-    User->>User: (Terminal is clean, NO JSON output)
+    User->>LM: tecla 'j'
+    LM->>C2: encaminha tea.KeyMsg (somente componente focado)
+    C2-->>LM: estado atualizado
 ```
 
-## REST API Spec
+Regras:
 
-**N/A:** Not applicable for the MVP. `shantilly` does not expose or consume a REST API.
+- Somente o componente focado recebe teclas de navegação/edição.
+- `tea.WindowSizeMsg`:
+  - Recalcula dimensões.
+  - Nunca causa piscadas excessivas (uso de lipgloss e recomputação estável).
 
-## Database Schema
+### 7.2. Workflow: Submissão de Formulário → on: → ScriptRunner → Viewport (FR7–FR11)
 
-**N/A:** Not applicable for the MVP. `shantilly` does not use a database.
+```mermaid
+sequenceDiagram
+    participant User
+    participant LM as LayoutManager
+    participant FC as FormComponent
+    participant EM as EventManager
+    participant SR as ScriptRunner
+    participant VP as ViewportComponent
 
-## Source Tree
+    User->>LM: Interage e submete form
+    LM->>FC: encaminha tea.Msg
+    FC-->>LM: ShantillyEvent(type="form_submit", payload=formData)
+    LM->>EM: entrega ShantillyEvent
 
-Based on standard Go project layout and the user-provided template.
+    EM->>EM: encontra regra on.event == "form_id:submit"
+    EM->>SR: envia RunRequest(script,args,stdin,update_target=vp_logs)
+
+    SR->>SR: encerra processo anterior de vp_logs (SIGTERM, FR11)
+    SR->>SR: inicia novo processo script
+    SR-->>LM: ScriptStdoutMsg(target=vp_logs, chunk=...)
+    LM->>VP: encaminha ScriptStdoutMsg
+    VP-->>LM: nova View()
+    LM-->>User: viewport atualizado em streaming
+```
+
+### 7.3. Workflow: Segurança JIT com Pilha Modal (confirm/prompt_secrets)
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant LM as LayoutManager
+    participant EM as EventManager
+    participant SR as ScriptRunner
+
+    User->>LM: dispara ação sensível (ex: rodar playbook)
+    LM->>EM: ShantillyEvent
+
+    EM->>EM: encontra Logic{Confirm:true, PromptSecrets:["vault_pass"]}
+    EM-->>LM: ShowModalMsg (modal de confirmação+segredo)
+    LM-->>User: exibe modal (Pilha Modal sobre layout)
+
+    User->>LM: confirma e preenche segredos
+    LM->>EM: ShantillyEvent com segredos
+    EM->>SR: RunRequest com args/stdin enriquecidos
+    SR->>SR: executa script
+```
+
+Regras:
+
+- Sem confirmação → ação não é executada.
+- Segredos são coletados somente JIT e não persistidos.
+
+## 8. APIs Externas
+
+N/A no escopo do Runtime TUI v2.0 (Épico 1):
+
+- Nenhuma REST API exposta.
+- Nenhuma dependência HTTP obrigatória.
+- Scripts chamados via `run.script` podem falar com o mundo externo, mas isso é responsabilidade do usuário.
+
+---
+
+## 9. Esquema de Banco de Dados
+
+N/A:
+
+- Sem armazenamento persistente.
+- Todo estado é em memória no processo Bubble Tea.
+- Dados fluem:
+  - YAML (entrada) → runtime → scripts → stdout/viewport (visual).
+- Futuras extensões (ex: cache local) exigiriam atualização deste documento.
+
+---
+
+## 10. Árvore de Código-Fonte (Source Tree)
+
+A árvore abaixo reflete a arquitetura v2.0 proposta (alguns diretórios são metas para implementação futura, guiando os agentes de desenvolvimento).
 
 ```plaintext
-shantilly/                     # Project Root (replace with actual name later)
-├── .github/
-│   └── workflows/
-│       └── release.yml        # GitHub Actions pipeline for GoReleaser
-├── .golangci.yml              # Linter configuration (from template)
-├── .goreleaser.yaml           # GoReleaser configuration (from template, needs project_name update)
-├── .pre-commit-config.yaml    # Pre-commit hooks (from template)
-├── .gitignore                 # Git ignore rules (from template)
+shantilly/
 ├── cmd/
-│   └── shantilly/             # Main application package
-│       └── main.go            # Entry point: Cobra setup, CLI logic, stdin/file reading
+│   └── shantilly/
+│       └── main.go                # CLI: lê YAML, inicializa runtime
+├── pkg/
+│   ├── declarative/
+│   │   └── models.go              # Config, LayoutNode, Component, Logic, RunAction
+│   └── tui/
+│       ├── interface.go           # ShantillyComponent
+│       └── events.go              # ShantillyEvent, RuntimeErrorMsg, etc.
 ├── internal/
-│   ├── config/                # Configuration parsing and validation
-│   │   ├── config.go        # Go structs (FormConfig, Field)
-│   │   ├── parser.go        # ConfigParser component (YAML parsing logic)
-│   │   └── parser_test.go   # Unit tests for parser
-│   ├── tui/                   # TUI rendering and interaction logic
-│   │   ├── model.go        # TUIEngine component (Bubbletea model)
-│   │   ├── model_test.go    # Unit tests for TUI model
-│   │   ├── integration_test.go # Integration tests for TUI
-│   │   └── navigation_test.go # Navigation tests for TUI
-│   └── util/                  # Shared utility functions
-│       └── errorhandler.go    # ErrorHandler component (stderr output, exit codes)
-├── examples/                  # Example YAML form definitions for testing/docs
-│   ├── basic_form.yaml
-│   └── multiselect_form.yaml
-├── Makefile                   # Build, Lint, Test scripts (integrates lint.sh logic)
-├── go.mod                     # Go module definition (from template, adjusted)
-├── go.sum                     # Go module checksums
-├── lint.sh                    # Local linting script (from template)
-├── LICENSE                    # Project License (MIT from template)
-└── README.md                  # Project README (from template, needs customization)
-
+│   ├── runtime/
+│   │   ├── layout/
+│   │   │   └── manager.go         # LayoutManager (Gestor Duplo + Pilha Modal)
+│   │   ├── event/
+│   │   │   └── manager.go         # EventManager (on: → RunRequest)
+│   │   └── runner/
+│   │       ├── runner.go          # ScriptRunner (FR9–FR11, SIGTERM/UpdateTarget)
+│   │       └── templating.go      # Motor de templates (args/stdin)
+│   ├── components/
+│   │   ├── form/
+│   │   │   ├── wrapper.go         # Wrapper v1.0 → ShantillyComponent
+│   │   │   └── model_v1.go        # Código legado v1.0 isolado
+│   │   ├── list/
+│   │   │   └── model.go           # ListComponent (bubbles/list)
+│   │   ├── viewport/
+│   │   │   └── model.go           # ViewportComponent (bubbles/viewport + glamour)
+│   │   └── buttongroup/
+│   │       └── model.go           # ButtonGroupComponent
+│   ├── config/
+│   │   ├── parser.go              # Parser atual (pode ser adaptado p/ v2.0)
+│   │   └── validation.go          # Regras adicionais de validação
+│   └── util/
+│       └── errorhandler.go        # Tratamento de erros centralizado v1.0 (para CLI)
+├── docs/
+│   └── architecture.md            # Este documento
+├── examples/
+│   └── *.yaml                     # YAMLs exemplo v2.0 (layout+on)
+└── scripts/
+    └── *.sh                       # Utilidades, smoke-tests
 ```
+
+Esta árvore é a referência para implementação progressiva pelo Scrum Master e pelos agentes Dev.
 
 ## Infrastructure and Deployment
 
 ### Infrastructure as Code (IaC)
 
-* **Tool:** `GoReleaser` (`.goreleaser.yaml` from template).
-* **Location:** `.goreleaser.yaml` (root directory).
-* **Approach:** Defines declarative build, cross-compilation, packaging, and release process.
+- **Tool:** `GoReleaser` (`.goreleaser.yaml` from template).
+- **Location:** `.goreleaser.yaml` (root directory).
+- **Approach:** Defines declarative build, cross-compilation, packaging, and release process.
 
 ### Deployment Strategy (Release)
 
-* **Strategy:** GitHub Releases.
-* **CI/CD Platform:** GitHub Actions (Tech Stack).
-* **Pipeline Configuration:** `.github/workflows/release.yml`.
+- **Strategy:** GitHub Releases.
+- **CI/CD Platform:** GitHub Actions (Tech Stack).
+- **Pipeline Configuration:** `.github/workflows/release.yml`.
 
 ### Environments
 
-* **N/A:** Not applicable for a CLI. Target environments are user machines (Linux, macOS, Windows - NFR2).
+- **N/A:** Not applicable for a CLI. Target environments are user machines (Linux, macOS, Windows - NFR2).
 
 ### Promotion Flow (Release)
 
@@ -503,46 +638,46 @@ graph TD
 
 ### Rollback Strategy
 
-* **Method:** Delete problematic GitHub Release, publish new patch release (e.g., `v1.0.1`) with fix.
-* **Triggers:** Critical bug reports from users.
+- **Method:** Delete problematic GitHub Release, publish new patch release (e.g., `v1.0.1`) with fix.
+- **Triggers:** Critical bug reports from users.
 
 ## Error Handling Strategy
 
 ### General Approach
 
-* **Model:** Standard Go `error` interface.
-* **Propagation:** Errors propagated up the call stack to `CLI`.
-* **Centralized Handling:** `CLI` catches errors, passes to `ErrorHandler`.
-* **Output Separation:** `stdout` for success JSON (FR6), `stderr` for errors/status (NFR8).
-* **Exit Codes:** Non-zero exit codes for errors and cancellations defined in `internal/util`.
+- **Model:** Standard Go `error` interface.
+- **Propagation:** Errors propagated up the call stack to `CLI`.
+- **Centralized Handling:** `CLI` catches errors, passes to `ErrorHandler`.
+- **Output Separation:** `stdout` for success JSON (FR6), `stderr` for errors/status (NFR8).
+- **Exit Codes:** Non-zero exit codes for errors and cancellations defined in `internal/util`.
 
 ### Error Handling Patterns
 
 **YAML Parse Errors (`ConfigParser`)**
 
-* **Detection:** `gopkg.in/yaml.v3` errors.
-* **Output:** Formatted message (incl. line number if possible) to `stderr`.
-* **Exit Code:** `util.ExitError` (e.g., 1).
-* **Workflow:** See "Workflow 2: YAML Parse Error".
+- **Detection:** `gopkg.in/yaml.v3` errors.
+- **Output:** Formatted message (incl. line number if possible) to `stderr`.
+- **Exit Code:** `util.ExitError` (e.g., 1).
+- **Workflow:** See "Workflow 2: YAML Parse Error".
 
 **TUI Cancellation (`TUIEngine`)**
 
-* **Detection:** `bubbletea.QuitMsg` or specific `util.ErrAborted`.
-* **Output:** No `stdout`. Optional "Cancelled" message to `stderr`.
-* **Exit Code:** `util.ExitCancelled` (e.g., 2).
-* **Workflow:** See "Workflow 3: User Cancellation".
+- **Detection:** `bubbletea.QuitMsg` or specific `util.ErrAborted`.
+- **Output:** No `stdout`. Optional "Cancelled" message to `stderr`.
+- **Exit Code:** `util.ExitCancelled` (e.g., 2).
+- **Workflow:** See "Workflow 3: User Cancellation".
 
 **Unexpected TUI Errors (`TUIEngine`)**
 
-* **Detection:** Internal `bubbletea`/`huh` errors.
-* **Output:** Detailed error message (maybe stack trace) to `stderr`.
-* **Exit Code:** `util.ExitError` (e.g., 1).
+- **Detection:** Internal `bubbletea`/`huh` errors.
+- **Output:** Detailed error message (maybe stack trace) to `stderr`.
+- **Exit Code:** `util.ExitError` (e.g., 1).
 
 **Other Errors (e.g., JSON Encoding)**
 
-* **Detection:** Standard library errors.
-* **Output:** Error message to `stderr`.
-* **Exit Code:** `util.ExitError` (e.g., 1).
+- **Detection:** Standard library errors.
+- **Output:** Error message to `stderr`.
+- **Exit Code:** `util.ExitError` (e.g., 1).
 
 ### Implementation (`ErrorHandler`)
 
@@ -601,14 +736,14 @@ Defined primarily by the user-provided template files. Adherence is mandatory an
 
 ### Core Standards
 
-* **Language & Runtime:** Go `1.24.2+` (per template `go.mod`).
-* **Style & Linting:** Governed by `.golangci.yml` (per template). Checked via `golangci-lint run ./...` and pre-commit hooks.
-* **Formatting:** Governed by `gofumpt`. Checked via `gofumpt -w .` and pre-commit hooks.
-* **Test Organization:** `_test.go` files in the same package (Go standard).
+- **Language & Runtime:** Go `1.24.2+` (per template `go.mod`).
+- **Style & Linting:** Governed by `.golangci.yml` (per template). Checked via `golangci-lint run ./...` and pre-commit hooks.
+- **Formatting:** Governed by `gofumpt`. Checked via `gofumpt -w .` and pre-commit hooks.
+- **Test Organization:** `_test.go` files in the same package (Go standard).
 
 ### Naming Conventions
 
-* Standard Go conventions (`camelCase`, `PascalCase`). Enforced by `stylecheck` linter in `.golangci.yml`.
+- Standard Go conventions (`camelCase`, `PascalCase`). Enforced by `stylecheck` linter in `.golangci.yml`.
 
 ### Critical Rules (from `.golangci.yml`)
 
@@ -624,111 +759,111 @@ Defined primarily by the user-provided template files. Adherence is mandatory an
 **Preventing TUI Rendering Failures:**
 
 1. **Window Size Handling (`tea.WindowSizeMsg`):**
-   * **Mandatory:** Always handle `tea.WindowSizeMsg` in the `Update` function to ensure responsive behavior.
-   * **Pattern:** Update model dimensions and trigger re-renders when terminal size changes.
-   * **Testing:** Use `teatest.WithInitialTermSize` in integration tests to validate different terminal dimensions.
+   - **Mandatory:** Always handle `tea.WindowSizeMsg` in the `Update` function to ensure responsive behavior.
+   - **Pattern:** Update model dimensions and trigger re-renders when terminal size changes.
+   - **Testing:** Use `teatest.WithInitialTermSize` in integration tests to validate different terminal dimensions.
 
 2. **Layout Primitives (`lipgloss`):**
-   * **Strong Recommendation:** Use `lipgloss` primitives (`Width`, `Height`, `JoinHorizontal`, `JoinVertical`) for layout management.
-   * **Purpose:** Ensures consistent spacing, alignment, and responsive behavior across different terminal sizes.
-   * **Pattern:** Define layout constraints explicitly rather than relying on hardcoded spacing.
+   - **Strong Recommendation:** Use `lipgloss` primitives (`Width`, `Height`, `JoinHorizontal`, `JoinVertical`) for layout management.
+   - **Purpose:** Ensures consistent spacing, alignment, and responsive behavior across different terminal sizes.
+   - **Pattern:** Define layout constraints explicitly rather than relying on hardcoded spacing.
 
 3. **Responsive Components:**
-   * **Terminal Width Awareness:** Always consider terminal width constraints when designing TUI layouts.
-   * **Truncation Strategy:** Implement text truncation or responsive components (`bubbles/list`, `bubbles/viewport`) for content that may exceed terminal width.
-   * **Component Selection:** Prefer existing `bubbles` components over custom implementations for complex UI patterns.
+   - **Terminal Width Awareness:** Always consider terminal width constraints when designing TUI layouts.
+   - **Truncation Strategy:** Implement text truncation or responsive components (`bubbles/list`, `bubbles/viewport`) for content that may exceed terminal width.
+   - **Component Selection:** Prefer existing `bubbles` components over custom implementations for complex UI patterns.
 
 4. **Centralized Styling:**
-   * **Theme Definition:** Define a centralized `lipgloss` theme to ensure consistent styling across all TUI components.
-   * **Consistency:** Apply theme styles uniformly to maintain visual coherence and prevent styling-related rendering issues.
+   - **Theme Definition:** Define a centralized `lipgloss` theme to ensure consistent styling across all TUI components.
+   - **Consistency:** Apply theme styles uniformly to maintain visual coherence and prevent styling-related rendering issues.
 
 ### Language-Specific Guidelines (Go)
 
-* Follow "Effective Go".
-* Use pointers judiciously.
-* Prefer small interfaces.
+- Follow "Effective Go".
+- Use pointers judiciously.
+- Prefer small interfaces.
 
 ## Test Strategy and Standards
 
 ### Testing Philosophy
 
-* **Approach:** Test-After for MVP. Focus on unit tests first, with integration tests for TUI components using `teatest`.
-* **Coverage Goals:** No strict % target for MVP, but high coverage (\>80%) for `internal/config` and critical TUI flows.
-* **Test Pyramid (MVP):** Heavy on Unit Tests, complemented by TUI Integration Tests using `teatest`, and Manual TUI tests.
+- **Approach:** Test-After for MVP. Focus on unit tests first, with integration tests for TUI components using `teatest`.
+- **Coverage Goals:** No strict % target for MVP, but high coverage (\>80%) for `internal/config` and critical TUI flows.
+- **Test Pyramid (MVP):** Heavy on Unit Tests, complemented by TUI Integration Tests using `teatest`, and Manual TUI tests.
 
 ### Test Types and Organization
 
 **Unit Tests**
 
-* **Framework:** Go `testing` package (v1.24.2+).
-* **File Convention:** `_test.go` in the same package.
-* **Location:** Primarily `internal/config/` and `internal/tui/`.
-* **Mocking:** No external dependencies to mock in MVP. Use interfaces for potential future manual fakes/stubs if needed between internal components.
-* **AI Agent Requirements:** Generate comprehensive tests for `internal/config/parser.go`, covering valid/invalid YAML cases. Follow AAA pattern. Maintain pure unit tests for `Update` logic in TUI components.
+- **Framework:** Go `testing` package (v1.24.2+).
+- **File Convention:** `_test.go` in the same package.
+- **Location:** Primarily `internal/config/` and `internal/tui/`.
+- **Mocking:** No external dependencies to mock in MVP. Use interfaces for potential future manual fakes/stubs if needed between internal components.
+- **AI Agent Requirements:** Generate comprehensive tests for `internal/config/parser.go`, covering valid/invalid YAML cases. Follow AAA pattern. Maintain pure unit tests for `Update` logic in TUI components.
 
 **TUI Integration Tests (teatest)**
 
-* **Framework:** `charmbracelet/bubbles/teatest` for testing Bubble Tea components.
-* **Purpose:** Validate critical user flows and assert on textual output (string output), including basic layout and presence of styled elements via `lipgloss`.
-* **Key Features:**
-  * Use `teatest.WithInitialTermSize` to run tests with different terminal sizes for responsive behavior validation.
-  * Focus on testing complete TUI workflows rather than individual component rendering.
-  * Assert on final rendered output strings to verify layout and styling.
-* **Location:** `internal/tui/` alongside unit tests.
-* **AI Agent Requirements:** Create integration tests for critical TUI flows using `teatest`, ensuring proper handling of `tea.WindowSizeMsg` and responsive layout across different terminal dimensions.
+- **Framework:** `charmbracelet/bubbles/teatest` for testing Bubble Tea components.
+- **Purpose:** Validate critical user flows and assert on textual output (string output), including basic layout and presence of styled elements via `lipgloss`.
+- **Key Features:**
+  - Use `teatest.WithInitialTermSize` to run tests with different terminal sizes for responsive behavior validation.
+  - Focus on testing complete TUI workflows rather than individual component rendering.
+  - Assert on final rendered output strings to verify layout and styling.
+- **Location:** `internal/tui/` alongside unit tests.
+- **AI Agent Requirements:** Create integration tests for critical TUI flows using `teatest`, ensuring proper handling of `tea.WindowSizeMsg` and responsive layout across different terminal dimensions.
 
 **Integration Tests**
 
-* **N/A:** Out of scope for MVP.
+- **N/A:** Out of scope for MVP.
 
 **E2E Tests**
 
-* **N/A:** Out of scope for MVP. Manual testing covers this.
+- **N/A:** Out of scope for MVP. Manual testing covers this.
 
 ### Test Data Management
 
-* **Strategy:** Example `.yaml` files in `examples/` directory act as fixtures for `ConfigParser` tests.
+- **Strategy:** Example `.yaml` files in `examples/` directory act as fixtures for `ConfigParser` tests.
 
 ### Continuous Testing
 
-* **CI Integration:** GitHub Actions runs `go test ./...` (via `lint.sh` or build workflow).
-* **Local Testing:** Developers use `./lint.sh` (from template) which includes `go test -v -race ./...`.
-* **Performance/Security Tests:** N/A for MVP.
+- **CI Integration:** GitHub Actions runs `go test ./...` (via `lint.sh` or build workflow).
+- **Local Testing:** Developers use `./lint.sh` (from template) which includes `go test -v -race ./...`.
+- **Performance/Security Tests:** N/A for MVP.
 
 ## Security
 
 ### Input Validation
 
-* **Focus:** YAML input via `stdin` or `--file`.
-* **Location:** `ConfigParser` (`internal/config/parser.go`).
-* **Required Rules:**
-  * Validate `Field.Type` against known `huh` component types (e.g., "input", "textarea", "select", "multiselect", "confirm", "note"). Reject invalid types via `ErrorHandler` (NFR8).
-  * Handle malformed YAML gracefully via `ErrorHandler` (NFR8).
+- **Focus:** YAML input via `stdin` or `--file`.
+- **Location:** `ConfigParser` (`internal/config/parser.go`).
+- **Required Rules:**
+  - Validate `Field.Type` against known `huh` component types (e.g., "input", "textarea", "select", "multiselect", "confirm", "note"). Reject invalid types via `ErrorHandler` (NFR8).
+  - Handle malformed YAML gracefully via `ErrorHandler` (NFR8).
 
 ### AuthN / AuthZ / Secrets / API Security / Data Protection
 
-* **N/A:** Not applicable for MVP (local CLI, no network, no sensitive data persistence).
+- **N/A:** Not applicable for MVP (local CLI, no network, no sensitive data persistence).
 
 ### Dependency Security
 
-* **Scanning Tool:** `govulncheck`.
-* **Update Policy:** Review/update dependencies regularly (e.g., via Dependabot).
-* **Approval Process:** Evaluate new dependencies before adding.
+- **Scanning Tool:** `govulncheck`.
+- **Update Policy:** Review/update dependencies regularly (e.g., via Dependabot).
+- **Approval Process:** Evaluate new dependencies before adding.
 
 ### Security Testing
 
-* **SAST:** `gosec` (integrated via `golangci-lint` in `.golangci.yml`).
-* **DAST / Pentest:** N/A for MVP.
+- **SAST:** `gosec` (integrated via `golangci-lint` in `.golangci.yml`).
+- **DAST / Pentest:** N/A for MVP.
 
 ## Checklist Results Report
 
 **Architect Solution Validation Checklist (`architect-checklist.md`) Execution Summary**
 
-* **Project Type:** Greenfield CLI/TUI (Backend Only focus for checklist)
-* **Overall Architecture Readiness:** High
-* **Critical Risks Identified:** 0
-* **Key Strengths:** Clear alignment with PRD, leveraging standard Go practices and user-provided template, well-defined error handling, robust build/release process via GoReleaser.
-* **Sections Evaluated:** All sections except those marked `[[FRONTEND ONLY]]`.
+- **Project Type:** Greenfield CLI/TUI (Backend Only focus for checklist)
+- **Overall Architecture Readiness:** High
+- **Critical Risks Identified:** 0
+- **Key Strengths:** Clear alignment with PRD, leveraging standard Go practices and user-provided template, well-defined error handling, robust build/release process via GoReleaser.
+- **Sections Evaluated:** All sections except those marked `[[FRONTEND ONLY]]`.
 
 **Section Analysis (Summary)**
 
@@ -747,20 +882,20 @@ Defined primarily by the user-provided template files. Adherence is mandatory an
 
 **Risk Assessment**
 
-* No critical risks identified in the architecture itself.
-* Potential implementation risks (low):
-  * Complexity in `TUIEngine` mapping `config.FormConfig` to `huh.Form` dynamically. Mitigation: Clear `mapper.go` component, unit tests for edge cases if possible.
-  * Ensuring correct error propagation and exit codes for all scenarios in `ErrorHandler`. Mitigation: Specific unit tests for `ErrorHandler`, manual testing of error paths.
+- No critical risks identified in the architecture itself.
+- Potential implementation risks (low):
+  - Complexity in `TUIEngine` mapping `config.FormConfig` to `huh.Form` dynamically. Mitigation: Clear `mapper.go` component, unit tests for edge cases if possible.
+  - Ensuring correct error propagation and exit codes for all scenarios in `ErrorHandler`. Mitigation: Specific unit tests for `ErrorHandler`, manual testing of error paths.
 
 **Recommendations**
 
-* **Must-fix:** None.
-* **Should-fix:** None identified at architecture level.
-* **Nice-to-have:** Consider adding specific examples in `examples/` for each supported `Field.Type`.
+- **Must-fix:** None.
+- **Should-fix:** None identified at architecture level.
+- **Nice-to-have:** Consider adding specific examples in `examples/` for each supported `Field.Type`.
 
 **AI Implementation Readiness**
 
-* **High.** The architecture is modular, uses standard Go patterns, relies on template files for tooling setup (`.golangci.yml`, `.goreleaser.yaml`), and provides clear separation of concerns. The `README.md` from the template gives direct instructions to AI agents.
+- **High.** The architecture is modular, uses standard Go patterns, relies on template files for tooling setup (`.golangci.yml`, `.goreleaser.yaml`), and provides clear separation of concerns. The `README.md` from the template gives direct instructions to AI agents.
 
 **Final Verdict:** The architecture is sound, complete for the MVP scope, well-aligned with the PRD and user-provided template, and ready for development.
 
@@ -780,10 +915,10 @@ Implement Story 1.1 from the PRD (`prd.md`) - "CLI Foundation and Project Struct
 
 **Key Architectural Guidance (from `docs/architecture.md`):**
 
-* **Source Tree:** Follow the defined structure, place main logic in `cmd/shantilly/main.go`.
-* **Tech Stack:** Use `spf13/cobra` (v1.8.x).
-* **Components:** Implement the basic `CLI (CobraCmd)` component.
-* **Coding Standards:** Adhere strictly to `.golangci.yml` rules. Use `gofumpt` for formatting. Ensure `./lint.sh` passes before marking complete.
+- **Source Tree:** Follow the defined structure, place main logic in `cmd/shantilly/main.go`.
+- **Tech Stack:** Use `spf13/cobra` (v1.8.x).
+- **Components:** Implement the basic `CLI (CobraCmd)` component.
+- **Coding Standards:** Adhere strictly to `.golangci.yml` rules. Use `gofumpt` for formatting. Ensure `./lint.sh` passes before marking complete.
 
 **Tasks (derived from Story 1.1 ACs):**
 
@@ -791,31 +926,31 @@ Implement Story 1.1 from the PRD (`prd.md`) - "CLI Foundation and Project Struct
 2. Implement the root `shantilly` command using `spf13/cobra` in `cmd/shantilly/main.go`.
 3. Add the `form` subcommand to the root command (also in `main.go`). Define the `--file` string flag for it.
 4. Implement the `RunE` (or `Run`) function for the `form` subcommand:
-      * Check if the `--file` flag was provided.
-          * If yes, read the content of the specified file. Handle file read errors.
-          * If no, read all bytes from `os.Stdin`. Handle potential stdin read errors.
-      * Propagate any read errors up to be handled by the `ErrorHandler`.
-      * *(For this story only)*: Print a placeholder message like "Form executed. Read X bytes." to `os.Stdout`.
-      * Return `nil` on success.
+      - Check if the `--file` flag was provided.
+          - If yes, read the content of the specified file. Handle file read errors.
+          - If no, read all bytes from `os.Stdin`. Handle potential stdin read errors.
+      - Propagate any read errors up to be handled by the `ErrorHandler`.
+      - *(For this story only)*: Print a placeholder message like "Form executed. Read X bytes." to `os.Stdout`.
+      - Return `nil` on success.
 5. Ensure the `ErrorHandler` (`internal/util/errorhandler.go`) is implemented as defined in the architecture doc (handling `nil` error, printing non-nil errors to `stderr`, using `os.Exit` with defined codes). Update `main.go`'s `RunE` to call `util.Handle(err)` appropriately on error return.
 6. Create/Update the `Makefile` with a basic `build` target: `go build -o shantilly ./cmd/shantilly`. Add `lint` (`./lint.sh`) and `test` (`go test -v -race ./...`) targets.
 7. Ensure the code passes `make lint` and `make test` (though no specific tests for this story yet).
 
 **Acceptance Criteria (from Story 1.1):**
 
-* [AC1] Go repo initialized (`cmd/`, `internal/`).
-* [AC2] `spf13/cobra` used.
-* [AC3] `shantilly` root and `form` subcommand exist.
-* [AC4] `shantilly form` reads `stdin` OR uses `--file` flag.
-* [AC5] `shantilly form` prints placeholder to `stdout` on success.
-* [AC6] `Makefile` includes `build`, `lint`, `test` targets.
-* (Implicit) Errors during input reading lead to `stderr` message and non-zero exit code via `ErrorHandler`.
+- [AC1] Go repo initialized (`cmd/`, `internal/`).
+- [AC2] `spf13/cobra` used.
+- [AC3] `shantilly` root and `form` subcommand exist.
+- [AC4] `shantilly form` reads `stdin` OR uses `--file` flag.
+- [AC5] `shantilly form` prints placeholder to `stdout` on success.
+- [AC6] `Makefile` includes `build`, `lint`, `test` targets.
+- (Implicit) Errors during input reading lead to `stderr` message and non-zero exit code via `ErrorHandler`.
 
 **Definition of Done:**
 
-* All tasks completed.
-* All ACs met.
-* Code is formatted (`gofumpt`).
-* Linter passes (`make lint`).
-* Build succeeds (`make build`).
-* Provide the complete content for `cmd/shantilly/main.go` and `internal/util/errorhandler.go`. List any other created/modified files (like `Makefile`).
+- All tasks completed.
+- All ACs met.
+- Code is formatted (`gofumpt`).
+- Linter passes (`make lint`).
+- Build succeeds (`make build`).
+- Provide the complete content for `cmd/shantilly/main.go` and `internal/util/errorhandler.go`. List any other created/modified files (like `Makefile`).
