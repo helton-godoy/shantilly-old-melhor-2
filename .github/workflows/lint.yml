@@ -19,10 +19,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4 # v4 é a versão LTS mais estável no momento.
+        uses: actions/checkout@v5 # v4 é a versão LTS mais estável no momento.
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           # 1. REPRODUTIBILIDADE: Fixa a versão do Go para evitar quebras inesperadas.
           #    Deve ser a mesma versão definida no seu arquivo go.mod.
@@ -31,7 +31,7 @@ jobs:
           cache: true
 
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6 # v6 é a versão LTS mais estável.
+        uses: golangci/golangci-lint-action@v9 # v6 é a versão LTS mais estável.
         with:
           # 3. REPRODUTIBILIDADE: Fixa a versão da ferramenta golangci-lint.
           #    Isso garante que as regras de lint não mudarão inesperadamente.

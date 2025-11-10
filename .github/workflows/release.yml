@@ -20,13 +20,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           # Busca todo o histórico do Git para que GoReleaser possa gerar o changelog corretamente.
           fetch-depth: 0
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           # Alinhado com a versão do go.mod para garantir consistência.
           go-version: "1.24.2"
