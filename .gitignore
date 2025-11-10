@@ -1,2 +1,6 @@
 coverage.txt
 dist/
+
+# Local MCP / tooling secrets
+.kilocode/
+.roo/
