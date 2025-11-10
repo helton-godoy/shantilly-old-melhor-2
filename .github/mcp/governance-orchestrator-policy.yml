@@ -1,0 +1,245 @@
+# governance-orchestrator-policy.yml
+# Plano concreto para o Orquestrador MCP de Governança
+#
+# Objetivos:
+# - Descobrir servidores MCP disponíveis.
+# - Catalogar ferramentas/capacidades/escopos.
+# - Detectar sobreposição, conflitos e lacunas.
+# - Definir políticas claras de roteamento/priorização.
+# - Garantir uso contínuo, correto e idempotente das ferramentas, com auditoria.
+#
+# Este arquivo é o contrato declarativo consumido por um servidor
+# "mcp-governanca-orchestrator" (a ser implementado), e também legível
+# pelos agentes BMAD/Shantilly.
+
+version: 1
+
+orchestrator:
+  id: mcp-governanca-orchestrator
+  description: >
+    Orquestrador MCP de Governança responsável por descoberta, catálogo,
+    roteamento e auditoria de uso de ferramentas MCP em ambientes Shantilly/Waves 4-7.
+  # Nível de confiança padrão das decisões do orquestrador
+  trust_level: system
+  audit:
+    enabled: true
+    # Mínimo: logar toda decisão de roteamento sensível (git/github/segurança)
+    log_decisions: true
+    log_candidates: true
+    log_policy_id: true
+
+# 1) Definição dos servidores MCP conhecidos
+# Observação: a lista real de endpoints é fornecida pelo host.
+# Aqui declaramos intenções, escopos e papéis normativos.
+
+servers:
+  - id: git
+    display_name: Local Git MCP
+    tags: [git, vcs, local]
+    trust_level: org
+    scope:
+      - code_read
+      - code_diff
+      - local_repo_state
+    constraints:
+      - "no_remote_admin"
+    normative_role: "observability.git.local"
+  - id: github
+    display_name: GitHub MCP (API)
+    tags: [github, repo, remote, admin-capable]
+    trust_level: org
+    scope:
+      - repo_read
+      - repo_write
+      - branch_protection_admin
+      - issues
+      - pull_requests
+    constraints:
+      - "requires:GH_TOKEN with appropriate scopes"
+    normative_role: "source_of_truth.github"
+  - id: git-mcp-admin
+    display_name: Git/GitHub Admin MCP (se existir)
+    tags: [git, github, admin, high-risk]
+    trust_level: custom
+    scope:
+      - repo_admin
+      - branch_protection_admin
+      - workflow_admin
+    constraints:
+      - "requires:GH_TOKEN_ADMIN"
+      - "restricted_usage:governance_only"
+    normative_role: "governance.escalated_admin"
+
+# 2) Mapeamento de ferramentas MCP conhecidas para capacidades normativas
+# O orquestrador consumirá a lista real de ferramentas em runtime e
+# tentará encaixar nessas categorias. Estas entradas funcionam como
+# "overrides" normativos / hints.
+
+tools:
+  # Exemplos de ferramentas do MCP GitHub oficial
+  - server: github
+    name: set_branch_protection
+    match:
+      domain: github
+      actions: [write, admin]
+      resources: [branch_protection]
+    normative_role: "C1.enforce_candidate"
+    side_effects: high
+    requires_confirmation: true
+
+  - server: github
+    name: get_branch_protection
+    match:
+      domain: github
+      actions: [read]
+      resources: [branch_protection]
+    normative_role: "C1.verify_candidate"
+    side_effects: none
+
+  # Ferramentas locais de governança C1 (scripts já presentes no repo)
+  - server: local
+    name: .github/mcp/apply_c1_branch_protection.sh
+    match:
+      domain: github
+      actions: [write, admin, enforce]
+      resources: [branch_protection]
+      controls: [C1]
+    normative_role: "C1.enforce"
+    side_effects: high
+    requires_confirmation: true
+
+  - server: local
+    name: .github/mcp/verify_c1_branch_protection.sh
+    match:
+      domain: github
+      actions: [read, verify]
+      resources: [branch_protection]
+      controls: [C1]
+    normative_role: "C1.verify"
+    side_effects: low
+
+  # Exemplo de ferramenta genérica que DEVE ser proibida para C1
+  - server: git-mcp-admin
+    name: generic_http
+    match:
+      domain: github
+      actions: [write, admin]
+    normative_role: "generic.risky"
+    forbidden_for_controls: [C1]
+
+# 3) Políticas de roteamento por contexto
+# Regra: toda decisão passa por estas políticas em ordem de prioridade.
+
+policies:
+
+  # Política global: nunca usar ferramentas genéricas de alto risco
+  # para controles de governança normativos se existir uma ferramenta
+  # específica aprovada.
+  - id: global_prefer_specific_over_generic
+    priority: 10
+    match:
+      any: true
+    rules:
+      - if:
+          has_normative_role: true
+        then:
+          prefer_normative_tools: true
+          # Se houver conflito entre ferramenta específica (normativa)
+          # e genérica, escolher sempre a específica.
+          deny_generic_when_normative_available: true
+
+  # C1 — Branch Protection canônica para helton-godoy/shantilly
+  - id: C1_branch_protection_shantilly
+    priority: 100
+    match:
+      repo: "helton-godoy/shantilly"
+      control: "C1"
+      domain: "github"
+    routing:
+      preferred_tools:
+        # Canon:
+        - server: local
+          name: ".github/mcp/apply_c1_branch_protection.sh"
+        - server: local
+          name: ".github/mcp/verify_c1_branch_protection.sh"
+      allowed_servers:
+        - github
+        - local
+      denied_servers:
+        - git-mcp-admin
+      notes:
+        - "Alterações de Branch Protection para C1 DEVEM usar o enforcer/verifier canônicos."
+        - "Ferramentas genéricas que conseguem chamar a mesma API são proibidas como trilho paralelo."
+    invariants:
+      - "merge em main/master só é considerado conforme se verify_c1_branch_protection.sh passar."
+      - "qualquer uso de server/tool fora da lista para alterar proteção é violação de governança."
+
+  # Política para operações Git locais (observabilidade)
+  - id: local_git_observability
+    priority: 50
+    match:
+      domain: "git"
+    routing:
+      preferred_servers:
+        - git
+      allowed_servers:
+        - git
+      notes:
+        - "Operações de leitura/estado local usam MCP 'git'; sem efeitos remotos."
+    invariants:
+      - "Ferramentas git locais não podem alterar políticas remotas do GitHub."
+
+# 4) Regras para análise de sobreposição, conflito e lacunas
+
+analysis:
+  overlap:
+    # Duas ferramentas são consideradas sobrepostas se:
+    same_domain: true
+    same_resources: true
+    intersect_actions: true
+  conflict:
+    # Conflito se:
+    # - ferramentas sobrepostas têm normative_role divergente para o mesmo controle, OU
+    # - uma é forbidden_for_controls para o controle atual.
+    detect_normative_divergence: true
+    respect_forbidden_for_controls: true
+  gaps:
+    # Para cada controle definido (ex: C1), deve existir:
+    required:
+      - control: "C1"
+        needs:
+          - role: "C1.enforce"
+          - role: "C1.verify"
+
+# 5) Auditoria e enforcement de políticas
+
+enforcement:
+  # Toda decisão de roteamento relevante deve produzir um registro.
+  audit_log:
+    enabled: true
+    # Campos mínimos:
+    fields:
+      - timestamp
+      - context
+      - candidates
+      - chosen_server
+      - chosen_tool
+      - applied_policy_ids
+      - decision_reason
+      - result
+  # Configuração para health-check contínuo do ecossistema MCP.
+  continuous_validation:
+    enabled: true
+    interval: "24h"
+    checks:
+      - id: "C1_tooling_presence"
+        description: "Garantir que ferramentas C1.enforce e C1.verify estão presentes e roteadas corretamente."
+        control: "C1"
+        assert:
+          - has_normative_tool_role: "C1.enforce"
+          - has_normative_tool_role: "C1.verify"
+      - id: "no_generic_bypass_for_C1"
+        description: "Garantir que nenhuma ferramenta genérica seja usada para alterar branch protection de C1."
+        control: "C1"
+        assert:
+          - policies_respect_forbidden_for_controls: true

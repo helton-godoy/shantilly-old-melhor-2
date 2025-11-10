@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 // Exit codes
@@ -26,7 +28,8 @@ func Handle(err error) {
 	exitCode := ExitError
 
 	// Check for specific error types
-	if errors.Is(err, ErrAborted) {
+	// Check if it's our specific abort error OR if it's the standard bubbletea Quit message
+	if errors.Is(err, ErrAborted) || errors.As(err, &tea.QuitMsg{}) {
 		exitCode = ExitCancelled
 		// Optionally print a message for cancellation
 		// fmt.Fprintln(os.Stderr, "Operation cancelled.")

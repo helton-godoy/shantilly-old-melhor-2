@@ -1,0 +1,114 @@
+name: governanca-waves4-7
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  governanca-waves4-7:
+    name: Governança Waves 4-7 (Gates 1.x + Go checks)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Install golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.61.0
+
+      - name: Make scripts executable
+        run: |
+          chmod +x scripts/check-legacy-encapsulation.sh || true
+
+      # Core Go quality gates
+      - name: Go Test
+        run: go test ./...
+
+      - name: Go Vet
+        run: go vet ./...
+
+      - name: golangci-lint
+        run: golangci-lint run ./...
+
+      # Gate: No os.Exit no core (apenas cmd/shantilly/main.go permitido)
+      - name: Gate 1.x.no-osexit-core
+        run: |
+          set -euo pipefail
+          echo "[gate:1.x.no-osexit-core] Verificando usos de os.Exit fora de cmd/shantilly/main.go..."
+          if git grep -n "os.Exit(" -- . ':!cmd/shantilly/main.go' >/dev/null 2>&1; then
+            echo "[gate:1.x.no-osexit-core][ERRO] Uso proibido de os.Exit encontrado fora de cmd/shantilly/main.go:"
+            git grep -n "os.Exit(" -- . ':!cmd/shantilly/main.go' || true
+            exit 1
+          fi
+          echo "[gate:1.x.no-osexit-core] OK"
+
+      # Gate: Encapsulamento do legado (FormComponent + internal/tui)
+      - name: Gate 1.x.legacy-formcomponent-encapsulation
+        run: |
+          set -euo pipefail
+          echo "[gate:1.x.legacy-formcomponent-encapsulation] Executando scripts/check-legacy-encapsulation.sh..."
+          ./scripts/check-legacy-encapsulation.sh
+
+      # Gate: ScriptRunner + update_target confinados a internal/runtime/runner/**
+      - name: Gate 1.x.scriptrunner-and-update-target
+        run: |
+          set -euo pipefail
+          echo "[gate:1.x.scriptrunner-and-update-target] Verificando uso de ScriptRunner e update_target..."
+          # Proibir uso de os/exec fora do runner
+          if git grep -n "\"os/exec\"" -- . ':!internal/runtime/runner/' >/dev/null 2>&1; then
+            echo "[gate:1.x.scriptrunner-and-update-target][ERRO] Uso de os/exec fora de internal/runtime/runner detectado:"
+            git grep -n "\"os/exec\"" -- . ':!internal/runtime/runner/' || true
+            exit 1
+          fi
+          # Opcional: marcar como ponto de extensão para checks adicionais baseados em docs/qa/gates/1.x.scriptrunner-and-update-target.yml
+          echo "[gate:1.x.scriptrunner-and-update-target] OK (nenhum os/exec fora de internal/runtime/runner)"
+
+      # Gate: Modal Stack centralizada em internal/runtime/modal/**
+      - name: Gate 1.x.modal-stack
+        run: |
+          set -euo pipefail
+          echo "[gate:1.x.modal-stack] Verificando padrões de modal restritos a internal/runtime/modal..."
+          # Bloqueio simples: referências explícitas a ModalStack/ModalRequest fora do pacote dedicado (ajuste conforme nomenclatura concreta)
+          if git grep -ni "ModalStack" -- . ':!internal/runtime/modal/' >/dev/null 2>&1; then
+            echo "[gate:1.x.modal-stack][ERRO] Referências a ModalStack fora de internal/runtime/modal detectadas:"
+            git grep -ni "ModalStack" -- . ':!internal/runtime/modal/' || true
+            exit 1
+          fi
+          echo "[gate:1.x.modal-stack] OK"
+
+      # Gate: Segurança JIT + Anti-Trojan YAML (placeholder alinhado ao gate)
+      - name: Gate 1.x.security-jit-anti-trojan
+        run: |
+          set -euo pipefail
+          echo "[gate:1.x.security-jit-anti-trojan] Verificando ausência de execuções diretas inseguras e chaves YAML suspeitas..."
+          # Proibir padrões óbvios de execução direta fora do ScriptRunner (ajustável conforme implementação concreta)
+          if git grep -ni "sh -c" -- . ':!internal/runtime/runner/' >/dev/null 2>&1; then
+            echo "[gate:1.x.security-jit-anti-trojan][ERRO] Encontrado uso de 'sh -c' fora de internal/runtime/runner:"
+            git grep -ni "sh -c" -- . ':!internal/runtime/runner/' || true
+            exit 1
+          fi
+          echo "[gate:1.x.security-jit-anti-trojan] OK (checks básicos)."
+          echo "[gate:1.x.security-jit-anti-trojan] Para cobertura completa, alinhar com docs/qa/gates/1.x.security-jit-anti-trojan.yml conforme implementação evoluir."
+
+      # Gate: Event/Layout/Runtime core alignment (placeholder para reforçar pipeline único)
+      - name: Gate 1.x.event-and-layout-pipeline
+        run: |
+          set -euo pipefail
+          echo "[gate:1.x.event-and-layout-pipeline] Verificação sintética de que não há referências óbvias proibidas no runtime core..."
+          # Exemplo: bloquear usos diretos de internal/tui no runtime (já coberto pelo gate E1.6, redundância defensiva).
+          if git grep -n "internal/tui" -- internal/runtime/ >/dev/null 2>&1; then
+            echo "[gate:1.x.event-and-layout-pipeline][ERRO] internal/runtime referenciando internal/tui (violação do confinamento do legado):"
+            git grep -n "internal/tui" -- internal/runtime/ || true
+            exit 1
+          fi
+          echo "[gate:1.x.event-and-layout-pipeline] OK"

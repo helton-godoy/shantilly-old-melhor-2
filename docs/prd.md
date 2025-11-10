@@ -30,68 +30,85 @@ shantilly fills this gap. It's a portable CLI tool (single static binary) enabli
 | 2025-10-23 | 0.1.5   | Completed PM Checklist and Next Steps section.                                                                 | John (PM) |
 | 2025-10-23 | 0.2.0   | Implemented PM Checklist recommendations (YAML Structure and Error Handling - NFR8). Updated Architect prompt. | John (PM) |
 | 2025-10-27 | 0.3.0   | Added preventive epics (3-7) for future roadmap planning and process improvement. | Sarah (PO) |
+| 2025-11-08 | 2.0.0   | Pivô para Runtime TUI Declarativo v2.0, incluindo layouts, componentes múltiplos, lógica de eventos.          | John (PM) |
 
 ## Requirements
 
-### Functional
+### Functional (FRs) - O Runtime TUI
 
-* **FR1:** The CLI MUST implement a `form` subcommand (based on `spf13/cobra`) [cite: Project Brief_ shantilly.md].
-* **FR2:** The `form` subcommand MUST be able to read a form definition in YAML format from `stdin` (allowing *here-docs* or *pipes* in the shell) [cite: Project Brief_ shantilly.md].
-* **FR3:** The YAML definition MUST support the following form components, mapped to the `charmbracelet/huh` library: Input, Textarea, Select, MultiSelect, Confirm, and Note [cite: Project Brief_ shantilly.md].
-* **FR4:** shantilly MUST render an interactive TUI (based on `charmbracelet/bubbletea`) corresponding to the received YAML definition [cite: Project Brief_ shantilly.md].
-* **FR5:** The user MUST be able to navigate and fill the TUI form using the keyboard [cite: Project Brief_ shantilly.md].
-* **FR6:** Upon successful form submission, the application MUST print the collected data in JSON format to `stdout` [cite: Project Brief_ shantilly.md].
-* **FR7:** The TUI MUST include basic styling and responsiveness to terminal size changes (using `charmbracelet/lipgloss`) [cite: Project Brief_ shantilly.md].
+Estes requisitos definem o nosso novo MVP: a "Fundação Genérica".
 
-### Non-Functional
+* **FR1 (Layout):** O `shantilly` DEVE analisar e renderizar uma estrutura de layout hierárquica definida em YAML, usando os tipos `type: column`, `type: row`, e `type: box`.
 
-* **NFR1:** The application MUST be distributed as a single statically compiled executable binary [cite: Project Brief_ shantilly.md].
-* **NFR2:** The binary MUST be compatible with the following architectures: Linux (amd64, arm64), macOS (amd64, arm64), and Windows (amd64) [cite: Project Brief_ shantilly.md].
-* **NFR3:** The application MUST be written in Go (latest stable version) [cite: Project Brief_ shantilly.md].
-* **NFR4:** The TUI startup time (from command execution to rendering) MUST be fast (target < 500ms) [cite: Project Brief_ shantilly.md].
-* **NFR5:** The application MUST NOT depend on external tools like `dialog` or `whiptail` [cite: Project Brief_ shantilly.md].
-* **NFR6:** Mouse support is explicitly out of scope for the MVP (MUST NOT be implemented) [cite: Project Brief_ shantilly.md].
-* **NFR7:** Support for complex layouts (multi-panel), advanced menus, modal dialogs, and SSH are out of scope for the MVP [cite: Project Brief_ shantilly.md].
-* **NFR8:** The application MUST handle errors gracefully. Specifically:
-  * YAML parsing errors (FR2) MUST result in a clear error message on `stderr` (indicating the problem, e.g., line/column if possible) and the application MUST exit with an error status (non-zero).
-  * The TUI MUST allow the user to exit at any time (e.g., `Ctrl+C`, `Esc`) without corrupting the terminal.
-  * Unexpected errors during TUI execution MUST be caught and ideally reported on `stderr` before exiting.
+* **FR2 (Estilo/Flex):** O layout DEVE suportar propriedades de dimensionamento como `height: <int>`, `width: 'N%'`, e `flex: <int>` para controlar o espaço.
+
+* **FR3 (Componentes Embutidos):** O `shantilly` DEVE suportar a definição de componentes de UI diretamente dentro de um `box` usando a chave `component:` (o foco do nosso MVP).
+
+* **FR4 (Componente: `viewport`):** DEVE suportar `component: { type: viewport }`, capaz de exibir `source: { type: static, content: "..." }` (incluindo markdown) e `source: { type: command, exec: "..." }` (para streaming de stdout).
+
+* **FR5 (Componente: `list`):** DEVE suportar `component: { type: list }`, com um `id:` de grupo e `items:` (cada um com `id:` e `text`), e DEVE emitir um evento `list_id:select`.
+
+* **FR6 (Componente: `buttongroup`):** DEVE suportar `component: { type: buttongroup }`, com um `id:` de grupo, `items:` (com `id`, `label`, `role`), e DEVE emitir um evento `buttongroup_id:press`.
+
+* **FR7 (Componente: `form`):** DEVE suportar `component: { type: form }`, que contém `fields:` (usando a sintaxe `huh` já validada no v1.0) e `actions:`. DEVE emitir um evento `form_id:submit` contendo o *payload* de dados do formulário.
+
+* **FR8 (Lógica: `on:`):** O `shantilly` DEVE analisar um bloco `on:` na raiz do YAML para definir a lógica de automação.
+
+* **FR9 (Ação: `script`):** O bloco `on:` DEVE suportar o *runner* de fundação: `run: { script: "/path/to/script.sh" }`.
+
+* **FR10 (Fluxo de Dados):** O *runner* `script:` DEVE suportar duas chaves para passagem de dados:
+  1. **`args: []string`**: Uma lista de *strings* que serão passadas como argumentos de linha de comando para o script, com suporte para *templates* (ex: `{{ form.field_name }}`).
+  2. **`stdin: any`**: Um objeto (ex: `{{ form }}`) que o `shantilly` irá serializar como JSON e passar para o `stdin` do *script*.
+
+* **FR11 (Ciclo de Vida do Target):** O bloco `run:` DEVE suportar uma chave `update_target: "id_do_viewport"`. Se um novo evento `run:` for disparado para o *mesmo* `update_target`, o `shantilly` DEVE primeiro **terminar (enviar `SIGTERM`)** o processo anterior antes de iniciar o novo.
+
+### Non-Functional (NFRs) - O Runtime TUI
+
+* **NFR1 (Fundação v1.0):** Todos os NFRs do PRD v1.0 permanecem válidos: binário estático único, cross-platform (Linux, macOS, Windows), escrito em Go, arranque rápido (<500ms), e gestão de erros com `stderr` e códigos de saída não-zero.
+
+* **NFR2 (Layout Fluido):** O motor de layout (`column`/`row`/`box`) DEVE responder a mensagens de redimensionamento do terminal (`tea.WindowSizeMsg`) e re-calcular o layout de forma fluida e "flicker-free" (sem piscar).
+
+* **NFR3 (Precedência de Conteúdo):** O `shantilly` DEVE seguir a "Lógica de Precedência Unificada" para conteúdo de componentes (1º: CLI `--set`, 2º: YAML `model:`/`component:`, 3º: Vazio).
+
+* **NFR4 (Descoberta Preditiva - Ansible):** Para a Fase 2/3, o `playbook_explorer` DEVE filtrar "ruído" (pastas `roles/`, `tasks/`) e o `inventory_explorer` DEVE usar `ansible-inventory` como "Oráculo".
+
+* **NFR5 (Ficheiro-Sombra):** O ficheiro de catálogo (`.shantilly.yml`) DEVE ser opcional e usado apenas para *refinar* a descoberta automática, não sendo obrigatório.
 
 ## User Interface Design Goals
 
 ### Overall UX (User Experience) Vision
 
-The user experience should be clean, intuitive, and focused on efficient keyboard data entry. The aesthetics should follow the modern, minimalist standard popularized by the Charmbracelet ecosystem [cite: Project Brief_shantilly.md, Relatório Técnico do Brainstorming Shantilly.md], serving as a direct upgrade from the dated appearance of `dialog` and `whiptail` [cite: Project Brief_ shantilly.md]. Responsiveness to terminal resizing is crucial [cite: docs/prd.md]. **Important: For the MVP, the form layout will be linear (one question below the other), following the `huh` library's standard.**
+A UX deve ser a de um **"Runtime TUI Declarativo"**. A interface não é mais um formulário linear único, mas sim um *dashboard* composto, definido inteiramente pelo YAML. A experiência deve ser semelhante ao Appsmith: limpa, responsiva (ao terminal) e orientada a componentes.
 
 ### Key Interaction Paradigms
 
-* **Keyboard Focus:** Navigation MUST be primarily keyboard-based, following standard form patterns (e.g., `Tab` / `Shift+Tab` to navigate fields, `Enter` to submit or select, `Space` to toggle selections, `Arrows` for lists).
-* **Immediate Feedback:** The currently focused component MUST be clearly highlighted.
-* **Clean Exit:** The user MUST be able to exit the form at any time (e.g., `Ctrl+C` or `Esc`), and submission should clear the screen and return control to the script cleanly.
+* **Orientada a Eventos (Nova):** A interação principal não é linear. O utilizador seleciona itens em listas (`list:select`) ou pressiona botões (`buttongroup:press`), que disparam ações no bloco `on:`.
+
+* **Foco no Teclado (Mantido):** A navegação DEVE continuar a ser primariamente baseada no teclado (Tab, Setas, Enter).
+
+* **Feedback Imediato (Mantido):** O componente focado DEVE ser claramente destacado. O `update_target` (FR11) DEVE exibir o *output* de comandos em tempo real.
+
+* **Gestão de Foco Global (Nova):** A UI DEVE ter um mecanismo claro para indicar qual painel/componente (ex: `sidebar` vs `content`) está "em foco", e DEVE fornecer navegação intuitiva *entre* painéis (ex: Ctrl+Tab).
+
+* **Ligação de Dados (Nova):** A UI DEVE ser reativa. Componentes (ex: um `viewport` estático) DEVEM ser capazes de exibir dados de outros componentes (ex: `Olá, {{ form.username }}`).
 
 ### Core Screens and Views
 
-For the MVP scope, there is only one main view:
+Não há ecrãs "pré-definidos". Os ecrãs são *definidos dinamicamente* pelo utilizador através do **`layout` YAML** (FR1). A UI é uma composição de `type: column`, `type: row`, e `type: box`.
 
-* **Form View (`form view`):** Renders the TUI form based on YAML [cite: docs/prd.md], processed by the `huh` library [cite: docs/prd.md].
+### Alignment and Layout (Nova Visão)
 
-### Alignment and Layout (MVP)
+O layout linear do MVP v1.0 está obsoleto. O novo requisito é:
 
-Although the MVP (based on `huh`) does not support complex layouts (multiple columns) [cite: docs/prd.md], the form view MUST, whenever possible, be rendered aesthetically (e.g., centered on screen, with adequate padding), using `lipgloss` [cite: docs/prd.md] to manage the overall alignment of the form container.
+* O `shantilly` DEVE renderizar com precisão o layout `column`/`row` definido pelo utilizador.
 
-### Accessibility
+* O `shantilly` DEVE respeitar as propriedades de dimensionamento (`height`, `width`, `flex`) para distribuir o espaço.
 
-* **Standard:** WCAG AA (As applicable to terminal text).
-* **Requirements:** The interface MUST ensure sufficient color contrast between text, background, and focus elements, adhering to `lipgloss` standard themes [cite: docs/prd.md].
+* O `shantilly` DEVE responder a mensagens de redimensionamento do terminal (`tea.WindowSizeMsg`) e re-calcular o layout fluido e "flicker-free" (NFR2, Meta de UI Refinada).
 
-### Branding
+### Accessibility, Branding, Plataformas Alvo
 
-The visual identity will be defined by the standard components of `charmbracelet/huh` and `charmbracelet/lipgloss` [cite: docs/prd.md, Relatório Técnico do Brainstorming Shantilly.md]. There will be no custom branding (logos, etc.) in the MVP.
-
-### Target Device and Platforms
-
-* **Platforms:** Modern terminals on Linux, macOS, and Windows [cite: docs/prd.md].
-* **Requirements:** Requires a terminal with adequate support for colors (TrueColor recommended) and UTF-8 characters for correct component rendering [cite: Project Brief_ shantilly.md].
+Estes requisitos permanecem os mesmos do PRD v1.0 (WCAG AA, estética Charmbracelet, terminais modernos em Linux/macOS/Windows).
 
 ## Technical Assumptions
 
@@ -107,213 +124,172 @@ For the MVP, shantilly is a monolithic CLI application that executes, processes 
 
 Given the MVP time constraints and the challenges of testing TUIs [cite: Project Brief_shantilly.md], the primary focus will be on robust unit tests for the YAML parsing logic and internal business logic [cite: Relatório Técnico do Brainstorming Shantilly.md]. UI integration tests will be limited to manual smoke tests on the main platforms [cite: Project Brief_ shantilly.md].
 
-### Expected YAML Structure (`stdin`)
+### Estrutura YAML Esperada (A Nova Fonte da Verdade)
 
-The form definition passed via `stdin` (FR2) MUST follow a basic YAML structure. The Architect will detail the corresponding Go struct, but conceptually, the YAML must allow at least:
+* **Assunção (Nova):** A estrutura YAML do v1.0 (lista simples de `fields:`) está obsoleta. A nova assunção de arquitetura é o YAML "Appsmith-style" que definimos, composto por **Layout**, **Componentes** e **Lógica**:
 
-```yaml
-# Optional: Title to be displayed above the form
-title: "Example Shantilly Form"
+```
+# 1. LAYOUT (Define o "onde")
 
-# List of form fields
+type: column
+
+items:
+
+- type: row
+
+flex: 1
+
+items:
+
+- type: box
+
+id: "sidebar"
+
+width: "30%"
+
+# 2. COMPONENTE (Define o "o quê")
+
+component:
+
+type: list
+
+id: "menu"
+
+items:
+
+- { id: "users", text: "Gerir Utilizadores" }
+
+- type: box
+
+id: "content"
+
+width: "70%"
+
+component:
+
+type: form
+
+id: "user_form"
+
 fields:
-  - key: "username"           # Key used in the JSON output (FR6)
-    label: "Username:"        # Text displayed in the TUI
-    type: "input"             # Field type (mapped to huh - FR3)
-    # placeholder: "Enter your name" # Optional for inputs
-    # value: "Default Value"   # Optional
 
-  - key: "description"
-    label: "Description:"
-    type: "textarea"
+- { name: "username", label: "Nome", type: "input" }
 
-  - key: "server"
-    label: "Select Server:"
-    type: "select"
-    options:                  # Required for select/multiselect
-      - "Production"
-      - "Staging"
-      - "Development"
+actions:
 
-  - key: "modules"
-    label: "Modules to Install:"
-    type: "multiselect"
-    options:
-      - "Web Server"
-      - "Database"
-      - "Cache"
-    # limit: 2                  # Optional for multiselect
+type: buttongroup
 
-  - key: "confirm_install"
-    label: "Proceed with installation?"
-    type: "confirm"
-    # affirmative: "Yes"       # Optional
-    # negative: "No"        # Optional
+items:
 
-  - key: "warning_note"
-    label: "Important Note:"    # 'label' here acts as the note title
-    type: "note"
-    # title: "Attention:"       # Alternative to 'label' for Note
-    # detail: "Details..." # Body of the note (if not using 'label')
+- { id: "submit", label: "Criar", role: "primary" }
 
-# Add more global configuration options here in the future (Post-MVP)
+
+
+# 3. LÓGICA (Define o "como")
+
+on:
+
+- event: "user_form:submit"
+
+run:
+
+script: "/opt/scripts/create_user.sh"
+
+# Nomenclatura refinada (Opção C)
+
+args:
+
+- "--mode=production"
+
+stdin: "{{ form }}" # Passa o payload JSON para o stdin
 ```
 
-**Note:** This is a *minimum* structure for the MVP. The Architect may refine key names and add optional fields (like `placeholder`, `value`, `limit`) as needed during architectural design. Validation of the YAML structure after parsing is implied in Story 1.2/1.4.
+### Assunções Técnicas Adicionais
 
-### Additional Technical Assumptions and Requests
+* **Pilha de Tecnologias (Mantida e Validada):** Go (1.24.2+), `spf13/cobra`, `charmbracelet/bubbletea`, `charmbracelet/lipgloss`, `charmbracelet/huh`, `gopkg.in/yaml.v3`.
 
-* **Language:** Go (NFR3) [cite: docs/prd.md].
-* **Core Frameworks/Libraries:** `spf13/cobra` (FR1) [cite: docs/prd.md], `charmbracelet/bubbletea` (FR4) [cite: docs/prd.md], `charmbracelet/lipgloss` (FR7) [cite: docs/prd.md], `charmbracelet/huh` (FR3) [cite: docs/prd.md], `gopkg.in/yaml.v3` [cite: Project Brief\_ shantilly.md].
-* **Build & Distribution:** Standard Go build process with flags for static compilation (`CGO_ENABLED=0`) and cross-compilation for NFR2 architectures [cite: docs/prd.md].
+* **Bibliotecas Relevantes (Nova):** A arquitetura dependerá de `charmbracelet/bubbles` (para `list`, `viewport`), `charmbracelet/glamour` (para markdown), `rmhubbert/bubbletea-overlay` (para modais Fase 2), e inspiração de `76creates/stickers` (para layout).
 
-## Epic List
+* **Build e Distribuição (Mantido):** `GoReleaser` para binários estáticos cross-platform.
 
-* **Epic 1: MVP - Core Form Functionality**
-  * **Goal:** Establish the CLI structure, implement YAML parsing from stdin, render the linear TUI form using `huh`, allow keyboard navigation and submission, and return the collected data as JSON on stdout, delivering the core MVP functionality.
+## Epic List (Roadmap v2.0)
 
-* **Epic 2: Advanced Form Features & User Experience**
-  * **Goal:** Expand form capabilities with advanced field types (numeric, date, file), validation, and improved user experience through better error handling and feedback.
+Este *roadmap* substitui a lista de épicos do PRD v1.0.
 
-* **Epic 3: Advanced Layouts & Multi-Panel Forms**
-  * **Goal:** Support complex layouts with multiple panels, form sections, and progressive disclosure for sophisticated form experiences.
+* **Épico 1: Fundação do Runtime TUI (Genérico)**
 
-* **Epic 4: SSH Server Mode & Remote Forms**
-  * **Goal:** Implement SSH server mode for remote form execution, enabling administration and distributed system integration.
+* **Meta:** Construir o motor central: o layout (`column`/`row`/`box`), os componentes essenciais (`list`, `viewport`, `form`, `buttongroup`), e a lógica de eventos (`on:`, `run: { script: ... }`). (Este épico absorve todo o trabalho já concluído no v1.0).
 
-* **Epic 5: Advanced Components & Interactions**
-  * **Goal:** Add advanced UI components like modals, enhanced selection controls, progress indicators, and sophisticated keyboard navigation.
+* **Épico 2: O Runner Especialista (Ansible Fase 2)**
 
-* **Epic 6: Form Templates & Reusability**
-  * **Goal:** Create template system and component library for rapid form development and consistency across applications.
+* **Meta:** Implementar o *runner* de conveniência `run: { ansible_playbook: ... }`, focando na gestão de `vars:` e no popup modal `ask_vault_pass: true`.
 
-* **Epic 7: Internationalization & Localization**
-  * **Goal:** Implement full internationalization support for global adoption with multiple language support and cultural adaptation.
+* **Épico 3: O Runtime Preditivo (Ansible Fase 3)**
 
-## Epic 1: MVP - Core Form Functionality
+* **Meta:** Implementar os componentes `playbook_explorer` (Magia 1: descobrir playbooks) e `inventory_explorer` (Magia 2: descobrir inventário).
 
-**Expanded Goal:** Deliver the end-to-end functionality for the `form` subcommand, proving the viability of the declarative approach (`YAML -> TUI -> JSON`). This includes the initial Go project setup, the CLI structure with `cobra`, parsing the YAML input, rendering the TUI with `bubbletea` and `huh`, basic keyboard interaction, collecting submitted data, and formatting the JSON output for integration with shell scripts.
+* **Épico 4: Administração SSH (Visão de Longo Prazo)**
 
-### Story 1.1 CLI Foundation and Project Structure
+* **Meta:** Integrar o `charmbracelet/wish` para servir o Runtime TUI sobre SSH.
 
-**As a** shantilly developer,
-**I want** to set up the initial Go project structure (monorepo) and the CLI using `cobra`, with a basic `form` subcommand,
-**So that** the application foundation is ready for subsequent features.
+## Epic 1: Fundação do Runtime TUI (Genérico)
 
-#### Acceptance Criteria
+**Meta do Épico:** Construir o motor central do `shantilly`: o motor de layout (`column`/`row`/`box`), os componentes essenciais de dashboard (`list`, `viewport`, `form`, `buttongroup`), e a lógica de eventos (`on:`, `run: { script: ... }`). Este épico irá refatorar o trabalho concluído do v1.0 para que ele funcione como o componente `type: form` dentro deste novo runtime.
 
-1. AC1: The Go repository MUST be initialized with `cmd/shantilly` and `internal/` directory structures.
-2. AC2: The CLI MUST be implemented using `spf13/cobra`.
-3. AC3: A root `shantilly` command and a `form` subcommand MUST exist.
-4. AC4: Running `shantilly form` MUST read data from `stdin` (no specific parsing yet).
-5. AC5: Running `shantilly form` MUST print a placeholder message to `stdout` (e.g., "Form executed").
-6. AC6: The project MUST include a basic `Makefile` for compilation (`go build`).
+### Estória 1.1: O Motor de Layout (Renderização)
 
-### Story 1.2 YAML Configuration Parsing
+**Como um** SysAdmin, **Eu quero** definir um layout TUI usando `column`, `row`, e `box` no meu YAML, **Para que** eu possa criar dashboards complexos e organizados.
 
-**As a** shantilly developer,
-**I want** the `form` subcommand to parse the YAML received via `stdin` using `gopkg.in/yaml.v3` into an internal Go structure,
-**So that** the TUI definition can be processed by the application.
-**Prerequisite:** Story 1.1
+#### Critérios de Aceitação
 
-#### Acceptance Criteria
+1. O parser DEVE suportar as chaves `type: column`, `type: row`, e `type: box` (FR1).
+2. O motor de renderização (`lipgloss`) DEVE respeitar as propriedades `height: <int>`, `width: 'N%'`, e `flex: <int>` (FR2).
+3. O layout DEVE recalcular-se fluidamente (sem piscar) ao receber uma mensagem de redimensionamento (`tea.WindowSizeMsg`) (NFR2).
+4. Um `box` DEVE renderizar o seu `component: { type: static, content: "..." }` (para testes de layout).
 
-1. AC1: A Go struct (`internal/config` or similar) representing the expected YAML structure for a form (as defined in "Expected YAML Structure") MUST be defined.
-2. AC2: The `form` subcommand MUST use `gopkg.in/yaml.v3` to unmarshal `stdin` into the defined Go struct.
-3. AC3: If YAML parsing fails (invalid YAML), the application MUST print a clear error message to `stderr` and exit with an error status (non-zero) (NFR8).
-4. AC4: If parsing succeeds, the application MUST (temporarily for testing) print a representation of the parsed Go struct to `stdout`.
+### Estória 1.2: O Motor de Lógica (Eventos e Ações)
 
-### Story 1.3 Basic TUI Structure with Bubbletea
+**Como um** SysAdmin, **Eu quero** que a minha UI TUI possa "ouvir" eventos e executar ações (`scripts`) em resposta, **Para que** o meu dashboard seja interativo e possa orquestrar automações.
 
-**As a** shantilly developer,
-**I want** to integrate `bubbletea` and `lipgloss` to create a basic TUI model that can be launched by the `form` command, display a message, and be exited,
-**So that** the TUI foundation is established.
-**Prerequisite:** Story 1.1
+#### Critérios de Aceitação
 
-#### Acceptance Criteria
+1. O `shantilly` DEVE analisar um bloco `on:` na raiz do YAML (FR8).
+2. O motor DEVE suportar o *runner* de fundação: `run: { script: "/path/to/script.sh" }` (FR9).
+3. O `run:` DEVE suportar `update_target: "id_do_viewport"`, direcionando o `stdout` do script para o *viewport* alvo (FR11).
+4. O motor DEVE garantir que, se um novo script for direcionado para um `update_target` já ocupado, o script anterior seja terminado (SIGTERM) antes de o novo começar (Refinamento FR11).
 
-1. AC1: The project MUST include `charmbracelet/bubbletea` and `charmbracelet/lipgloss` dependencies.
-2. AC2: A basic `bubbletea` model (`internal/tui` or similar) with `Init`, `Update`, `View` methods MUST be created.
-3. AC3: The `form` subcommand MUST launch the `bubbletea` application with the basic model.
-4. AC4: The `View` method MUST render a simple placeholder message (e.g., "Shantilly TUI") using `lipgloss` for basic styling.
-5. AC5: The user MUST be able to exit the TUI application by pressing `Ctrl+C` or `Esc` (NFR8).
+### Estória 1.3: Componentes Essenciais de Display (List, Viewport, Button)
 
-### Story 1.4 Form Rendering with `huh`
+**Como um** SysAdmin, **Eu quero** usar componentes de `list` (para menus), `viewport` (para saída de log) e `buttongroup` (para ações), **Para que** eu possa construir um dashboard funcional.
 
-**As a** shantilly developer,
-**I want** to map the Go structure (parsed from YAML) to `charmbracelet/huh` components and render the corresponding TUI form,
-**So that** the user-defined interface is displayed.
-**Prerequisites:** Story 1.2, Story 1.3
+#### Critérios de Aceitação
 
-#### Acceptance Criteria
+1. DEVE implementar `component: { type: viewport }` (FR4), incluindo `source: { type: command, exec: "..." }` (ex: `tail -f`) e `content_type: markdown`.
+2. DEVE implementar `component: { type: list }` (FR5), que emite um evento `list_id:select` quando um item é selecionado.
+3. DEVE implementar `component: { type: buttongroup }` (FR6), que emite um evento `buttongroup_id:press` (com o `item.id`) quando um botão é pressionado.
+4. A navegação por teclado DEVE permitir "saltar" entre estes novos painéis/componentes (Refinamento de Meta de UI).
 
-1. AC1: The project MUST include the `charmbracelet/huh` dependency.
-2. AC2: The TUI logic (`internal/tui`) MUST be able to receive the parsed Go struct (from Story 1.2).
-3. AC3: The TUI logic MUST iterate over the field definitions and create instances of the corresponding `huh` components (Input, Textarea, Select, MultiSelect, Confirm, Note), using `key` and `label` from the YAML.
-4. AC4: The `bubbletea` `View` method MUST use `huh.Form` to render the created components.
-5. AC5: A simple YAML form (using the defined structure) with 2-3 fields passed via `stdin` MUST be rendered correctly in the TUI.
-6. AC6: The `title` (if provided in the YAML) MUST be displayed above the form.
+### Estória 1.4: Integração do Componente `form` (Absorção do v1.0)
 
-### Story 1.5 Keyboard Navigation and Interaction
+**Como um** SysAdmin, **Eu quero** usar o `type: form` (que já construímos no v1.0) como um componente *dentro* do meu novo layout, **Para que** eu possa coletar dados de forma organizada.
 
-**As a** shantilly user,
-**I want** to be able to navigate between form fields and interact with them using only the keyboard,
-**So that** I can fill out the form efficiently.
-**Prerequisite:** Story 1.4
+#### Critérios de Aceitação
 
-#### Acceptance Criteria
+1. Refatorar o código dos Épicos 1 e 2 (v1.0) para que funcione como um `component: { type: form }` (FR7).
+2. O `form` DEVE renderizar e funcionar corretamente quando colocado dentro de um `box` do layout.
+3. Quando a ação `id: "submit"` do formulário for pressionada, o componente `form` DEVE emitir um evento `form_id:submit`.
+4. O *payload* do evento `form_id:submit` DEVE conter o JSON de dados do formulário (o output do v1.0).
 
-1. AC1: The `Tab` key MUST move focus to the next form field.
-2. AC2: `Shift+Tab` MUST move focus to the previous field.
-3. AC3: `Enter` MUST confirm selection in fields like `Select` and `Confirm`, or move to the next field in `Input`/`Textarea` (`huh` default behavior).
-4. AC4: `Space` MUST toggle selection in `MultiSelect` fields.
-5. AC5: `Arrow` keys (Up/Down) MUST allow navigation within options of `Select` and `MultiSelect` fields.
-6. AC6: The currently focused field MUST be visually highlighted.
+### Estória 1.5: O Fluxo de Dados (Args & Stdin)
 
-### Story 1.6 Submission and JSON Output
+**Como um** SysAdmin, **Eu quero** passar os dados coletados no meu `form` (ou a seleção de uma `list`) para os meus `scripts` de forma robusta, **Para que** a minha automação possa usar a entrada do utilizador.
 
-**As a** script developer,
-**I want** shantilly to collect the data entered in the TUI form and print it in JSON format to `stdout` upon submission,
-**So that** my script can easily consume the results.
-**Prerequisite:** Story 1.5
+#### Critérios de Aceitação
 
-#### Acceptance Criteria
-
-1. AC1: The `huh` library MUST be configured to allow form submission (typically after the last field or via an implicit button).
-2. AC2: After submission, the `bubbletea` application MUST terminate.
-3. AC3: The values entered in each form field MUST be collected.
-4. AC4: The collected data MUST be formatted as a JSON object, where keys are the `key` values defined in the YAML for each field.
-5. AC5: The resulting JSON object MUST be printed to `stdout`.
-6. AC6: The TUI MUST be cleared from the screen before printing the JSON.
-
-### Story 1.7 Basic Styling and Alignment
-
-**As a** shantilly user,
-**I want** the TUI form to be presented centered with adequate spacing, and to adapt to basic terminal resizing,
-**So that** the interface is visually pleasant and functional.
-**Prerequisite:** Story 1.4
-
-#### Acceptance Criteria
-
-1. AC1: The main container for the `huh` form MUST be styled using `lipgloss`.
-2. AC2: The form MUST be rendered horizontally centered within the terminal window if there is sufficient space.
-3. AC3: Consistent padding MUST be applied around the form.
-4. AC4: The TUI MUST handle resize messages (`tea.WindowSizeMsg`) and re-render the basic layout (maintaining centering if possible).
-5. AC5: If the terminal is resized to a very small width, the form MUST still be minimally usable (`huh` might truncate or wrap lines by default).
-
-### Story 1.8 Static Build and Distribution
-
-**As a** shantilly developer,
-**I want** a build process that generates static, cross-compiled binaries for the target platforms,
-**So that** the application can be easily distributed.
-**Prerequisite:** Story 1.1
-
-#### Acceptance Criteria
-
-1. AC1: The `Makefile` (or build script) MUST include targets to compile the `shantilly` binary.
-2. AC2: The build process MUST use flags (`CGO_ENABLED=0`, `ldflags="-s -w"`) to ensure a static and optimized binary.
-3. AC3: Targets (or a script) MUST exist to cross-compile the binary for Linux (amd64, arm64), macOS (amd64, arm64), and Windows (amd64).
-4. AC4: The generated binaries MUST be executable on their respective platforms (basic verification).
+1. O *runner* `script:` (FR9) DEVE suportar a chave `args: []string`, que passa argumentos "templatados" para a linha de comando do script (Refinamento FR10 / Opção C).
+2. O *runner* `script:` (FR9) DEVE suportar a chave `stdin: any`, que serializa o valor (ex: `{{ form }}`) como JSON e o passa para o `stdin` do script (Refinamento FR10 / Opção C).
+3. O motor de templates DEVE suportar "binding" de dados (ex: `{{ form.field_name }}`, `{{ component.menu.selected_id }}`) (Refinamento de Meta de UI).
+4. Deve existir um exemplo de script (Bash ou PowerShell) que leia dados tanto de `args:` como de `stdin:` (via `jq` ou similar).
 
 ## Checklist Results Report
 

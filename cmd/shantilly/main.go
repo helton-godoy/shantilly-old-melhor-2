@@ -21,13 +21,21 @@ var (
 interativos baseados em arquivos de definição YAML.`,
 	}
 
-	// formCmd representa o comando form
+	// formCmd representa o comando form (LEGACY).
+	//
+	// Status:
+	// - Este comando é mantido apenas como entrada LEGACY v1.x baseado em FormConfig/internal/tui.
+	// - Novos fluxos v2.0 DEVEM usar AppConfig + Runtime declarativo.
+	// - Qualquer evolução deve migrar para o pipeline:
+	//     AppConfig -> LayoutManager -> FormComponent -> ShantillyEvent -> EventManager -> on:.
+	//
+	// Gate:
+	// - docs/qa/gates/1.x.legacy-formcomponent-encapsulation.yml
 	formCmd = &cobra.Command{
 		Use:   "form",
-		Short: "Executa um formulário interativo.",
-		Long: `O comando form lê uma definição de formulário, seja de um arquivo
-especificado com o sinalizador --file ou da entrada padrão (stdin), e então
-renderiza e gerencia o formulário interativo no terminal.`,
+		Short: "Executa um formulário interativo (LEGACY).",
+		Long: `O comando form (LEGACY) lê uma definição de formulário baseada em FormConfig
+e executa o fluxo TUI v1.x. No runtime v2.0, novos fluxos devem usar AppConfig + FormComponent.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var (
 				content []byte

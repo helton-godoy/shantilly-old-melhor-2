@@ -1,0 +1,101 @@
+# Gate QA — 1.x.layout-manager.yml
+# Epic 1 - Runtime TUI Declarativo — Fundação do Runtime (v2.0)
+# Bloco: E1.1 - LayoutManager (Layout Engine hierárquico declarativo)
+#
+# Finalidade:
+# - Estabelecer critérios objetivos para aprovar alterações relacionadas ao LayoutManager.
+# - Garantir aderência às regras invioláveis:
+#   - YAML único (AppConfig) como fonte de verdade.
+#   - LayoutNode como única entrada de layout.
+#   - Sem lógica de automação (`on:`/`run:`) no LayoutManager.
+#   - Sem uso normativo de `FormConfig`/internal/tui no runtime v2.0.
+#   - Integração clara com foco global, resize e futura Modal Stack.
+#
+# Escopo do Gate:
+# - PRs que toquem em:
+#   - docs/stories/1.2.yaml-configuration-parsing.story.md
+#   - docs/stories/1.3.basic-tui-structure-with-bubbletea.story.md
+#   - docs/stories/1.7.basic-styling-and-alignment.story.md
+#   - docs/architecture/components.md (seção LayoutManager)
+#   - docs/architecture/data-models.md (LayoutNode / AppConfig)
+#   - docs/architecture/high-level-architecture.md (diagramas com LayoutManager)
+#   - internal/runtime/layout/**
+#
+gate_id: "qa-gate-e1.1-layout-manager"
+epic: 1
+block: "E1.1"
+name: "LayoutManager — Layout Engine hierárquico declarativo"
+status: "planned"
+owner: "bmad-qa"
+severity: "blocker"
+
+scope:
+  affects:
+    - "docs/stories/1.2.yaml-configuration-parsing.story.md"
+    - "docs/stories/1.3.basic-tui-structure-with-bubbletea.story.md"
+    - "docs/stories/1.7.basic-styling-and-alignment.story.md"
+    - "docs/architecture/components.md"
+    - "docs/architecture/data-models.md"
+    - "docs/architecture/high-level-architecture.md"
+    - "internal/runtime/layout/**"
+
+criteria:
+  - id: "E1.1-ARCH-1"
+    description: "LayoutManager definido como bubbletea.Model raiz único em docs/architecture/components.md, alinhado ao pivot v2.0."
+    files:
+      - "docs/architecture/components.md"
+    required: true
+
+  - id: "E1.1-DATA-1"
+    description: "LayoutNode em docs/architecture/data-models.md é única fonte de layout, restrito a column/row/box, referenciando Components por ID."
+    files:
+      - "docs/architecture/data-models.md"
+    required: true
+
+  - id: "E1.1-STORY-1"
+    description: "Stories 1.2, 1.3 e 1.7 alinhadas ao LayoutManager/LayoutNode/AppConfig, sem promover v1.x como produto."
+    files:
+      - "docs/stories/1.2.yaml-configuration-parsing.story.md"
+      - "docs/stories/1.3.basic-tui-structure-with-bubbletea.story.md"
+      - "docs/stories/1.7.basic-styling-and-alignment.story.md"
+    required: true
+
+  - id: "E1.1-IMPL-1"
+    description: "Existe skeleton de internal/runtime/layout/manager.go aderente aos contratos: consome LayoutNode, gerencia foco/resize, não executa on:/run:, não referencia FormConfig."
+    files:
+      - "internal/runtime/layout/manager.go"
+    required: true
+
+  - id: "E1.1-NO-AUTO-1"
+    description: "Nenhuma lógica de automação (`on:`/`run:`/ScriptRunner) aparece em internal/runtime/layout/**."
+    check:
+      type: "regex_forbidden"
+      pattern: "(on:|RunAction|run\\.script|update_target)"
+      path: "internal/runtime/layout"
+    required: true
+
+  - id: "E1.1-NO-LEGACY-1"
+    description: "Nenhuma dependência de FormConfig/internal/tui usada como contrato ativo no LayoutManager."
+    check:
+      type: "regex_forbidden"
+      pattern: "(FormConfig|internal/tui)"
+      path: "internal/runtime/layout"
+    required: true
+
+  - id: "E1.1-TEST-PLAN-1"
+    description: "Plano de testes para LayoutManager documentado na matriz QA: unit (árvore/bounds) + integration (render básico, foco, resize)."
+    files:
+      - "docs/qa/matrix-epic-1-runtime-tui-coverage.md"
+    required: true
+
+pass_conditions:
+  - "Todos os critérios required == true atendidos (arquitetura, stories, implementação e testes planejados)."
+  - "Nenhum regex_forbidden encontrado em internal/runtime/layout/**."
+  - "PRs que alterem LayoutManager demonstram rastreabilidade: Stories(1.2/1.3/1.7) → Arquitetura → internal/runtime/layout/manager.go → este gate."
+  - "Gate E1.1 marcado como 'implemented' na matriz quando skeleton + políticas de não-automação e não-legado estiverem presentes."
+
+on_fail:
+  - "Rejeitar PR até correção."
+  - "Se encontrar `FormConfig` ou `internal/tui` em internal/runtime/layout/**: marcar como violação de governança (legado vazando) e bloquear merge."
+  - "Se encontrar `run:`, `RunAction`, ScriptRunner ou rotas de automação no LayoutManager: bloquear como violação do contrato E1.1."
+  - "Se alterações quebrarem rastreabilidade com stories/arquitetura/matriz: exigir atualização antes de merge."
