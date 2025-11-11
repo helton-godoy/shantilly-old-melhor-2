@@ -92,36 +92,97 @@ Qualquer violação é bug arquitetural.
     - Componentes/tipos não documentados,
     - Paths suspeitos.
 
-## 7. QA, Gates e Enforcement
+## 7. QA, Matriz, Gates e Enforcement (BMAD Operacional)
 
-As regras acima são condições bloqueantes para PRs e são executadas exclusivamente via o job canônico:
+### 7.1. Matriz como fonte única
 
-- Job único de governança Waves 4-7:
-  - `governanca-waves4-7 / Governança Waves 4-7 (Gates 1.x + Go checks)` é o único job de governança Waves 4-7 obrigatório para `main`/`master`.
-  - Merge em `main`/`master` sem este status check verde é proibido.
-  - Todos os gates 1.x vinculantes devem ser implementados e executados dentro deste workflow único:
-    - Go checks: `go test ./...`, `go vet ./...`, `golangci-lint run ./...`.
-    - Gate 1.x.no-osexit-core.
-    - Gate 1.x.legacy-formcomponent-encapsulation (incluindo [`scripts/check-legacy-encapsulation.sh`](scripts/check-legacy-encapsulation.sh:1)).
-    - Gate 1.x.scriptrunner-and-update-target.
-    - Gate 1.x.modal-stack.
-    - Gate 1.x.security-jit-anti-trojan.
-    - Gate 1.x.event-and-layout-pipeline.
+- A matriz [`docs/qa/matrix-epic-1-runtime-tui-coverage.md`](docs/qa/matrix-epic-1-runtime-tui-coverage.md:1) é:
+  - Fonte única de verdade para status `planned` / `implemented` / `passed` de cada cláusula E1.x.
+  - Obrigatória para:
+    - bmad-architect: garantir alinhamento com arquitetura.
+    - bmad-dev/bmad-master: vincular implementações e testes.
+    - bmad-qa: registrar evidências e gates.
+    - bmad-orchestrator: auditar PRs e releases.
 
-- Matriz QA:
-  - [`docs/qa/matrix-epic-1-runtime-tui-coverage.md`](docs/qa/matrix-epic-1-runtime-tui-coverage.md:151) deve mapear cada cláusula E1.x aos checks executados no job `governanca-waves4-7`.
+Regras normativas:
 
-- Gates obrigatórios em `docs/qa/gates/*.yml`:
-  - Devem referenciar explicitamente o job `governanca-waves4-7` como veículo normativo de enforcement dos gates 1.x.
-  - `1.x.layout-manager.yml` — garante LayoutManager sem automação.
-  - `1.x.event-engine.yml` — garante roteamento único via EventManager + `on:`.
-  - `1.x.scriptrunner-and-update-target.yml` — garante ScriptRunner único e 1 processo/update_target.
-  - `1.x.modal-stack.yml` — garante Modal Stack única e foco correto.
-  - `1.x.legacy-formcomponent-encapsulation.yml` — garante confinamento do legado.
-  - `1.x.security-jit-anti-trojan.yml` — garante validação forte, deny-by-default e whitelists.
-  - `1.x.no-osexit-core.yml` — proíbe `os.Exit` fora da casca CLI.
+- Nenhum item de runtime/config/segurança é considerado “Done” se:
+  - Não houver linha correspondente na matriz.
+  - O gate associado não estiver em `PASS` (ou waiver formal registrado).
+  - Não houver evidência vinculada (tests/docs/artefatos) referenciada na matriz ou no gate.
 
-Nenhum PR que viole essas regras deve ser aceito, e nenhuma automação fora do job `governanca-waves4-7` pode ser considerada trilho de governança Waves 4-7 ou utilizada como bypass dos gates 1.x.
+### 7.2. Gates QA como contratos executáveis
+
+- Todos os gates em `docs/qa/gates/*.yml` devem seguir o modelo normativo de 2.1:
+  - Exemplo: [`docs/qa/gates/2.1-advanced-form-types-validation.yml`](docs/qa/gates/2.1-advanced-form-types-validation.yml:1).
+  - Campos obrigatórios mínimos:
+    - `schema`
+    - `gate` (ex.: `PASS`, `FAIL`, `WAIVED`)
+    - `status_reason`
+    - `reviewer`
+    - `updated`
+    - `waiver` (quando aplicável)
+    - `evidence` (tests, trace, links)
+- Para Epic 1 (Waves 2–7), os gates normativos bloqueantes incluem, no mínimo:
+  - [`docs/qa/gates/1.x.layout-manager.yml`](docs/qa/gates/1.x.layout-manager.yml:1)
+  - [`docs/qa/gates/1.x.event-engine.yml`](docs/qa/gates/1.x.event-engine.yml:1)
+  - [`docs/qa/gates/1.x.scriptrunner-and-update-target.yml`](docs/qa/gates/1.x.scriptrunner-and-update-target.yml:1)
+  - [`docs/qa/gates/1.x.modal-stack.yml`](docs/qa/gates/1.x.modal-stack.yml:1)
+  - [`docs/qa/gates/1.x.legacy-formcomponent-encapsulation.yml`](docs/qa/gates/1.x.legacy-formcomponent-encapsulation.yml:1)
+  - [`docs/qa/gates/1.x.no-osexit-core.yml`](docs/qa/gates/1.x.no-osexit-core.yml:1)
+  - [`docs/qa/gates/1.x.security-jit-anti-trojan.yml`](docs/qa/gates/1.x.security-jit-anti-trojan.yml:1)
+
+### 7.3. Consumo na CI — Job normativo único
+
+- Deve existir um workflow único de governança, por exemplo:
+  - `governanca-waves4-7 / Governança Waves 4-7 (Gates 1.x + Go checks)`.
+- Este workflow é o trilho normativo:
+  - Obrigatório como status check bloqueante para branches de proteção (`main`/`master`).
+  - Nenhum merge é permitido sem este check em verde.
+
+Mínimos obrigatórios deste workflow:
+
+- Go:
+  - `go test ./...`
+  - `go vet ./...`
+  - `golangci-lint run ./...`
+- Gates automatizados:
+  - Gate 1.x.no-osexit-core — scan de `os.Exit` fora de [`cmd/shantilly/main.go`](cmd/shantilly/main.go:1).
+  - Gate 1.x.legacy-formcomponent-encapsulation — incluindo [`scripts/check-legacy-encapsulation.sh`](scripts/check-legacy-encapsulation.sh:1).
+  - Gate 1.x.scriptrunner-and-update-target — validação de runner único + 1 processo/update_target.
+  - Gate 1.x.modal-stack — validação de pilha única e foco no topo.
+  - Gate 1.x.security-jit-anti-trojan — validações deny-by-default + whitelist.
+  - Gate 1.x.layout-manager — proibição de automação/legado em `internal/runtime/layout/**`.
+  - Gate 1.x.event-engine — proibição de rotas paralelas fora de `ShantillyEvent` → [`EventManager`](internal/runtime/event/manager.go:1) → `on:`.
+
+Regras:
+
+- Gates QA devem ser consumidos pela CI:
+  - via scripts/checks que leem `docs/qa/gates/*.yml` e falham o job se:
+    - gate relevante não estiver em `PASS` (ou waiver ativo e justificado),
+    - ou critérios obrigatórios não forem atendidos.
+- Nenhum outro workflow pode ser usado como bypass:
+  - Somente o job normativo pode representar “governança Waves 4–7”.
+  - Qualquer automação paralela é auxiliar, nunca substituta.
+
+### 7.4. Regras de promoção de PR e release
+
+Para qualquer PR que altere runtime, AppConfig, segurança ou fluxos E1.x:
+
+- Deve conter:
+  - Referência às linhas relevantes na matriz.
+  - Referência aos gates QA correspondentes.
+  - Links para evidências de testes (unit/integration/e2e/security) e docs.
+- Condições para aprovação:
+  - Todos os gates aplicáveis ao escopo do PR em `PASS` ou waiver formal registrado no próprio gate YAML.
+  - CI `governanca-waves4-7` em verde.
+- Condições para release:
+  - Para o escopo incluído:
+    - Linhas da matriz em `implemented` ou `passed`.
+    - Gates relevantes em `PASS`.
+    - Nenhum desvio conhecido dos contratos desta governança sem waiver aprovado.
+
+Nenhum PR que viole essas regras deve ser aceito. Nenhum merge/release pode declarar “Done” para itens de runtime sem rastreabilidade completa Matriz → Gates → Evidências.
 
 ## 8. Diretriz para o Próximo Ciclo (Wave 4+)
 

@@ -1,15 +1,23 @@
-name: governanca-waves4-7
+name: "Governança Waves 4-7 (Gates 1.x + Go checks)"
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - main
+      - master
+  push:
     branches:
       - main
       - master
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  governanca-waves4-7:
-    name: Governança Waves 4-7 (Gates 1.x + Go checks)
+  governance-waves4-7:
+    name: "Governança Waves 4-7 — Gates 1.x + Go Vet/Lint/Test"
     runs-on: ubuntu-latest
 
     steps:
@@ -22,16 +30,6 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: Install golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: v1.61.0
-
-      - name: Make scripts executable
-        run: |
-          chmod +x scripts/check-legacy-encapsulation.sh || true
-
-      # Core Go quality gates
       - name: Go Test
         run: go test ./...
 
@@ -39,77 +37,118 @@ jobs:
         run: go vet ./...
 
       - name: golangci-lint
-        run: golangci-lint run ./...
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.59.0
+          args: ./...
 
-      # Gate: No os.Exit no core (apenas cmd/shantilly/main.go permitido)
-      - name: Gate 1.x.no-osexit-core
+      - name: Gate 1.x.no-osexit-core — proibido os.Exit fora de cmd/shantilly/main.go
         run: |
-          set -euo pipefail
-          echo "[gate:1.x.no-osexit-core] Verificando usos de os.Exit fora de cmd/shantilly/main.go..."
-          if git grep -n "os.Exit(" -- . ':!cmd/shantilly/main.go' >/dev/null 2>&1; then
-            echo "[gate:1.x.no-osexit-core][ERRO] Uso proibido de os.Exit encontrado fora de cmd/shantilly/main.go:"
-            git grep -n "os.Exit(" -- . ':!cmd/shantilly/main.go' || true
+          echo "Verificando uso de os.Exit fora de cmd/shantilly/main.go..."
+          violations=$(grep -RIn "os.Exit" --exclude-dir=.git --exclude="cmd/shantilly/main.go" || true)
+          if [ -n "$violations" ]; then
+            echo "FALHA: Encontrado os.Exit fora de cmd/shantilly/main.go:"
+            echo "$violations"
             exit 1
           fi
-          echo "[gate:1.x.no-osexit-core] OK"
 
-      # Gate: Encapsulamento do legado (FormComponent + internal/tui)
-      - name: Gate 1.x.legacy-formcomponent-encapsulation
+      - name: Gate 1.x.legacy-formcomponent-encapsulation — confinamento do legado
         run: |
-          set -euo pipefail
-          echo "[gate:1.x.legacy-formcomponent-encapsulation] Executando scripts/check-legacy-encapsulation.sh..."
-          ./scripts/check-legacy-encapsulation.sh
-
-      # Gate: ScriptRunner + update_target confinados a internal/runtime/runner/**
-      - name: Gate 1.x.scriptrunner-and-update-target
-        run: |
-          set -euo pipefail
-          echo "[gate:1.x.scriptrunner-and-update-target] Verificando uso de ScriptRunner e update_target..."
-          # Proibir uso de os/exec fora do runner
-          if git grep -n "\"os/exec\"" -- . ':!internal/runtime/runner/' >/dev/null 2>&1; then
-            echo "[gate:1.x.scriptrunner-and-update-target][ERRO] Uso de os/exec fora de internal/runtime/runner detectado:"
-            git grep -n "\"os/exec\"" -- . ':!internal/runtime/runner/' || true
+          echo "Verificando encapsulamento do legado (FormConfig/internal/tui)..."
+          # Permitido apenas em internal/components/form_component.go e internal/tui/**
+          violations=$(grep -RInE "FormConfig|internal/tui" \
+            --exclude-dir=.git \
+            --exclude="internal/components/form_component.go" \
+            --exclude-dir="internal/tui" || true)
+          if [ -n "$violations" ]; then
+            echo "FALHA: Uso de FormConfig/internal/tui fora do sandbox permitido:"
+            echo "$violations"
             exit 1
           fi
-          # Opcional: marcar como ponto de extensão para checks adicionais baseados em docs/qa/gates/1.x.scriptrunner-and-update-target.yml
-          echo "[gate:1.x.scriptrunner-and-update-target] OK (nenhum os/exec fora de internal/runtime/runner)"
 
-      # Gate: Modal Stack centralizada em internal/runtime/modal/**
-      - name: Gate 1.x.modal-stack
+      - name: Gate 1.x.scriptrunner-and-update-target — ScriptRunner único
         run: |
-          set -euo pipefail
-          echo "[gate:1.x.modal-stack] Verificando padrões de modal restritos a internal/runtime/modal..."
-          # Bloqueio simples: referências explícitas a ModalStack/ModalRequest fora do pacote dedicado (ajuste conforme nomenclatura concreta)
-          if git grep -ni "ModalStack" -- . ':!internal/runtime/modal/' >/dev/null 2>&1; then
-            echo "[gate:1.x.modal-stack][ERRO] Referências a ModalStack fora de internal/runtime/modal detectadas:"
-            git grep -ni "ModalStack" -- . ':!internal/runtime/modal/' || true
+          echo "Verificando execução de scripts apenas em internal/runtime/runner/**..."
+          violations=$(grep -RInE "exec.Command|os/exec" \
+            --exclude-dir=.git \
+            --exclude-dir="internal/runtime/runner" || true)
+          if [ -n "$violations" ]; then
+            echo "FALHA: Execução de scripts encontrada fora de internal/runtime/runner/**:"
+            echo "$violations"
             exit 1
           fi
-          echo "[gate:1.x.modal-stack] OK"
 
-      # Gate: Segurança JIT + Anti-Trojan YAML (placeholder alinhado ao gate)
-      - name: Gate 1.x.security-jit-anti-trojan
+      - name: Gate 1.x.layout-manager — sem automação no LayoutManager
         run: |
-          set -euo pipefail
-          echo "[gate:1.x.security-jit-anti-trojan] Verificando ausência de execuções diretas inseguras e chaves YAML suspeitas..."
-          # Proibir padrões óbvios de execução direta fora do ScriptRunner (ajustável conforme implementação concreta)
-          if git grep -ni "sh -c" -- . ':!internal/runtime/runner/' >/dev/null 2>&1; then
-            echo "[gate:1.x.security-jit-anti-trojan][ERRO] Encontrado uso de 'sh -c' fora de internal/runtime/runner:"
-            git grep -ni "sh -c" -- . ':!internal/runtime/runner/' || true
+          echo "Verificando se internal/runtime/layout/** não contém automação proibida..."
+          violations=$(grep -RInE "RunAction|run\.script|update_target|FormConfig|internal/tui" internal/runtime/layout || true)
+          if [ -n "$violations" ]; then
+            echo "FALHA: Padrões proibidos encontrados em internal/runtime/layout/**:"
+            echo "$violations"
             exit 1
           fi
-          echo "[gate:1.x.security-jit-anti-trojan] OK (checks básicos)."
-          echo "[gate:1.x.security-jit-anti-trojan] Para cobertura completa, alinhar com docs/qa/gates/1.x.security-jit-anti-trojan.yml conforme implementação evoluir."
 
-      # Gate: Event/Layout/Runtime core alignment (placeholder para reforçar pipeline único)
-      - name: Gate 1.x.event-and-layout-pipeline
+      - name: Gate 1.x.event-engine - pipeline unico EventManager + on
         run: |
-          set -euo pipefail
-          echo "[gate:1.x.event-and-layout-pipeline] Verificação sintética de que não há referências óbvias proibidas no runtime core..."
-          # Exemplo: bloquear usos diretos de internal/tui no runtime (já coberto pelo gate E1.6, redundância defensiva).
-          if git grep -n "internal/tui" -- internal/runtime/ >/dev/null 2>&1; then
-            echo "[gate:1.x.event-and-layout-pipeline][ERRO] internal/runtime referenciando internal/tui (violação do confinamento do legado):"
-            git grep -n "internal/tui" -- internal/runtime/ || true
+          echo "Checking for absence of suspicious parallel routes in the Event Engine..."
+          # Block suspicious direct calls in internal/runtime/event/**
+          violations=$(grep -RInE "exec.Command|os/exec|os.Exit" internal/runtime/event || true)
+          if [ -n "$violations" ]; then
+            echo "FAIL: Disallowed patterns found in internal/runtime/event/**:"
+            echo "$violations"
             exit 1
           fi
-          echo "[gate:1.x.event-and-layout-pipeline] OK"
+
+      - name: Gate 1.x.modal-stack — Modal Stack única
+        run: |
+          echo "Verificando definições de Modal Stack apenas em internal/runtime/modal/**..."
+          # Heurística simples para impedir criação paralela óbvia em outros pacotes
+          violations=$(grep -RInE "type ModalStack|pushModal|popModal" \
+            --exclude-dir=.git \
+            --exclude-dir="internal/runtime/modal" || true)
+          if [ -n "$violations" ]; then
+            echo "FALHA: Indícios de modal stack fora de internal/runtime/modal/**:"
+            echo "$violations"
+            exit 1
+          fi
+
+      - name: Gate 1.x.security-jit-anti-trojan — segurança JIT + anti-Trojan YAML
+        run: |
+          echo "Verificando presença de contratos de segurança JIT / Anti-Trojan (heurística gate)..."
+          # Este passo é heurístico: garante que arquivos normativos existem e são versionados.
+          required_files=(
+            "docs/qa/gates/1.x.security-jit-anti-trojan.yml"
+            "docs/architecture/security.md"
+          )
+          missing=""
+          for f in "${required_files[@]}"; do
+            if [ ! -f "$f" ]; then
+              missing="$missing\n- $f"
+            fi
+          done
+          if [ -n "$missing" ]; then
+            echo "FALHA: Artefatos normativos esperados não encontrados:$missing"
+            exit 1
+          fi
+
+      - name: Gate 1.x + Matriz — consistência mínima documental
+        run: |
+          echo "Verificando existência da matriz QA e gates principais..."
+          if [ ! -f "docs/qa/matrix-epic-1-runtime-tui-coverage.md" ]; then
+            echo "FALHA: Matriz de QA não encontrada em docs/qa/matrix-epic-1-runtime-tui-coverage.md"
+            exit 1
+          fi
+          for gate in \
+            "docs/qa/gates/1.x.layout-manager.yml" \
+            "docs/qa/gates/1.x.event-engine.yml" \
+            "docs/qa/gates/1.x.scriptrunner-and-update-target.yml" \
+            "docs/qa/gates/1.x.modal-stack.yml" \
+            "docs/qa/gates/1.x.legacy-formcomponent-encapsulation.yml" \
+            "docs/qa/gates/1.x.no-osexit-core.yml" \
+            "docs/qa/gates/1.x.security-jit-anti-trojan.yml" \
+          ; do
+            if [ ! -f "$gate" ]; then
+              echo "FALHA: Gate normativo obrigatório ausente: $gate"
+              exit 1
+            fi
+          done

@@ -4,3 +4,6 @@ dist/
 # Local MCP / tooling secrets
 .kilocode/
 .roo/
+
+# Local chats (não versionar)
+docs/chats/
