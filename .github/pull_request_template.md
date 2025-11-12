@@ -70,21 +70,38 @@ Bloqueante:
   - `RunAction` / `ModalRequest` / `UpdateState`
   - `ScriptRunner` / Modal Stack / atualização declarativa
 
-## 5. QA Matrix e Gates
+## 5. QA Matrix e Gates (Rastreabilidade obrigatória BMAD)
 
 Bloqueante:
 
-- [ ] Para qualquer mudança relevante em Epic 1 (E1.x), a matriz [`docs/qa/matrix-epic-1-runtime-tui-coverage.md`](docs/qa/matrix-epic-1-runtime-tui-coverage.md:1) foi avaliada:
-  - [ ] Linha correspondente atualizada ou confirmada coerente (Status: planned/implemented/passed).
-  - [ ] Nenhuma nova funcionalidade sem linha de rastreio E1.x.
-- [ ] Para features cobertas por gates normativos, os arquivos em `docs/qa/gates/*.yml` existem ou foram ajustados conforme:
-  - `1.x.layout-manager.yml`
-  - `1.x.event-engine.yml`
-  - `1.x.scriptrunner-and-update-target.yml`
-  - `1.x.modal-stack.yml`
-  - `1.x.legacy-formcomponent-encapsulation.yml`
-  - `1.x.no-osexit-core.yml`
-  - `1.x.security-jit-anti-trojan.yml`
+1) Matriz — [`docs/qa/matrix-epic-1-runtime-tui-coverage.md`](docs/qa/matrix-epic-1-runtime-tui-coverage.md:1)
+
+- [ ] Liste abaixo as linhas/IDs E1.x impactadas por este PR:
+  - ID/linha:
+  - ID/linha:
+  - ID/linha:
+- [ ] Confirme:
+  - [ ] Cada mudança relevante de runtime/config/segurança está mapeada na matriz.
+  - [ ] Status ajustado para `planned` / `implemented` / `passed` conforme o estágio real (não marcar `implemented` sem código + testes).
+
+2) Gates QA — `docs/qa/gates/*.yml`
+
+- [ ] Para cada comportamento afetado, referencie os gates correspondentes:
+  - [ ] [`docs/qa/gates/1.x.layout-manager.yml`](docs/qa/gates/1.x.layout-manager.yml:1)
+  - [ ] [`docs/qa/gates/1.x.event-engine.yml`](docs/qa/gates/1.x.event-engine.yml:1)
+  - [ ] [`docs/qa/gates/1.x.scriptrunner-and-update-target.yml`](docs/qa/gates/1.x.scriptrunner-and-update-target.yml:1)
+  - [ ] [`docs/qa/gates/1.x.modal-stack.yml`](docs/qa/gates/1.x.modal-stack.yml:1)
+  - [ ] [`docs/qa/gates/1.x.legacy-formcomponent-encapsulation.yml`](docs/qa/gates/1.x.legacy-formcomponent-encapsulation.yml:1)
+  - [ ] [`docs/qa/gates/1.x.no-osexit-core.yml`](docs/qa/gates/1.x.no-osexit-core.yml:1)
+  - [ ] [`docs/qa/gates/1.x.security-jit-anti-trojan.yml`](docs/qa/gates/1.x.security-jit-anti-trojan.yml:1)
+- Para cada gate marcado:
+  - [ ] Estado esperado após este PR: `PASS` | `AFFECTED` | `REVIEW` | `WAIVER-PROPOSED`
+  - [ ] Evidência associada (tests, arquivos, seções de docs, logs de CI):
+
+3) Workflow normativo — `Governança Waves 4-7 (Gates 1.x + Go checks)`
+
+- [ ] Confirme que este PR passa com sucesso pelo job obrigatório `.github/workflows/governanca-waves4-7.yml`.
+- [ ] Nenhum uso de outros workflows como bypass dos gates normativos.
 
 ## 6. Código — Regras Estruturais Críticas
 
