@@ -2,24 +2,24 @@
 
 ## Key Metrics
 
-| Metric | Value | Status |
-|--------|-------|--------|
+| Metric             | Value                                   | Status |
+|--------------------|-----------------------------------------|--------|
 | Test-to-Code Ratio | 1.30x (8,796 test LOC / 6,746 prod LOC) | ✅ Good |
-| Test Functions | 117 tests across 19 files | ✅ Good |
-| Linting | 15 linters enforced via golangci-lint | ✅ Good |
-| Coverage Tracking | Collected but NOT enforced | ⚠️ Gap |
-| Race Detector | Enabled in CI | ✅ Good |
+| Test Functions     | 117 tests across 19 files               | ✅ Good |
+| Linting            | 15 linters enforced via golangci-lint   | ✅ Good |
+| Coverage Tracking  | Collected but NOT enforced              | ⚠️ Gap |
+| Race Detector      | Enabled in CI                           | ✅ Good |
 
 ## Test Coverage by Severity
 
-| Severity | Finding | Impact |
-|----------|---------|--------|
+| Severity    | Finding                                                           | Impact                                      |
+|-------------|-------------------------------------------------------------------|---------------------------------------------|
 | 🔴 Critical | **Coverage not enforced** - CI collects coverage but no threshold | Unknown coverage %, no regression detection |
-| 🟠 High | ScriptRunner: 596 LOC, only 5 tests | Process mgmt edge cases undertested |
-| 🟠 High | Form Model: 490 LOC, only 11 unit tests | State consistency not fully verified |
-| 🟡 Medium | Validation: 321 LOC, 7 tests | Boundary values, edge types undertested |
-| 🟡 Medium | Security testing: 1 test for SecurityPolicy | Path traversal, symlink scenarios missing |
-| 🟢 Low | 2 TODO comments (minor) | Error display sorting, reactive flow docs |
+| 🟠 High     | ScriptRunner: 596 LOC, only 5 tests                               | Process mgmt edge cases undertested         |
+| 🟠 High     | Form Model: 490 LOC, only 11 unit tests                           | State consistency not fully verified        |
+| 🟡 Medium   | Validation: 321 LOC, 7 tests                                      | Boundary values, edge types undertested     |
+| 🟡 Medium   | Security testing: 1 test for SecurityPolicy                       | Path traversal, symlink scenarios missing   |
+| 🟢 Low      | 2 TODO comments (minor)                                           | Error display sorting, reactive flow docs   |
 
 ## Code Quality Grades
 
@@ -61,22 +61,22 @@ Overall:              B+    (Good foundation, coverage gap, some large files)
 
 ## Risk Areas
 
-| File | LOC | Tests | Risk | Notes |
-|------|-----|-------|------|-------|
-| runner.go | 596 | 5 | 🟠 Medium | Process mgmt complexity, concurrency |
-| model.go | 490 | 11 | 🟠 Medium | State-heavy, but integration tested |
-| validation.go | 321 | 7 | 🟡 Medium | Type-specific validators, boundaries |
-| coordinator.go | 162 | 5 | 🟢 Low | Clear logic, well-tested |
-| stack.go | 181 | 6 | 🟢 Low | Simple interface, mutex-protected |
+| File           | LOC | Tests | Risk      | Notes                                |
+|----------------|-----|-------|-----------|--------------------------------------|
+| runner.go      | 596 | 5     | 🟠 Medium | Process mgmt complexity, concurrency |
+| model.go       | 490 | 11    | 🟠 Medium | State-heavy, but integration tested  |
+| validation.go  | 321 | 7     | 🟡 Medium | Type-specific validators, boundaries |
+| coordinator.go | 162 | 5     | 🟢 Low    | Clear logic, well-tested             |
+| stack.go       | 181 | 6     | 🟢 Low    | Simple interface, mutex-protected    |
 
 ## CI/CD Status
 
-| Workflow | Status | Notes |
-|----------|--------|-------|
-| Lint | ✅ Active | golangci-lint v1.59.1, gofumpt check |
-| Build & Test | ✅ Active | Race detector on, coverage collected |
-| Coverage Gate | ⚠️ MISSING | No threshold enforcement |
-| Governance | ✅ Active | Waves 4-7 checks (manual trigger) |
+| Workflow      | Status     | Notes                                |
+|---------------|------------|--------------------------------------|
+| Lint          | ✅ Active  | golangci-lint v1.59.1, gofumpt check |
+| Build & Test  | ✅ Active  | Race detector on, coverage collected |
+| Coverage Gate | ⚠️ MISSING | No threshold enforcement             |
+| Governance    | ✅ Active  | Waves 4-7 checks (manual trigger)    |
 
 ## Positive Patterns
 
@@ -90,13 +90,13 @@ Overall:              B+    (Good foundation, coverage gap, some large files)
 
 ## Technical Debt
 
-| Item | Severity | Details |
-|------|----------|---------|
-| TODOs in code | 🟢 Low | 2 items: error sorting, reactive flow docs |
-| Large files | 🟡 Medium | runner.go (596), model.go (490) |
-| interface{} usage | 🟡 Medium | 42 instances, concentrated in validation/config (acceptable) |
-| Legacy code islands | 🟢 Low | FormComponent/TUI confinement working, not breaking new arch |
-| Security testing | 🟡 Medium | Only 1 test for SecurityPolicy, no path traversal scenarios |
+| Item                | Severity  | Details                                                      |
+|---------------------|-----------|--------------------------------------------------------------|
+| TODOs in code       | 🟢 Low    | 2 items: error sorting, reactive flow docs                   |
+| Large files         | 🟡 Medium | runner.go (596), model.go (490)                              |
+| interface{} usage   | 🟡 Medium | 42 instances, concentrated in validation/config (acceptable) |
+| Legacy code islands | 🟢 Low    | FormComponent/TUI confinement working, not breaking new arch |
+| Security testing    | 🟡 Medium | Only 1 test for SecurityPolicy, no path traversal scenarios  |
 
 ---
 

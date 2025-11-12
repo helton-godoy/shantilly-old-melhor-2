@@ -2135,21 +2135,21 @@ A tabela abaixo é a "fonte da verdade" para todas as dependências do Épico 1 
 
 ### Technology Stack Table
 
-| Categoria | Tecnologia | Versão | Propósito | Racional |
-| --- | --- | --- | --- | --- |
-| **Linguagem** | Go  | 1.24.2+ | Linguagem de desenvolvimento principal | Requisito do PRD (NFR1 v1.0, NFR1 v2.0), validado em v1.0. |
-| **CLI Framework** | `spf13/cobra` | v1.8.x | Estrutura de comandos da CLI | Requisito do PRD (FR1 v1.0), validado em v1.0. |
-| **TUI Engine** | `charmbracelet/bubbletea` | v0.26.x | Gestão de estado TUI (The Elm Architecture) | Requisito do PRD, validado em v1.0. Será o "Global Focus Manager" na v2.0. |
-| **Componente (Form)** | `charmbracelet/huh` | v0.4.x | Geração declarativa de formulários | Requisito do PRD, validado em v1.0. Será refatorado (Estória 1.4). |
-| **Estilo/Layout TUI** | `charmbracelet/lipgloss` | v0.11.x | Estilização e layout no terminal | Requisito do PRD, validado em v1.0. Base para o Motor de Layout (FR1, FR2). |
-| **Parsing YAML** | `gopkg.in/yaml.v3` | v3.0.x | Descodificação do YAML de definição do Runtime | Requisito do PRD, validado em v1.0. |
-| **Componentes TUI** | `charmbracelet/bubbles` | v0.18.x+ | Componentes TUI pré-construídos | **(Novo v2.0)** Necessário para `list` (FR5) e `viewport` (FR4). |
-| **Render. Markdown** | `charmbracelet/glamour` | v0.7.x+ | Renderização de Markdown no viewport | **(Novo v2.0)** Necessário para `content_type: markdown` (FR4). |
-| **Insp. Layout** | `76creates/stickers` | N/A | Inspiração para o Motor de Layout (Flexbox) | **(Novo v2.0)** Não é uma dependência direta, mas sim a inspiração para a implementação do FR1, FR2, NFR2. |
-| **Modais (Pós-MVP)** | `rmhubbert/bubbletea-overlay` | v0.2.x+ | Base para popups (ex: `ask_vault_pass`) | (Para Épico 2) Identificado no PRD (Assunções). |
-| **Testes** | Go `testing` + `teatest` | 1.24.2+ | Testes unitários e de integração TUI | Requisito do PRD v2.0 (Assunção 4.3). `teatest` é essencial para NFR2 (layout fluido). |
-| **Build/Release** | `GoReleaser` | v1.26.x | Automação de build e cross-compilação | Validado em v1.0 (Estória 1.8). |
-| **Linter** | `golangci-lint` | v1.59.x | Análise estática e qualidade de código | Validado em v1.0. |
+| Categoria             | Tecnologia                    | Versão   | Propósito                                      | Racional                                                                                                   |
+| --------------------- | ----------------------------- | -------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Linguagem**         | Go                            | 1.24.2+  | Linguagem de desenvolvimento principal         | Requisito do PRD (NFR1 v1.0, NFR1 v2.0), validado em v1.0.                                                 |
+| **CLI Framework**     | `spf13/cobra`                 | v1.8.x   | Estrutura de comandos da CLI                   | Requisito do PRD (FR1 v1.0), validado em v1.0.                                                             |
+| **TUI Engine**        | `charmbracelet/bubbletea`     | v0.26.x  | Gestão de estado TUI (The Elm Architecture)    | Requisito do PRD, validado em v1.0. Será o "Global Focus Manager" na v2.0.                                 |
+| **Componente (Form)** | `charmbracelet/huh`           | v0.4.x   | Geração declarativa de formulários             | Requisito do PRD, validado em v1.0. Será refatorado (Estória 1.4).                                         |
+| **Estilo/Layout TUI** | `charmbracelet/lipgloss`      | v0.11.x  | Estilização e layout no terminal               | Requisito do PRD, validado em v1.0. Base para o Motor de Layout (FR1, FR2).                                |
+| **Parsing YAML**      | `gopkg.in/yaml.v3`            | v3.0.x   | Descodificação do YAML de definição do Runtime | Requisito do PRD, validado em v1.0.                                                                        |
+| **Componentes TUI**   | `charmbracelet/bubbles`       | v0.18.x+ | Componentes TUI pré-construídos                | **(Novo v2.0)** Necessário para `list` (FR5) e `viewport` (FR4).                                           |
+| **Render. Markdown**  | `charmbracelet/glamour`       | v0.7.x+  | Renderização de Markdown no viewport           | **(Novo v2.0)** Necessário para `content_type: markdown` (FR4).                                            |
+| **Insp. Layout**      | `76creates/stickers`          | N/A      | Inspiração para o Motor de Layout (Flexbox)    | **(Novo v2.0)** Não é uma dependência direta, mas sim a inspiração para a implementação do FR1, FR2, NFR2. |
+| **Modais (Pós-MVP)**  | `rmhubbert/bubbletea-overlay` | v0.2.x+  | Base para popups (ex: `ask_vault_pass`)        | (Para Épico 2) Identificado no PRD (Assunções).                                                            |
+| **Testes**            | Go `testing` + `teatest`      | 1.24.2+  | Testes unitários e de integração TUI           | Requisito do PRD v2.0 (Assunção 4.3). `teatest` é essencial para NFR2 (layout fluido).                     |
+| **Build/Release**     | `GoReleaser`                  | v1.26.x  | Automação de build e cross-compilação          | Validado em v1.0 (Estória 1.8).                                                                            |
+| **Linter**            | `golangci-lint`               | v1.59.x  | Análise estática e qualidade de código         | Validado em v1.0.                                                                                          |
 
 ---
 
@@ -2927,21 +2927,21 @@ A tabela abaixo é a "fonte da verdade" para todas as dependências do Épico 1 
 
 ### Technology Stack Table
 
-| Categoria | Tecnologia | Versão | Propósito | Racional |
-| --- | --- | --- | --- | --- |
-| **Linguagem** | Go  | 1.24.2+ | Linguagem de desenvolvimento principal | Requisito do PRD (NFR1 v1.0, NFR1 v2.0), validado em v1.0. |
-| **CLI Framework** | `spf13/cobra` | v1.8.x | Estrutura de comandos da CLI | Requisito do PRD (FR1 v1.0), validado em v1.0. |
-| **TUI Engine** | `charmbracelet/bubbletea` | v0.26.x | Gestão de estado TUI (The Elm Architecture) | Requisito do PRD (FR4 v1.0), validado em v1.0. Será o "Global Focus Manager" na v2.0. |
-| **Componente (Form)** | `charmbracelet/huh` | v0.4.x | Geração declarativa de formulários | Requisito do PRD (FR3 v1.0), validado em v1.0 (Épicos 1+2). Será refatorado (Estória 1.4). |
-| **Estilo/Layout TUI** | `charmbracelet/lipgloss` | v0.11.x | Estilização e layout no terminal | Requisito do PRD (FR7 v1.0), validado em v1.0 (Estória 1.7). Base para o Motor de Layout v2.0 (FR1, FR2). |
-| **Parsing YAML** | `gopkg.in/yaml.v3` | v3.0.x | Descodificação do YAML de definição do Runtime | Requisito do PRD (Estória 1.2), validado em v1.0. |
-| **Componentes TUI** | `charmbracelet/bubbles` | v0.18.x+ | Componentes TUI pré-construídos | **(Novo v2.0)** Necessário para `list` (FR5) e `viewport` (FR4). |
-| **Render. Markdown** | `charmbracelet/glamour` | v0.7.x+ | Renderização de Markdown no viewport | **(Novo v2.0)** Necessário para `content_type: markdown` (FR4). |
-| **Insp. Layout** | `76creates/stickers` | N/A | Inspiração para o Motor de Layout (Flexbox) | **(Novo v2.0)** Não é uma dependência direta, mas sim a inspiração (PRD, Assunção 4.4) para a implementação do FR1, FR2, NFR2. |
-| **Modais (Pós-MVP)** | `rmhubbert/bubbletea-overlay` | v0.2.x+ | Base para popups (ex: `ask_vault_pass`) | (Para Épico 2) Identificado no PRD (Assunção 4.4) e *brainstorming*. |
-| **Testes** | Go `testing` + `teatest` | 1.24.2+ | Testes unitários e de integração TUI | Requisito do PRD v2.0 (Assunção 4.3). `teatest` é essencial para NFR2 (layout fluido). |
-| **Build/Release** | `GoReleaser` | v1.26.x | Automação de build e cross-compilação | Validado em v1.0 (Estória 1.8). |
-| **Linter** | `golangci-lint` | v1.59.x | Análise estática e qualidade de código | Validado em v1.0 (via template). |
+| Categoria             | Tecnologia                    | Versão   | Propósito                                      | Racional                                                                                                                       |
+| --------------------- | ----------------------------- | -------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| **Linguagem**         | Go                            | 1.24.2+  | Linguagem de desenvolvimento principal         | Requisito do PRD (NFR1 v1.0, NFR1 v2.0), validado em v1.0.                                                                     |
+| **CLI Framework**     | `spf13/cobra`                 | v1.8.x   | Estrutura de comandos da CLI                   | Requisito do PRD (FR1 v1.0), validado em v1.0.                                                                                 |
+| **TUI Engine**        | `charmbracelet/bubbletea`     | v0.26.x  | Gestão de estado TUI (The Elm Architecture)    | Requisito do PRD (FR4 v1.0), validado em v1.0. Será o "Global Focus Manager" na v2.0.                                          |
+| **Componente (Form)** | `charmbracelet/huh`           | v0.4.x   | Geração declarativa de formulários             | Requisito do PRD (FR3 v1.0), validado em v1.0 (Épicos 1+2). Será refatorado (Estória 1.4).                                     |
+| **Estilo/Layout TUI** | `charmbracelet/lipgloss`      | v0.11.x  | Estilização e layout no terminal               | Requisito do PRD (FR7 v1.0), validado em v1.0 (Estória 1.7). Base para o Motor de Layout v2.0 (FR1, FR2).                      |
+| **Parsing YAML**      | `gopkg.in/yaml.v3`            | v3.0.x   | Descodificação do YAML de definição do Runtime | Requisito do PRD (Estória 1.2), validado em v1.0.                                                                              |
+| **Componentes TUI**   | `charmbracelet/bubbles`       | v0.18.x+ | Componentes TUI pré-construídos                | **(Novo v2.0)** Necessário para `list` (FR5) e `viewport` (FR4).                                                               |
+| **Render. Markdown**  | `charmbracelet/glamour`       | v0.7.x+  | Renderização de Markdown no viewport           | **(Novo v2.0)** Necessário para `content_type: markdown` (FR4).                                                                |
+| **Insp. Layout**      | `76creates/stickers`          | N/A      | Inspiração para o Motor de Layout (Flexbox)    | **(Novo v2.0)** Não é uma dependência direta, mas sim a inspiração (PRD, Assunção 4.4) para a implementação do FR1, FR2, NFR2. |
+| **Modais (Pós-MVP)**  | `rmhubbert/bubbletea-overlay` | v0.2.x+  | Base para popups (ex: `ask_vault_pass`)        | (Para Épico 2) Identificado no PRD (Assunção 4.4) e *brainstorming*.                                                           |
+| **Testes**            | Go `testing` + `teatest`      | 1.24.2+  | Testes unitários e de integração TUI           | Requisito do PRD v2.0 (Assunção 4.3). `teatest` é essencial para NFR2 (layout fluido).                                         |
+| **Build/Release**     | `GoReleaser`                  | v1.26.x  | Automação de build e cross-compilação          | Validado em v1.0 (Estória 1.8).                                                                                                |
+| **Linter**            | `golangci-lint`               | v1.59.x  | Análise estática e qualidade de código         | Validado em v1.0 (via template).                                                                                               |
 
 ---
 
@@ -3062,21 +3062,21 @@ A tabela abaixo é a "fonte da verdade" para todas as dependências do Épico 1 
 
 ### Technology Stack Table
 
-| Categoria | Tecnologia | Versão | Propósito | Racional |
-| --- | --- | --- | --- | --- |
-| **Linguagem** | Go  | 1.24.2+ | Linguagem de desenvolvimento principal | Requisito do PRD (NFR1 v1.0, NFR1 v2.0), validado em v1.0. |
-| **CLI Framework** | `spf13/cobra` | v1.8.x | Estrutura de comandos da CLI | Requisito do PRD (FR1 v1.0), validado em v1.0. |
-| **TUI Engine** | `charmbracelet/bubbletea` | v0.26.x | Gestão de estado TUI (The Elm Architecture) | Requisito do PRD (FR4 v1.0), validado em v1.0. Será o "Global Focus Manager" na v2.0. |
-| **Componente (Form)** | `charmbracelet/huh` | v0.4.x | Geração declarativa de formulários | Requisito do PRD (FR3 v1.0), validado em v1.0 (Épicos 1+2). Será refatorado (Estória 1.4). |
-| **Estilo/Layout TUI** | `charmbracelet/lipgloss` | v0.11.x | Estilização e layout no terminal | Requisito do PRD (FR7 v1.0), validado em v1.0 (Estória 1.7). Base para o Motor de Layout v2.0 (FR1, FR2). |
-| **Parsing YAML** | `gopkg.in/yaml.v3` | v3.0.x | Descodificação do YAML de definição do Runtime | Requisito do PRD (Estória 1.2), validado em v1.0. |
-| **Componentes TUI** | `charmbracelet/bubbles` | v0.18.x+ | Componentes TUI pré-construídos | **(Novo v2.0)** Necessário para `list` (FR5) e `viewport` (FR4). |
-| **Render. Markdown** | `charmbracelet/glamour` | v0.7.x+ | Renderização de Markdown no viewport | **(Novo v2.0)** Necessário para `content_type: markdown` (FR4). |
-| **Insp. Layout** | `76creates/stickers` | N/A | Inspiração para o Motor de Layout (Flexbox) | **(Novo v2.0)** Não é uma dependência direta, mas sim a inspiração (PRD, Assunção 4.4) para a implementação do FR1, FR2, NFR2. |
-| **Modais (Pós-MVP)** | `rmhubbert/bubbletea-overlay` | v0.2.x+ | Base para popups (ex: `ask_vault_pass`) | (Para Épico 2) Identificado no PRD (Assunção 4.4) e *brainstorming*. |
-| **Testes** | Go `testing` + `teatest` | 1.24.2+ | Testes unitários e de integração TUI | Requisito do PRD v2.0 (Assunção 4.3). `teatest` é essencial para NFR2 (layout fluido). |
-| **Build/Release** | `GoReleaser` | v1.26.x | Automação de build e cross-compilação | Validado em v1.0 (Estória 1.8). |
-| **Linter** | `golangci-lint` | v1.59.x | Análise estática e qualidade de código | Validado em v1.0 (via template). |
+| Categoria             | Tecnologia                    | Versão   | Propósito                                      | Racional                                                                                                                       |
+| --------------------- | ----------------------------- | -------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| **Linguagem**         | Go                            | 1.24.2+  | Linguagem de desenvolvimento principal         | Requisito do PRD (NFR1 v1.0, NFR1 v2.0), validado em v1.0.                                                                     |
+| **CLI Framework**     | `spf13/cobra`                 | v1.8.x   | Estrutura de comandos da CLI                   | Requisito do PRD (FR1 v1.0), validado em v1.0.                                                                                 |
+| **TUI Engine**        | `charmbracelet/bubbletea`     | v0.26.x  | Gestão de estado TUI (The Elm Architecture)    | Requisito do PRD (FR4 v1.0), validado em v1.0. Será o "Global Focus Manager" na v2.0.                                          |
+| **Componente (Form)** | `charmbracelet/huh`           | v0.4.x   | Geração declarativa de formulários             | Requisito do PRD (FR3 v1.0), validado em v1.0 (Épicos 1+2). Será refatorado (Estória 1.4).                                     |
+| **Estilo/Layout TUI** | `charmbracelet/lipgloss`      | v0.11.x  | Estilização e layout no terminal               | Requisito do PRD (FR7 v1.0), validado em v1.0 (Estória 1.7). Base para o Motor de Layout v2.0 (FR1, FR2).                      |
+| **Parsing YAML**      | `gopkg.in/yaml.v3`            | v3.0.x   | Descodificação do YAML de definição do Runtime | Requisito do PRD (Estória 1.2), validado em v1.0.                                                                              |
+| **Componentes TUI**   | `charmbracelet/bubbles`       | v0.18.x+ | Componentes TUI pré-construídos                | **(Novo v2.0)** Necessário para `list` (FR5) e `viewport` (FR4).                                                               |
+| **Render. Markdown**  | `charmbracelet/glamour`       | v0.7.x+  | Renderização de Markdown no viewport           | **(Novo v2.0)** Necessário para `content_type: markdown` (FR4).                                                                |
+| **Insp. Layout**      | `76creates/stickers`          | N/A      | Inspiração para o Motor de Layout (Flexbox)    | **(Novo v2.0)** Não é uma dependência direta, mas sim a inspiração (PRD, Assunção 4.4) para a implementação do FR1, FR2, NFR2. |
+| **Modais (Pós-MVP)**  | `rmhubbert/bubbletea-overlay` | v0.2.x+  | Base para popups (ex: `ask_vault_pass`)        | (Para Épico 2) Identificado no PRD (Assunção 4.4) e *brainstorming*.                                                           |
+| **Testes**            | Go `testing` + `teatest`      | 1.24.2+  | Testes unitários e de integração TUI           | Requisito do PRD v2.0 (Assunção 4.3). `teatest` é essencial para NFR2 (layout fluido).                                         |
+| **Build/Release**     | `GoReleaser`                  | v1.26.x  | Automação de build e cross-compilação          | Validado em v1.0 (Estória 1.8).                                                                                                |
+| **Linter**            | `golangci-lint`               | v1.59.x  | Análise estática e qualidade de código         | Validado em v1.0 (via template).                                                                                               |
 
 ---
 
@@ -3230,21 +3230,21 @@ A tabela abaixo é a "fonte da verdade" para todas as dependências do Épico 1 
 
 ### Technology Stack Table
 
-| Categoria | Tecnologia | Versão | Propósito | Racional |
-| --- | --- | --- | --- | --- |
-| **Linguagem** | Go  | 1.24.2+ | Linguagem de desenvolvimento principal | Requisito do PRD (NFR1 v1.0, NFR1 v2.0), validado em v1.0. |
-| **CLI Framework** | `spf13/cobra` | v1.8.x | Estrutura de comandos da CLI | Requisito do PRD (FR1 v1.0), validado em v1.0. |
-| **TUI Engine** | `charmbracelet/bubbletea` | v0.26.x | Gestão de estado TUI (The Elm Architecture) | Requisito do PRD (FR4 v1.0), validado em v1.0. Será o "Global Focus Manager" na v2.0. |
-| **Componente (Form)** | `charmbracelet/huh` | v0.4.x | Geração declarativa de formulários | Requisito do PRD (FR3 v1.0), validado em v1.0 (Épicos 1+2). Será refatorado (Estória 1.4). |
-| **Estilo/Layout TUI** | `charmbracelet/lipgloss` | v0.11.x | Estilização e layout no terminal | Requisito do PRD (FR7 v1.0), validado em v1.0 (Estória 1.7). Base para o Motor de Layout v2.0 (FR1, FR2). |
-| **Parsing YAML** | `gopkg.in/yaml.v3` | v3.0.x | Descodificação do YAML de definição do Runtime | Requisito do PRD (Estória 1.2), validado em v1.0. |
-| **Componentes TUI** | `charmbracelet/bubbles` | v0.18.x+ | Componentes TUI pré-construídos | **(Novo v2.0)** Necessário para `list` (FR5) e `viewport` (FR4). |
-| **Render. Markdown** | `charmbracelet/glamour` | v0.7.x+ | Renderização de Markdown no viewport | **(Novo v2.0)** Necessário para `content_type: markdown` (FR4). |
-| **Insp. Layout** | `76creates/stickers` | N/A | Inspiração para o Motor de Layout (Flexbox) | **(Novo v2.0)** Não é uma dependência direta, mas sim a inspiração (PRD, Assunção 4.4) para a implementação do FR1, FR2, NFR2. |
-| **Modais (Pós-MVP)** | `rmhubbert/bubbletea-overlay` | v0.2.x+ | Base para popups (ex: `ask_vault_pass`) | (Para Épico 2) Identificado no PRD (Assunção 4.4) e *brainstorming*. |
-| **Testes** | Go `testing` + `teatest` | 1.24.2+ | Testes unitários e de integração TUI | Requisito do PRD v2.0 (Assunção 4.3). `teatest` é essencial para NFR2 (layout fluido). |
-| **Build/Release** | `GoReleaser` | v1.26.x | Automação de build e cross-compilação | Validado em v1.0 (Estória 1.8). |
-| **Linter** | `golangci-lint` | v1.59.x | Análise estática e qualidade de código | Validado em v1.0 (via template). |
+| Categoria             | Tecnologia                    | Versão   | Propósito                                      | Racional                                                                                                                       |
+| --------------------- | ----------------------------- | -------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| **Linguagem**         | Go                            | 1.24.2+  | Linguagem de desenvolvimento principal         | Requisito do PRD (NFR1 v1.0, NFR1 v2.0), validado em v1.0.                                                                     |
+| **CLI Framework**     | `spf13/cobra`                 | v1.8.x   | Estrutura de comandos da CLI                   | Requisito do PRD (FR1 v1.0), validado em v1.0.                                                                                 |
+| **TUI Engine**        | `charmbracelet/bubbletea`     | v0.26.x  | Gestão de estado TUI (The Elm Architecture)    | Requisito do PRD (FR4 v1.0), validado em v1.0. Será o "Global Focus Manager" na v2.0.                                          |
+| **Componente (Form)** | `charmbracelet/huh`           | v0.4.x   | Geração declarativa de formulários             | Requisito do PRD (FR3 v1.0), validado em v1.0 (Épicos 1+2). Será refatorado (Estória 1.4).                                     |
+| **Estilo/Layout TUI** | `charmbracelet/lipgloss`      | v0.11.x  | Estilização e layout no terminal               | Requisito do PRD (FR7 v1.0), validado em v1.0 (Estória 1.7). Base para o Motor de Layout v2.0 (FR1, FR2).                      |
+| **Parsing YAML**      | `gopkg.in/yaml.v3`            | v3.0.x   | Descodificação do YAML de definição do Runtime | Requisito do PRD (Estória 1.2), validado em v1.0.                                                                              |
+| **Componentes TUI**   | `charmbracelet/bubbles`       | v0.18.x+ | Componentes TUI pré-construídos                | **(Novo v2.0)** Necessário para `list` (FR5) e `viewport` (FR4).                                                               |
+| **Render. Markdown**  | `charmbracelet/glamour`       | v0.7.x+  | Renderização de Markdown no viewport           | **(Novo v2.0)** Necessário para `content_type: markdown` (FR4).                                                                |
+| **Insp. Layout**      | `76creates/stickers`          | N/A      | Inspiração para o Motor de Layout (Flexbox)    | **(Novo v2.0)** Não é uma dependência direta, mas sim a inspiração (PRD, Assunção 4.4) para a implementação do FR1, FR2, NFR2. |
+| **Modais (Pós-MVP)**  | `rmhubbert/bubbletea-overlay` | v0.2.x+  | Base para popups (ex: `ask_vault_pass`)        | (Para Épico 2) Identificado no PRD (Assunção 4.4) e *brainstorming*.                                                           |
+| **Testes**            | Go `testing` + `teatest`      | 1.24.2+  | Testes unitários e de integração TUI           | Requisito do PRD v2.0 (Assunção 4.3). `teatest` é essencial para NFR2 (layout fluido).                                         |
+| **Build/Release**     | `GoReleaser`                  | v1.26.x  | Automação de build e cross-compilação          | Validado em v1.0 (Estória 1.8).                                                                                                |
+| **Linter**            | `golangci-lint`               | v1.59.x  | Análise estática e qualidade de código         | Validado em v1.0 (via template).                                                                                               |
 
 ---
 
@@ -3919,9 +3919,9 @@ multi-componente (layouts, menus, viewports) que *orquestram* automações de ba
 
 ### Change Log
 
-| Data | Versão | Descrição | Autor |
-| --- | --- | --- | --- |
-| 08/11/2025 | 2.0.0 | Rascunho inicial do PRD v2.0, redefinindo o projeto como um "Runtime TUI Declarativo". | John (PM) |
+| Data       | Versão | Descrição                                                                              | Autor     |
+| ---------- | ------ | -------------------------------------------------------------------------------------- | --------- |
+| 08/11/2025 | 2.0.0  | Rascunho inicial do PRD v2.0, redefinindo o projeto como um "Runtime TUI Declarativo". | John (PM) |
 
 ---
 

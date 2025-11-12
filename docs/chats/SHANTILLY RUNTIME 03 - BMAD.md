@@ -5467,37 +5467,37 @@ Esta é a pilha de tecnologias **DEFINITIVA** para o Épico 1 (Fundação TUI) .
 | ------------- | ---------- | ------- | ------------------- | ----------------------- |
 | **Linguagem** | Go         | 1.24.2+ | Linguagem principal | Requisito do PRD v2.0 . |
 
-|     |
-| --- | --- | --- | --- | --- |
-| **CLI Framework** | `spf13/cobra` | (v1.8.0+) | Fundação do CLI (comandos/flags) | Padrão da indústria; validado no v1.0. |
-| **TUI Framework** | `charmbracelet/bubbletea` | (v0.26.4+) | Motor principal da TUI (Update/View) | Padrão da indústria; validado no v1.0; base da arquitetura v2.0. |
-| **Motor de Layout** | `charmbracelet/lipgloss` | (v0.10.0+) | Estilização e renderização do layout | Requisito para o `LayoutManager` (Estória 1.1) ; validado no v1.0. |
+|                     |
+| ------------------- | ------------------------- | ---------- | ------------------------------------ | ------------------------------------------------------------------ |
+| **CLI Framework**   | `spf13/cobra`             | (v1.8.0+)  | Fundação do CLI (comandos/flags)     | Padrão da indústria; validado no v1.0.                             |
+| **TUI Framework**   | `charmbracelet/bubbletea` | (v0.26.4+) | Motor principal da TUI (Update/View) | Padrão da indústria; validado no v1.0; base da arquitetura v2.0.   |
+| **Motor de Layout** | `charmbracelet/lipgloss`  | (v0.10.0+) | Estilização e renderização do layout | Requisito para o `LayoutManager` (Estória 1.1) ; validado no v1.0. |
 
-|     |
-| --- | --- | --- | --- |
+|                       |
+| --------------------- | ------------------- | --------- | ----------------------------------------- |
 | **Componente (Form)** | `charmbracelet/huh` | (v0.5.0+) | Renderização de formulários (Estória 1.4) |
 
 |     | Validado no v1.0; requisito explícito de refatoração (FR7) . |
 | --- | ------------------------------------------------------------ |
 
-|     |
-| --- | --- | --- | --- | --- |
+|                      |
+| -------------------- | ----------------------- | ---------- | -------------------------------- | ----------------------------------------------------------------------- |
 | **Componentes (UI)** | `charmbracelet/bubbles` | (v0.18.0+) | Componentes TUI (List, Viewport) | Requisito da Estória 1.3 (FR4, FR5) ; biblioteca padrão do ecossistema. |
 
-|     |
-| --- | --- | --- | --- | --- |
+|                        |
+| ---------------------- | ----------------------- | --------- | -------------------------------------- | -------------------------------- |
 | **Render. (Markdown)** | `charmbracelet/glamour` | (v0.7.0+) | Renderização de Markdown no `viewport` | Requisito da Estória 1.3 (FR4) . |
 
-|     |
-| --- | --- | --- | --- | --- |
-| **Parser (Config)** | `gopkg.in/yaml.v3` | (v3.0.1+) | Parse do YAML (Layout e `on:`) | Validado no v1.0; essencial para a arquitetura declarativa. |
-| **Testes (TUI)** | `charmbracelet/teatest` | (v0.6.0+) | Teste de Integração TUI (NFR3) |
+|                     |
+| ------------------- | ----------------------- | --------- | ------------------------------ | ----------------------------------------------------------- |
+| **Parser (Config)** | `gopkg.in/yaml.v3`      | (v3.0.1+) | Parse do YAML (Layout e `on:`) | Validado no v1.0; essencial para a arquitetura declarativa. |
+| **Testes (TUI)**    | `charmbracelet/teatest` | (v0.6.0+) | Teste de Integração TUI (NFR3) |
 
 |     | Requisito (NFR3) para validar o layout fluido (NFR2) e a gestão de foco. |
 | --- | ------------------------------------------------------------------------ |
 
-|     |
-| --- | --- | --- | --- | --- |
+|                  |
+| ---------------- | ------------ | ---------- | ------------------------------------- | ------------------------------------------------ |
 | **Distribuição** | `GoReleaser` | (v1.26.0+) | Build e release de binários estáticos | Requisito do PRD v2.0 (NFR1) ; validado no v1.0. |
 
 ---
@@ -5946,8 +5946,8 @@ Categoria (do Checklist)
 |     | 100% (PASS) | Nenhum. A pilha (Seção 3) está completa e validada pelo v1.0. |
 | --- | ----------- | ------------------------------------------------------------- |
 
-|     |
-| --- | --- | --- |
+|                    |
+| ------------------ | --- | ------------------- |
 | 4. Design Frontend | N/A | (Secção ignorada) . |
 
 |                              |
@@ -5985,8 +5985,8 @@ Categoria (do Checklist)
 |     | 100% (PASS) | Nenhum. O "Mecanismo de Entrega" (ToT, Turno 14) foi projetado especificamente para a IA. |
 | --- | ----------- | ----------------------------------------------------------------------------------------- |
 
-|     |
-| --- | --- | --- |
+|                    |
+| ------------------ | --- | ------------------- |
 | 10. Acessibilidade | N/A | (Secção ignorada) . |
 
 #### 3. Avaliação de Risco

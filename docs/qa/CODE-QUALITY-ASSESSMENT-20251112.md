@@ -12,14 +12,14 @@ The Shantilly project demonstrates **solid testing infrastructure** with a **1.3
 
 ### 1.1 Test Infrastructure
 
-| Metric | Value |
-|--------|-------|
-| **Total Production Files** | 23 .go files |
-| **Total Test Files** | 19 *_test.go files |
-| **Test Functions** | 117 tests |
-| **Production LOC** | 6,746 lines |
-| **Test LOC** | 8,796 lines |
-| **Test-to-Code Ratio** | 1.30x |
+| Metric                     | Value              |
+| -------------------------- | ------------------ |
+| **Total Production Files** | 23 .go files       |
+| **Total Test Files**       | 19 *_test.go files |
+| **Test Functions**         | 117 tests          |
+| **Production LOC**         | 6,746 lines        |
+| **Test LOC**               | 8,796 lines        |
+| **Test-to-Code Ratio**     | 1.30x              |
 
 ### 1.2 Test Distribution by Package
 
@@ -135,14 +135,14 @@ The Shantilly project demonstrates **solid testing infrastructure** with a **1.3
 
 #### HIGH COMPLEXITY (>100 lines)
 
-| File | LOC | Category | Concern |
-|------|-----|----------|---------|
-| `internal/runtime/runner/runner.go` | 596 | Script execution | Largest file; complex concurrency, process mgmt, security checks |
-| `internal/tui/model.go` | 490 | Form model | Complex state, update dispatch, validation rendering |
-| `internal/config/validation.go` | 321 | Field validation | Multiple type-specific validators, deep logic |
-| `pkg/declarative/models.go` | 248 | Config models | Large struct definitions, validation tree walking |
-| `internal/runtime/modal/stack.go` | 181 | Modal state | Mutex-protected stack, ID generation |
-| `internal/runtime/event/coordinator.go` | 162 | Event routing | Pending action tracking, modal gate logic |
+| File                                    | LOC | Category         | Concern                                                          |
+| --------------------------------------- | --- | ---------------- | ---------------------------------------------------------------- |
+| `internal/runtime/runner/runner.go`     | 596 | Script execution | Largest file; complex concurrency, process mgmt, security checks |
+| `internal/tui/model.go`                 | 490 | Form model       | Complex state, update dispatch, validation rendering             |
+| `internal/config/validation.go`         | 321 | Field validation | Multiple type-specific validators, deep logic                    |
+| `pkg/declarative/models.go`             | 248 | Config models    | Large struct definitions, validation tree walking                |
+| `internal/runtime/modal/stack.go`       | 181 | Modal state      | Mutex-protected stack, ID generation                             |
+| `internal/runtime/event/coordinator.go` | 162 | Event routing    | Pending action tracking, modal gate logic                        |
 
 #### NESTING DEPTH
 
@@ -344,21 +344,21 @@ fmt.Errorf("campo '%s': %s", field, msg)
 
 ### 5.1 Open TODOs (Priority: LOW)
 
-| Location | Comment | Severity |
-|----------|---------|----------|
-| `runner_test.go:3-20` | Comprehensive test documentation (not a TODO) | None |
-| `event/manager.go:16` | Reactive flow roadmap comment | Low |
-| `error_display.go:38` | Sort error keys for test consistency | Low |
+| Location              | Comment                                       | Severity |
+| --------------------- | --------------------------------------------- | -------- |
+| `runner_test.go:3-20` | Comprehensive test documentation (not a TODO) | None     |
+| `event/manager.go:16` | Reactive flow roadmap comment                 | Low      |
+| `error_display.go:38` | Sort error keys for test consistency          | Low      |
 
 ### 5.2 Code Smell Patterns
 
-| Pattern | Found | Count | Risk |
-|---------|-------|-------|------|
-| Large functions (>200 LOC) | Yes | 2 | Medium |
-| Nested loops + conditionals | Yes | Light | Low |
-| Magic numbers | Yes | 3-5 | Low |
-| Silent context (form config) | Yes | Yes | Low |
-| Unused variables | 0 (golangci-lint catches) | — | None |
+| Pattern                      | Found                     | Count | Risk   |
+| ---------------------------- | ------------------------- | ----- | ------ |
+| Large functions (>200 LOC)   | Yes                       | 2     | Medium |
+| Nested loops + conditionals  | Yes                       | Light | Low    |
+| Magic numbers                | Yes                       | 3-5   | Low    |
+| Silent context (form config) | Yes                       | Yes   | Low    |
+| Unused variables             | 0 (golangci-lint catches) | —     | None   |
 
 ### 5.3 Legacy Code Islands
 
@@ -385,12 +385,12 @@ fmt.Errorf("campo '%s': %s", field, msg)
 
 ### 6.1 Workflows
 
-| Workflow | File | Triggers | Status |
-|----------|------|----------|--------|
-| Lint | `lint.yml` | PR, push to main, manual | ✅ Active |
-| Build & Test | `build.yml` | PR, push to main, manual | ✅ Active |
-| Governance (Waves 4-7) | `governanca-waves4-7.yml` | Manual | ✅ Active |
-| Release | `release.yml` | Tag push | ✅ Active |
+| Workflow               | File                      | Triggers                 | Status   |
+| ---------------------- | ------------------------- | ------------------------ | -------- |
+| Lint                   | `lint.yml`                | PR, push to main, manual | ✅ Active |
+| Build & Test           | `build.yml`               | PR, push to main, manual | ✅ Active |
+| Governance (Waves 4-7) | `governanca-waves4-7.yml` | Manual                   | ✅ Active |
+| Release                | `release.yml`             | Tag push                 | ✅ Active |
 
 ### 6.2 Build Workflow (build.yml)
 
@@ -597,14 +597,14 @@ if got != want {
 
 ### Risk Assessment
 
-| Component | Risk Level | Reason |
-|-----------|-----------|--------|
-| ScriptRunner | MEDIUM | Large, complex, 5 tests for 596 LOC |
-| Form Model | MEDIUM | Large, state-heavy, integration tested well |
-| Modal Stack | LOW | Small, well-tested, clear interface |
-| Event Coordinator | LOW | Well-tested, clear routing logic |
-| Validation | MEDIUM | Multiple validators, limited boundary testing |
-| Security | MEDIUM | Limited negative test coverage |
+| Component         | Risk Level | Reason                                        |
+| ----------------- | ---------- | --------------------------------------------- |
+| ScriptRunner      | MEDIUM     | Large, complex, 5 tests for 596 LOC           |
+| Form Model        | MEDIUM     | Large, state-heavy, integration tested well   |
+| Modal Stack       | LOW        | Small, well-tested, clear interface           |
+| Event Coordinator | LOW        | Well-tested, clear routing logic              |
+| Validation        | MEDIUM     | Multiple validators, limited boundary testing |
+| Security          | MEDIUM     | Limited negative test coverage                |
 
 ### Overall Grade
 

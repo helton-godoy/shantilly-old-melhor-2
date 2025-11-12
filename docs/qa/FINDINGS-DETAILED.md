@@ -584,17 +584,17 @@ func TestScriptRunner_SecurityPolicy_WhitelistBypass_RelativePath(t *testing.T)
 
 ### By Priority
 
-| Priority | Category | Action | Effort | Impact |
-|----------|----------|--------|--------|--------|
-| P1 | Coverage Gate | Add 70% threshold to CI | 30 min | 🔴 Critical |
-| P1 | Runner Tests | Add 10+ tests (process edge cases) | 4 hrs | 🟠 High |
-| P1 | Model Tests | Add 5+ tests (state consistency) | 3 hrs | 🟠 High |
-| P2 | Security Tests | Add 5+ tests (path traversal, etc.) | 3 hrs | 🟠 High |
-| P2 | Coverage Baseline | Document coverage %, set targets | 1 wk | 🟡 Medium |
-| P2 | Validation Tests | Add 5+ tests (boundary cases) | 3 hrs | 🟡 Medium |
-| P3 | Refactor Large Files | Split runner.go, model.go | 2-4 wk | 🟡 Medium |
-| P3 | Resolve TODOs | Fix sorting, document flow | 1 hr | 🟢 Low |
-| P4 | Standardize Docs | Move to English comments | TBD | 🟢 Low |
+| Priority | Category             | Action                              | Effort | Impact     |
+| -------- | -------------------- | ----------------------------------- | ------ | ---------- |
+| P1       | Coverage Gate        | Add 70% threshold to CI             | 30 min | 🔴 Critical |
+| P1       | Runner Tests         | Add 10+ tests (process edge cases)  | 4 hrs  | 🟠 High     |
+| P1       | Model Tests          | Add 5+ tests (state consistency)    | 3 hrs  | 🟠 High     |
+| P2       | Security Tests       | Add 5+ tests (path traversal, etc.) | 3 hrs  | 🟠 High     |
+| P2       | Coverage Baseline    | Document coverage %, set targets    | 1 wk   | 🟡 Medium   |
+| P2       | Validation Tests     | Add 5+ tests (boundary cases)       | 3 hrs  | 🟡 Medium   |
+| P3       | Refactor Large Files | Split runner.go, model.go           | 2-4 wk | 🟡 Medium   |
+| P3       | Resolve TODOs        | Fix sorting, document flow          | 1 hr   | 🟢 Low      |
+| P4       | Standardize Docs     | Move to English comments            | TBD    | 🟢 Low      |
 
 ### Quick Wins (< 1 hour each)
 

@@ -38,28 +38,28 @@ go tool cover -func=coverage.txt | tail -1
 
 ### Alta Prioridade (Core Runtime)
 
-| Pacote | Coverage | LOC | Testes | Status |
-|--------|----------|-----|--------|--------|
-| `internal/runtime/runner` | TBD% | 596 | 5 | ⚠️ BAIXO - Meta: ≥80% |
-| `internal/runtime/event` | TBD% | 162 | 5 | 🟡 MÉDIO - Meta: ≥80% |
-| `internal/runtime/layout` | TBD% | ~150 | 5 | 🟡 MÉDIO - Meta: ≥75% |
-| `internal/runtime/modal` | TBD% | 272 | 12 | ✅ OK - Manter |
-| `pkg/declarative` | TBD% | 248 | 9 | ✅ OK - Manter |
+| Pacote                    | Coverage | LOC  | Testes | Status                |
+|---------------------------|----------|------|--------|-----------------------|
+| `internal/runtime/runner` | TBD%     | 596  | 5      | ⚠️ BAIXO - Meta: ≥80% |
+| `internal/runtime/event`  | TBD%     | 162  | 5      | 🟡 MÉDIO - Meta: ≥80% |
+| `internal/runtime/layout` | TBD%     | ~150 | 5      | 🟡 MÉDIO - Meta: ≥75% |
+| `internal/runtime/modal`  | TBD%     | 272  | 12     | ✅ OK - Manter         |
+| `pkg/declarative`         | TBD%     | 248  | 9      | ✅ OK - Manter         |
 
 ### Média Prioridade (Legacy TUI)
 
-| Pacote | Coverage | LOC | Testes | Status |
-|--------|----------|-----|--------|--------|
-| `internal/tui` | TBD% | 490 | 11 | 🟡 MÉDIO - Meta: ≥70% |
-| `internal/config` | TBD% | 321 | 14 | ⚠️ BAIXO - Meta: ≥75% |
-| `internal/tui/components` | TBD% | ~200 | 7 | 🟡 MÉDIO - Meta: ≥70% |
+| Pacote                    | Coverage | LOC  | Testes | Status                |
+|---------------------------|----------|------|--------|-----------------------|
+| `internal/tui`            | TBD%     | 490  | 11     | 🟡 MÉDIO - Meta: ≥70% |
+| `internal/config`         | TBD%     | 321  | 14     | ⚠️ BAIXO - Meta: ≥75% |
+| `internal/tui/components` | TBD%     | ~200 | 7      | 🟡 MÉDIO - Meta: ≥70% |
 
 ### Baixa Prioridade (Utilidades)
 
-| Pacote | Coverage | LOC | Testes | Status |
-|--------|----------|-----|--------|--------|
-| `internal/util` | TBD% | ~100 | 6 | ✅ OK - Manter |
-| `cmd/shantilly` | TBD% | 85 | 5 | ✅ OK - CLI |
+| Pacote          | Coverage | LOC  | Testes | Status        |
+|-----------------|----------|------|--------|---------------|
+| `internal/util` | TBD%     | ~100 | 6      | ✅ OK - Manter |
+| `cmd/shantilly` | TBD%     | 85   | 5      | ✅ OK - CLI    |
 
 ---
 
@@ -124,12 +124,12 @@ go tool cover -func=coverage.txt | tail -1
 
 ## Threshold Evolution
 
-| Data | Coverage | Threshold CI | Ação |
-|------|----------|--------------|------|
-| 2025-11-12 | TBD% | 65% | Baseline estabelecido |
-| Após Fase 2 | ~70% | 70% | Incrementar threshold |
-| Após Fase 3 | ~72% | 72% | Incrementar threshold |
-| Após Fase 6 | ≥75% | 75% | Meta final atingida |
+| Data        | Coverage | Threshold CI | Ação                  |
+|-------------|----------|--------------|-----------------------|
+| 2025-11-12  | TBD%     | 65%          | Baseline estabelecido |
+| Após Fase 2 | ~70%     | 70%          | Incrementar threshold |
+| Após Fase 3 | ~72%     | 72%          | Incrementar threshold |
+| Após Fase 6 | ≥75%     | 75%          | Meta final atingida   |
 
 ---
 

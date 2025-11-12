@@ -285,19 +285,19 @@ Status: READY FOR IMPLEMENTATION
 
 Use this table to track progress:
 
-| Item | Status | Start Date | End Date | Assignee | PR Link |
-|------|--------|-----------|----------|----------|---------|
-| P1.1: Coverage Gate | 🔴 TODO | — | — | — | — |
-| P1.2: Runner Tests | 🔴 TODO | — | — | — | — |
-| P1.3: Model Tests | 🔴 TODO | — | — | — | — |
-| P2.1: Security Tests | 🔴 TODO | — | — | — | — |
-| P2.2: Validation Tests | 🔴 TODO | — | — | — | — |
-| P2.3: Coverage Baseline | 🔴 TODO | — | — | — | — |
-| P2.4: Resolve TODOs | 🔴 TODO | — | — | — | — |
-| P3.1: Refactor Runner | 🔴 TODO | — | — | — | — |
-| P3.2: Refactor Model | 🔴 TODO | — | — | — | — |
-| P3.3: Stress Tests | 🔴 TODO | — | — | — | — |
-| P4.*: Long-term | 🔴 TODO | — | — | — | — |
+| Item                    | Status | Start Date | End Date | Assignee | PR Link |
+| ----------------------- | ------ | ---------- | -------- | -------- | ------- |
+| P1.1: Coverage Gate     | 🔴 TODO | —          | —        | —        | —       |
+| P1.2: Runner Tests      | 🔴 TODO | —          | —        | —        | —       |
+| P1.3: Model Tests       | 🔴 TODO | —          | —        | —        | —       |
+| P2.1: Security Tests    | 🔴 TODO | —          | —        | —        | —       |
+| P2.2: Validation Tests  | 🔴 TODO | —          | —        | —        | —       |
+| P2.3: Coverage Baseline | 🔴 TODO | —          | —        | —        | —       |
+| P2.4: Resolve TODOs     | 🔴 TODO | —          | —        | —        | —       |
+| P3.1: Refactor Runner   | 🔴 TODO | —          | —        | —        | —       |
+| P3.2: Refactor Model    | 🔴 TODO | —          | —        | —        | —       |
+| P3.3: Stress Tests      | 🔴 TODO | —          | —        | —        | —       |
+| P4.*: Long-term         | 🔴 TODO | —          | —        | —        | —       |
 
 **Legend**: 🔴 TODO | 🟠 IN PROGRESS | 🟡 REVIEW | 🟢 DONE
 

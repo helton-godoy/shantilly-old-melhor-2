@@ -35,7 +35,7 @@
 ## Category Analysis
 
 | Category                         | Status | Critical Issues                     |
-|:---------------------------------|:-------|:------------------------------------|
+| :------------------------------- | :----- | :---------------------------------- |
 | 1. Problem Definition & Context  | ✅ PASS |                                     |
 | 2. MVP Scope Definition          | ✅ PASS |                                     |
 | 3. User Experience Requirements  | ✅ PASS | (Simplified for TUI)                |

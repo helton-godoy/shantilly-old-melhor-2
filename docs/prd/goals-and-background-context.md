@@ -18,13 +18,13 @@ shantilly fills this gap. It's a portable CLI tool (single static binary) enabli
 
 ## Change Log
 
-| Date       | Version | Description                                                                                                    | Author    |
-|:-----------|:--------|:---------------------------------------------------------------------------------------------------------------|:----------|
-| 2025-10-22 | 0.1.0   | Initial PRD draft based on Project Brief.                                                                      | John (PM) |
-| 2025-10-23 | 0.1.1   | Added UI/UX section and refined MVP layout.                                                                    | John (PM) |
-| 2025-10-23 | 0.1.2   | Added Technical Assumptions section.                                                                           | John (PM) |
-| 2025-10-23 | 0.1.3   | Added Epic List (MVP).                                                                                         | John (PM) |
-| 2025-10-23 | 0.1.4   | Added Epic 1 Details (MVP) with Stories.                                                                       | John (PM) |
-| 2025-10-23 | 0.1.5   | Completed PM Checklist and Next Steps section.                                                                 | John (PM) |
-| 2025-10-23 | 0.2.0   | Implemented PM Checklist recommendations (YAML Structure and Error Handling - NFR8). Updated Architect prompt. | John (PM) |
-| 2025-10-27 | 0.3.0   | Added preventive epics (3-7) for future roadmap planning and process improvement. | Sarah (PO) |
+| Date       | Version | Description                                                                                                    | Author     |
+| :--------- | :------ | :------------------------------------------------------------------------------------------------------------- | :--------- |
+| 2025-10-22 | 0.1.0   | Initial PRD draft based on Project Brief.                                                                      | John (PM)  |
+| 2025-10-23 | 0.1.1   | Added UI/UX section and refined MVP layout.                                                                    | John (PM)  |
+| 2025-10-23 | 0.1.2   | Added Technical Assumptions section.                                                                           | John (PM)  |
+| 2025-10-23 | 0.1.3   | Added Epic List (MVP).                                                                                         | John (PM)  |
+| 2025-10-23 | 0.1.4   | Added Epic 1 Details (MVP) with Stories.                                                                       | John (PM)  |
+| 2025-10-23 | 0.1.5   | Completed PM Checklist and Next Steps section.                                                                 | John (PM)  |
+| 2025-10-23 | 0.2.0   | Implemented PM Checklist recommendations (YAML Structure and Error Handling - NFR8). Updated Architect prompt. | John (PM)  |
+| 2025-10-27 | 0.3.0   | Added preventive epics (3-7) for future roadmap planning and process improvement.                              | Sarah (PO) |

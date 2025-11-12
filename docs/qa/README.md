@@ -50,17 +50,17 @@ This directory contains quality assurance, testing strategy, and code quality as
 
 ## Metrics Summary
 
-| Aspect | Value | Status |
-|--------|-------|--------|
-| Production Go Files | 23 | — |
-| Test Files | 19 | — |
-| Total Tests | 117 | ✅ |
-| Test-to-Code Ratio | 1.30x | ✅ |
-| Coverage Threshold | None | ⚠️ |
-| Race Detector | Enabled | ✅ |
-| Linters Enabled | 15 curated | ✅ |
-| Max Complexity | 15 (threshold) | ✅ |
-| Max Function Length | 100 LOC | ✅ |
+| Aspect              | Value          | Status |
+| ------------------- | -------------- | ------ |
+| Production Go Files | 23             | —      |
+| Test Files          | 19             | —      |
+| Total Tests         | 117            | ✅      |
+| Test-to-Code Ratio  | 1.30x          | ✅      |
+| Coverage Threshold  | None           | ⚠️      |
+| Race Detector       | Enabled        | ✅      |
+| Linters Enabled     | 15 curated     | ✅      |
+| Max Complexity      | 15 (threshold) | ✅      |
+| Max Function Length | 100 LOC        | ✅      |
 
 ---
 
@@ -131,26 +131,26 @@ Legend: ✅ Good coverage | ⚠️ Needs expansion
 
 ## CI/CD Status
 
-| Workflow | Trigger | Status | Notes |
-|----------|---------|--------|-------|
-| Lint | PR, push, manual | ✅ Active | golangci-lint v1.59.1 + gofumpt |
-| Build & Test | PR, push, manual | ✅ Active | Race detector on, coverage uploaded to Codecov |
-| Governance (Waves 4-7) | Manual | ✅ Active | Architecture contract verification |
-| Release | Tag push | ✅ Active | Cross-platform binary generation |
-| Coverage Gate | N/A | ⚠️ MISSING | **ACTION REQUIRED** |
+| Workflow               | Trigger          | Status    | Notes                                          |
+| ---------------------- | ---------------- | --------- | ---------------------------------------------- |
+| Lint                   | PR, push, manual | ✅ Active  | golangci-lint v1.59.1 + gofumpt                |
+| Build & Test           | PR, push, manual | ✅ Active  | Race detector on, coverage uploaded to Codecov |
+| Governance (Waves 4-7) | Manual           | ✅ Active  | Architecture contract verification             |
+| Release                | Tag push         | ✅ Active  | Cross-platform binary generation               |
+| Coverage Gate          | N/A              | ⚠️ MISSING | **ACTION REQUIRED**                            |
 
 ---
 
 ## Risk Matrix
 
-| Component | LOC | Tests | Risk | Issue |
-|-----------|-----|-------|------|-------|
-| runner.go | 596 | 5 | 🟠 HIGH | Process mgmt edge cases, signal handling |
-| model.go | 490 | 11 | 🟠 HIGH | State consistency, update dispatch |
-| validation.go | 321 | 7 | 🟡 MEDIUM | Boundary values, format edge cases |
-| coordinator.go | 162 | 5 | 🟢 LOW | Clear logic, well-tested |
-| stack.go | 181 | 6 | 🟢 LOW | Simple interface, mutex-safe |
-| SecurityPolicy | 100+ | 1 | 🟠 HIGH | Path traversal, injection scenarios |
+| Component      | LOC  | Tests | Risk     | Issue                                    |
+| -------------- | ---- | ----- | -------- | ---------------------------------------- |
+| runner.go      | 596  | 5     | 🟠 HIGH   | Process mgmt edge cases, signal handling |
+| model.go       | 490  | 11    | 🟠 HIGH   | State consistency, update dispatch       |
+| validation.go  | 321  | 7     | 🟡 MEDIUM | Boundary values, format edge cases       |
+| coordinator.go | 162  | 5     | 🟢 LOW    | Clear logic, well-tested                 |
+| stack.go       | 181  | 6     | 🟢 LOW    | Simple interface, mutex-safe             |
+| SecurityPolicy | 100+ | 1     | 🟠 HIGH   | Path traversal, injection scenarios      |
 
 ---
 
