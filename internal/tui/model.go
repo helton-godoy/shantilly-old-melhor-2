@@ -19,6 +19,16 @@ type multiselectData struct {
 	values map[string]*[]string
 }
 
+// submissionSuccessMsg é enviada quando a submissão do formulário é bem-sucedida
+type submissionSuccessMsg struct {
+	jsonData []byte
+}
+
+// submissionErrorMsg é enviada quando há erro na formatação JSON
+type submissionErrorMsg struct {
+	err error
+}
+
 // Model representa o estado da aplicação TUI.
 type Model struct {
 	form              *huh.Form
@@ -37,6 +47,8 @@ type Model struct {
 	errorDisplay      *components.ErrorDisplay
 	helpText          *components.HelpText
 	progressIndicator *components.ProgressIndicator
+	// Exit code tracking (E1.4 compliance: no os.Exit in core)
+	exitCode int // 0 = success, 1 = error
 }
 
 const (
@@ -104,6 +116,23 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if windowSizeMsg, ok := msg.(tea.WindowSizeMsg); ok {
 		m.terminalWidth = windowSizeMsg.Width
 		m.terminalHeight = windowSizeMsg.Height
+	}
+
+	// Handle submission messages (E1.4 compliance: process without os.Exit)
+	switch msg := msg.(type) {
+	case submissionSuccessMsg:
+		// Limpar a tela
+		fmt.Print("\033[2J\033[H")
+		// Imprimir JSON de sucesso
+		fmt.Println(string(msg.jsonData))
+		m.exitCode = 0
+		return m, tea.Quit
+
+	case submissionErrorMsg:
+		// Imprimir erro no stderr
+		fmt.Fprintf(os.Stderr, "Erro ao formatar JSON: %v\n", msg.err)
+		m.exitCode = 1
+		return m, tea.Quit
 	}
 
 	// Handle form messages
@@ -277,6 +306,7 @@ func createForm(formConfig *config.FormConfig, multiselectValues *multiselectDat
 }
 
 // handleSubmission processa a submissão do formulário e gera a saída JSON.
+// E1.4 compliance: não usa os.Exit; retorna mensagens para o loop TEA.
 func (m *Model) handleSubmission() tea.Cmd {
 	return func() tea.Msg {
 		// Validar todos os campos antes de submeter
@@ -293,19 +323,15 @@ func (m *Model) handleSubmission() tea.Cmd {
 			return nil // Não submeter, manter formulário ativo
 		}
 
-		// Limpar a tela
-		fmt.Print("\033[2J\033[H")
-
-		// Converter para JSON e imprimir
+		// Converter para JSON
 		jsonData, err := json.MarshalIndent(formData, "", "  ")
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Erro ao formatar JSON: %v\n", err)
-			os.Exit(1)
+			// Retornar mensagem de erro ao invés de os.Exit(1)
+			return submissionErrorMsg{err: err}
 		}
 
-		fmt.Println(string(jsonData))
-		os.Exit(0)
-		return nil
+		// Retornar mensagem de sucesso ao invés de os.Exit(0)
+		return submissionSuccessMsg{jsonData: jsonData}
 	}
 }
 
@@ -369,13 +395,24 @@ func (m *Model) displayValidationErrors(results map[string]config.ValidationResu
 }
 
 // Start inicia a aplicação Bubble Tea.
-func Start(cfg *config.FormConfig) error {
-	p := tea.NewProgram(NewModel(cfg))
-	_, err := p.Run()
+// Start inicia a TUI com a configuração fornecida.
+// E1.4 compliance: retorna exit code ao invés de usar os.Exit no core.
+// Retorna (exitCode, error) onde exitCode: 0 = sucesso, 1 = erro de formatação JSON.
+func Start(cfg *config.FormConfig) (int, error) {
+	model := NewModel(cfg)
+	p := tea.NewProgram(model)
+	finalModel, err := p.Run()
 	if err != nil {
-		return fmt.Errorf("erro ao iniciar a TUI: %w", err)
+		return 1, fmt.Errorf("erro ao iniciar a TUI: %w", err)
 	}
-	return nil
+
+	// Extrair exit code do modelo final
+	if m, ok := finalModel.(*Model); ok {
+		return m.exitCode, nil
+	}
+
+	// Fallback: se não conseguir extrair o modelo, retornar sucesso
+	return 0, nil
 }
 
 // setError define uma mensagem de erro para um campo específico

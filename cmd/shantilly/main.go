@@ -63,9 +63,17 @@ e executa o fluxo TUI v1.x. No runtime v2.0, novos fluxos devem usar AppConfig +
 			}
 
 			// For Story 1.3: Launch TUI application
-			err = tui.Start(formConfig)
+			// E1.4 compliance: captura exit code do TUI
+			exitCode, err := tui.Start(formConfig)
 			if err != nil {
 				return fmt.Errorf("erro ao iniciar a TUI: %w", err)
+			}
+
+			// E1.4 compliance: propagar exit code via os.Exit apenas aqui (casca CLI)
+			// Referência: docs/architecture/governance-runtime-tui-v2.0.md
+			// Gate: docs/qa/gates/1.x.no-osexit-core.yml
+			if exitCode != 0 {
+				os.Exit(exitCode)
 			}
 
 			return nil

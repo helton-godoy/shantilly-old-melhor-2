@@ -66,11 +66,33 @@ jobs:
       - name: Run Tests with Race Detector and Coverage
         run: go test -v -failfast -race -coverpkg=./... -covermode=atomic -coverprofile=coverage.txt ./...
 
+      - name: Check Coverage Threshold
+        run: |
+          # Extrai a porcentagem total de coverage do relatório
+          COVERAGE=$(go tool cover -func=coverage.txt | tail -1 | awk '{print $3}' | sed 's/%//')
+          
+          echo "📊 Coverage atual: ${COVERAGE}%"
+          
+          # Define threshold mínimo (ajustar conforme baseline atual)
+          THRESHOLD=65.0
+          
+          # Compara usando bc para suportar decimais
+          if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+            echo "❌ FALHOU: Coverage ${COVERAGE}% está abaixo do threshold ${THRESHOLD}%"
+            echo ""
+            echo "Por favor, adicione testes para aumentar a cobertura."
+            echo "Meta: ≥70% (threshold atual temporário: ${THRESHOLD}%)"
+            exit 1
+          fi
+          
+          echo "✅ PASSOU: Coverage ${COVERAGE}% está acima do threshold ${THRESHOLD}%"
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.txt
+          fail_ci_if_error: true
 
   # --- JOB 2: AUTOMAÇÃO DO DEPENDABOT ---
   dependabot-auto-merge:

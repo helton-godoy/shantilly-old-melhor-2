@@ -1,49 +1,106 @@
-name: "Gate Cross-cutting — Sem os.Exit no core do runtime"
-status: "implemented"
-owner: "bmad-qa"
+# Gate QA: 1.x.no-osexit-core.yml
+# Epic: E1.4 - ScriptRunner (Wave 4)
+# Constraint: Sem os.Exit no core do runtime
+#
+# Referências normativas:
+# - docs/architecture/introduction.md#3-constraints-tecnicas-inviolaveis
+# - docs/architecture/governance-runtime-tui-v2.0.md
+# - docs/qa/matrix-epic-1-runtime-tui-coverage.md#e14--sem-osexit-no-core
+#
+# Objetivo:
+# Garantir que nenhum código no core do runtime (internal/**) use os.Exit diretamente.
+# Apenas cmd/shantilly/main.go (casca CLI) está autorizado a chamar os.Exit.
+#
+# Enforcement:
+# Este gate DEVE falhar se detectar os.Exit em qualquer arquivo Go dentro de internal/**
+# (exceto em comentários).
+
+name: "No os.Exit in Core Runtime"
+epic: "E1.4"
+wave: "4"
+status: "active"
 severity: "blocker"
 
-scope:
-  - "cmd/shantilly/main.go"
-  - "internal/**"
-  - "docs/architecture/**"
-  - "AGENTS.md"
+description: |
+  Verifica que nenhum código no core do runtime (internal/**) chama os.Exit diretamente.
+  Os.Exit só é permitido em cmd/shantilly/main.go (casca CLI).
+  
+  Motivação:
+  - Permitir propagação limpa de exit codes via tipos/retornos
+  - Facilitar testing (mock de exit conditions)
+  - Seguir princípios de separação de responsabilidades
+  - Permitir composição e reutilização do runtime em contextos diferentes
 
 checks:
-  - id: "osexit-only-in-cli"
-    type: "static_scan"
-    description: "Garantir que os.Exit só exista na casca CLI principal."
-    paths:
-      - "cmd/"
-      - "internal/"
-    patterns_required:
-      - "os.Exit(" # apenas permitido em cmd/shantilly/main.go
-    patterns_forbidden:
-      - "os.Exit("
-    exceptions:
-      - "cmd/shantilly/main.go"
-    expectations:
-      - "Qualquer uso de os.Exit fora de cmd/shantilly/main.go falha o gate."
-    notes:
-      - "Alinhado a AGENTS.md e docs/architecture/introduction.md (constraints invioláveis)."
+  - id: "check-no-osexit-internal"
+    description: "Scan de os.Exit em internal/**"
+    command: |
+      # Busca por os.Exit( em arquivos .go dentro de internal/
+      # Exclui linhas que contêm // (comentários)
+      # Retorna exit code 1 se encontrar ocorrências
+      
+      FOUND=$(grep -r --include="*.go" "os\.Exit(" internal/ | grep -v "//" | grep "os\.Exit(")
+      
+      if [ -n "$FOUND" ]; then
+        echo "FALHOU: os.Exit encontrado no core do runtime (internal/**):"
+        echo "$FOUND"
+        echo ""
+        echo "os.Exit só é permitido em cmd/shantilly/main.go (casca CLI)."
+        echo "Use retornos de função, mensagens tea.Msg ou eventos para propagar exit codes."
+        exit 1
+      fi
+      
+      echo "PASSOU: Nenhum os.Exit ativo encontrado em internal/**"
+      exit 0
+    
+  - id: "check-main-uses-osexit"
+    description: "Verifica que main.go usa os.Exit apropriadamente"
+    command: |
+      # Verifica que cmd/shantilly/main.go contém os.Exit
+      # (não é um erro, apenas confirmação que a casca CLI está implementada corretamente)
+      
+      if grep -q "os\.Exit(" cmd/shantilly/main.go; then
+        echo "INFO: main.go usa os.Exit (comportamento esperado na casca CLI)"
+        exit 0
+      else
+        echo "AVISO: main.go não usa os.Exit. Certifique-se de propagar exit codes."
+        exit 0
+      fi
 
-  - id: "doc-alignment-no-osexit"
-    type: "consistency_check"
-    description: "Documentação deve tratar 'sem os.Exit no core' como regra normativa."
-    paths:
-      - "docs/architecture/introduction.md"
-      - "docs/architecture/error-handling-strategy.md"
-      - "docs/architecture/governance-runtime-tui-v2.0.md"
-      - "AGENTS.md"
-    expectations:
-      - "Documentos mantêm a proibição de os.Exit no core como requisito arquitetural/QA."
-    notes:
-      - "Mudanças nesses documentos que afrouxem a regra devem ser bloqueadas."
+execution:
+  trigger: "pr,push,manual"
+  timeout: "30s"
+  required_pass: true
+  
+integration:
+  ci: ".github/workflows/governanca-waves4-7.yml"
+  
+evidence:
+  - type: "scan"
+    pattern: "os\\.Exit\\("
+    scope: "internal/**/*.go"
+    expected: "zero matches"
+  
+  - type: "test"
+    file: "internal/tui/model_test.go"
+    description: "Testes verificam que submissão não chama os.Exit"
+    
+related_gates:
+  - "1.x.scriptrunner-and-update-target.yml"
+  - "1.x.event-engine.yml"
 
-enforcement:
-  on_pr:
-    - "run: git grep -n \"os.Exit(\" -- . ':!cmd/shantilly/main.go' || true"
-    - "fail_if_any_forbidden_pattern" # se grep encontrar algo em internal/**, reprovar
-  on_main_branch:
-    - "block_release_if_violations"
-    - "require_all_gate_checks_green"
+notes: |
+  Este gate foi implementado como parte da correção da violação E1.4.
+  
+  Violação original:
+  - internal/tui/model.go:303 - os.Exit(1)
+  - internal/tui/model.go:307 - os.Exit(0)
+  
+  Correção:
+  - Introduzidos tipos submissionSuccessMsg e submissionErrorMsg
+  - handleSubmission() retorna mensagens ao invés de os.Exit
+  - Update() processa mensagens e retorna tea.Quit
+  - Start() retorna (exitCode, error)
+  - main.go captura exitCode e chama os.Exit apenas na casca CLI
+  
+  Commit de correção: [A ser preenchido após commit]

@@ -1,6 +1,13 @@
-# Template de Projeto Go com Bubbletea (Otimizado para IA)
+# Shantilly - Runtime TUI Declarativo
 
-Este é um template para iniciar projetos de TUI (Terminal User Interface) em Go usando o ecossistema Charm e Bubbletea. Ele foi especificamente configurado para acelerar o desenvolvimento com agentes de IA como o Jules.
+[![Build and Test](https://github.com/YOUR_USERNAME/shantilly/actions/workflows/build.yml/badge.svg)](https://github.com/YOUR_USERNAME/shantilly/actions/workflows/build.yml)
+[![Lint](https://github.com/YOUR_USERNAME/shantilly/actions/workflows/lint.yml/badge.svg)](https://github.com/YOUR_USERNAME/shantilly/actions/workflows/lint.yml)
+[![codecov](https://codecov.io/gh/YOUR_USERNAME/shantilly/branch/main/graph/badge.svg)](https://codecov.io/gh/YOUR_USERNAME/shantilly)
+[![Go Report Card](https://goreportcard.com/badge/github.com/YOUR_USERNAME/shantilly)](https://goreportcard.com/report/github.com/YOUR_USERNAME/shantilly)
+
+> **Runtime TUI Declarativo orientado a eventos** que consome YAML único para definir layout, componentes e lógica de automação.
+
+Este é um template para iniciar projetos de TUI (Terminal User Interface) em Go usando o ecossistema Charm e Bubbletea. Ele foi especificamente configurado para acelerar o desenvolvimento com agentes de IA.
 
 ## Guia para Agentes de IA
 
