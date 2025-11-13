@@ -27,14 +27,9 @@ func (p *ProgressIndicator) UpdateProgress(completed, total int) {
 
 // Render renderiza a barra de progresso e a porcentagem.
 func (p *ProgressIndicator) Render() string {
-	if p.total == 0 {
-		return ""
-	}
-
 	percentage := p.GetProgress()
 	progressText := fmt.Sprintf("Progresso: %d/%d (%.0f%%)", p.completed, p.total, percentage)
 
-	// Simple text-based progress bar
 	barWidth := 30
 	filledWidth := int(float64(barWidth) * (percentage / 100))
 	bar := strings.Repeat("=", filledWidth) + strings.Repeat("-", barWidth-filledWidth)
@@ -57,5 +52,5 @@ func (p *ProgressIndicator) IsComplete() bool {
 
 // RenderCompact renderiza uma versão compacta do progresso.
 func (p *ProgressIndicator) RenderCompact() string {
-	return fmt.Sprintf("%d/%d", p.completed, p.total)
+	return fmt.Sprintf("%d/%d (%.0f%%)", p.completed, p.total, p.GetProgress())
 }
