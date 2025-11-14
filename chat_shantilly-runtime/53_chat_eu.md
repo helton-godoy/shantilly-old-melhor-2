@@ -1,0 +1,1 @@
+Escreva um shell script que, caso aplicado a um clone do repositório atual, removerá qualquer arquivo que não esteja nesta relação de artefatos (que fizeram parte do nosso trabalho) ou que seja importante para o funcionamento do shatilly.

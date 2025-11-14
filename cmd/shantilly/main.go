@@ -1,14 +1,16 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
 
 	"shantilly/internal/config"
+	"shantilly/internal/runtime"
 	"shantilly/internal/tui"
 	"shantilly/internal/util"
-
+	"shantilly/pkg/declarative"
 	"github.com/spf13/cobra"
 )
 
@@ -79,6 +81,54 @@ e executa o fluxo TUI v1.x. No runtime v2.0, novos fluxos devem usar AppConfig +
 			return nil
 		},
 	}
+
+	// runtimeCmd representa o comando para executar o runtime declarativo v2.0.
+	//
+	// Fluxo:
+	// - Lê um AppConfig YAML (arquivo ou stdin).
+	// - Faz parse com declarative.LoadAppConfig.
+	// - Invoca internal/runtime.Start(cfg).
+	runtimeCmd = &cobra.Command{
+		Use:   "runtime",
+		Short: "Executa o runtime TUI declarativo v2.0 a partir de um AppConfig YAML.",
+		Long: `O comando runtime lê um AppConfig declarativo (v2.0) e inicia o
+runtime TUI com LayoutManager, EventManager, ScriptRunner e Modal Stack.
+
+Exemplo:
+
+  shantilly runtime --file app.yaml`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			var (
+				content []byte
+				err     error
+			)
+
+			filePath, _ := cmd.Flags().GetString("file")
+
+			if filePath != "" {
+				content, err = os.ReadFile(filePath)
+				if err != nil {
+					return fmt.Errorf("erro ao ler o arquivo: %w", err)
+				}
+			} else {
+				content, err = io.ReadAll(os.Stdin)
+				if err != nil {
+					return fmt.Errorf("erro ao ler da stdin: %w", err)
+				}
+			}
+
+			cfg, err := declarative.LoadAppConfig(bytes.NewReader(content))
+			if err != nil {
+				return fmt.Errorf("erro ao carregar AppConfig declarativo: %w", err)
+			}
+
+			if err := runtime.Start(cfg); err != nil {
+				return fmt.Errorf("erro ao executar runtime declarativo: %w", err)
+			}
+
+			return nil
+		},
+	}
 )
 
 func main() {
@@ -89,4 +139,7 @@ func main() {
 func init() {
 	rootCmd.AddCommand(formCmd)
 	formCmd.Flags().String("file", "", "O arquivo de definição de formulário a ser usado.")
+
+	rootCmd.AddCommand(runtimeCmd)
+	runtimeCmd.Flags().String("file", "", "O arquivo AppConfig declarativo v2.0 a ser usado.")
 }

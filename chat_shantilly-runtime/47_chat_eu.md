@@ -1,0 +1,1 @@
+Posso assumir que todos os documentos presentes dentro de `docs/` foram utilizados para auxiliar no contexto e decisões do trabalho desenvolvido nesta sessão?

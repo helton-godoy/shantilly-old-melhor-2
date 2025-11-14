@@ -1,0 +1,50 @@
+version: "1.0"
+meta:
+  name: "Shantilly Demo"
+  description: "Exemplo mínimo de AppConfig v2.0"
+
+layout:
+  id: root
+  type: column
+  items:
+    - id: main_row
+      type: row
+      items:
+        - id: menu_box
+          type: box
+          component: menu
+        - id: output_box
+          type: box
+          component: output
+
+components:
+  - id: menu
+    type: list
+    props:
+      items:
+        - id: check_legacy
+          text: "Verificar encapsulamento do legado"
+        - id: noop
+          text: "Não fazer nada"
+
+  - id: output
+    type: viewport
+    props: {}
+
+on:
+  - id: on_menu_select_check_legacy
+    event: "menu:select"
+    run:
+      script: "./scripts/check-legacy-encapsulation.sh"
+      args: []
+      stdin: {}
+      env: {}
+      update_target: "output"
+      confirm: true
+      prompt_secrets: []
+
+security:
+  allowed_scripts:
+    - "./scripts/check-legacy-encapsulation.sh"
+  deny_unknown: true
+  extra_rules: {}

@@ -66,6 +66,20 @@ type Component struct {
 	Bindings map[string]string `yaml:"bind,omitempty" json:"bind,omitempty"` // ex.: estados, seleção, etc.
 }
 
+// Item representa opções declarativas usadas por componentes como listas e grupos de botões.
+type Item struct {
+	ID    string `yaml:"id" json:"id"`
+	Text  string `yaml:"text,omitempty" json:"text,omitempty"`
+	Label string `yaml:"label,omitempty" json:"label,omitempty"`
+}
+
+// Source descreve conteúdos exibidos por componentes como Viewport.
+type Source struct {
+	Type        string `yaml:"type" json:"type"`
+	Content     string `yaml:"content,omitempty" json:"content,omitempty"`
+	ContentType string `yaml:"content_type,omitempty" json:"content_type,omitempty"`
+}
+
 // OnHandler modela uma regra declarativa on:.
 //
 // Fonte normativa: docs/architecture/data-models.md#4-onhandler-e13--bloco-on-como-unica-orquestracao

@@ -20,19 +20,14 @@ package layout
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
+
+	"shantilly/internal/runtime/event"
+	"shantilly/internal/runtime/runner"
+	"shantilly/pkg/tui"
 )
 
-// ShantillyComponent é o contrato esperado dos componentes concretos do runtime v2.0.
-// Definido conceitualmente em docs/architecture/components.md#1-shantillycomponent-contrato-base--e12.
-// A interface é espelhada aqui para desacoplamento, podendo ser movida para um pacote compartilhado
-// quando a implementação concreta for introduzida por bmad-dev/bmad-master.
-type ShantillyComponent interface {
-	ID() string
-	Init() tea.Cmd
-	Update(msg tea.Msg) (ShantillyComponent, tea.Cmd)
-	View() string
-	SetBounds(width, height int)
-}
+// ShantillyComponent é um alias para o contrato definido em pkg/tui.
+type ShantillyComponent = tui.ShantillyComponent
 
 // LayoutNodeRef é uma view mínima sobre o modelo declarativo de layout.
 // Em implementação completa, este tipo será abastecido a partir de pkg/declarative.
@@ -68,6 +63,12 @@ type Manager struct {
 	width       int
 	height      int
 	initialized bool
+
+	// Integração com EventManager v2.0 (E1.3) e fluxo JIT (modais).
+	eventManager *event.Manager
+
+	// Integração com ScriptRunner (E1.4) para execução de RunAction.
+	scriptRunner *runner.ScriptRunner
 }
 
 // New cria um LayoutManager a partir de um LayoutNodeRef e um registry de componentes.
@@ -98,33 +99,77 @@ func (m *Manager) Init() tea.Cmd {
 	return nil
 }
 
+// SetEventManager injeta o EventManager responsável por resolver on:/RunAction
+// a partir de tui.ShantillyEvent.
+func (m *Manager) SetEventManager(em *event.Manager) {
+	m.eventManager = em
+}
+
+// SetScriptRunner injeta o ScriptRunner responsável por executar RunAction
+// declarativos disparados pelo EventManager.
+func (m *Manager) SetScriptRunner(sr *runner.ScriptRunner) {
+	m.scriptRunner = sr
+}
+
 // Update implementa o loop TEA raiz para o LayoutManager.
 // Regras nesta wave:
 // - Tratar mensagens de resize para atualizar width/height.
 // - Roteamento básico de msgs para componente focado (quando existir).
 // - NÃO executar automação nem avaliar on:/run: (delegado ao EventManager).
 func (m *Manager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
+
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
 		// Em implementação futura:
 		// - recalcular bounds para todos os nós.
-		// - chamar SetBounds em cada ShantillyComponent.
+		// - chamar SetDimensions em cada ShantillyComponent.
 		return m, nil
-	default:
+
+	// Pedido de execução de script vindo do EventManager.
+	case tui.RunScriptRequestMsg:
+		if m.scriptRunner != nil {
+			cmd = runner.HandleRunRequest(m.scriptRunner, msg)
+			cmds = append(cmds, cmd)
+		}
+
+	// Eventos declarativos emitidos por componentes (via pkg/tui).
+	case tui.ShantillyEvent:
+		if m.eventManager != nil {
+			cmd = m.eventManager.ProcessEvent(msg)
+			cmds = append(cmds, cmd)
+		}
+
+	// Resultado de modal JIT vindo do MainModel/modal.
+	case tui.ModalResultMsg:
+		if m.eventManager != nil {
+			cmd = m.eventManager.HandleModalResult(msg)
+			cmds = append(cmds, cmd)
+		}
+
+	// Mensagem para exibir modal: devolvemos como tea.Cmd para o MainModel
+	// interceptar e renderizar o modal (overlay).
+	case tui.ShowModalMsg:
+		return m, func() tea.Msg { return msg }
 	}
 
 	// Roteamento mínimo para componente focado (se houver).
 	if m.focusedID != "" {
 		if c, ok := m.components[m.focusedID]; ok && c != nil {
-			next, cmd := c.Update(msg)
+			next, ccmd := c.Update(msg)
 			m.components[m.focusedID] = next
-			return m, cmd
+			cmds = append(cmds, ccmd)
 		}
 	}
 
-	return m, nil
+	if len(cmds) == 0 {
+		return m, nil
+	}
+
+	return m, tea.Batch(cmds...)
 }
 
 // View monta a string final com base no layout calculado.
