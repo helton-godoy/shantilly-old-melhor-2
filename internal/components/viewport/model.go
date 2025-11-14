@@ -21,8 +21,10 @@ type Model struct {
 	theme  *tui.Theme
 	source *declarative.Source
 
-	viewport viewport.Model
-	content  string
+	viewport       viewport.Model
+	content        string
+	rawContent     string
+	rawContentType string
 }
 
 func New(id string, theme *tui.Theme, source *declarative.Source) *Model {
@@ -52,10 +54,13 @@ func (m *Model) Update(msg tea.Msg) (tuiapi.ShantillyComponent, tea.Cmd) {
 	// Streaming de saída de scripts (linha a linha).
 	case tuiapi.ScriptStdoutMsg:
 		if msg.TargetID == m.id {
-			// Para cada nova execução, substituímos o conteúdo anterior pelo
-			// resultado mais recente, mantendo o viewport focado apenas na
-			// última run (útil para debug e para evitar ruído acumulado).
-			m.content = msg.Line
+			m.rawContent = msg.Line
+			m.rawContentType = "text"
+			if m.viewport.Width > 0 {
+				m.content = m.wrapPlainText(m.rawContent)
+			} else {
+				m.content = m.rawContent
+			}
 			m.viewport.SetContent(m.content)
 			m.viewport.GotoBottom()
 		}
@@ -75,6 +80,10 @@ func (m *Model) View() string {
 func (m *Model) SetDimensions(w, h int) {
 	m.viewport.Width = w
 	m.viewport.Height = h
+	if m.rawContentType != "markdown" && m.rawContent != "" {
+		m.content = m.wrapPlainText(m.rawContent)
+		m.viewport.SetContent(m.content)
+	}
 }
 
 func (m *Model) ID() string {
@@ -83,7 +92,9 @@ func (m *Model) ID() string {
 
 // SetContent define o conteúdo inicial do viewport, com suporte opcional a markdown.
 func (m *Model) SetContent(content, contentType string) {
-	if strings.ToLower(contentType) == "markdown" {
+	m.rawContent = content
+	m.rawContentType = strings.ToLower(contentType)
+	if m.rawContentType == "markdown" {
 		r, err := glamour.NewTermRenderer(
 			glamour.WithAutoStyle(),
 			glamour.WithWordWrap(m.viewport.Width),
@@ -98,8 +109,30 @@ func (m *Model) SetContent(content, contentType string) {
 			m.content = content
 		}
 	} else {
-		m.content = content
+		if m.viewport.Width > 0 {
+			m.content = m.wrapPlainText(m.rawContent)
+		} else {
+			m.content = m.rawContent
+		}
 	}
 
 	m.viewport.SetContent(m.content)
+}
+
+func (m *Model) wrapPlainText(content string) string {
+	width := m.viewport.Width
+	if width <= 0 {
+		return content
+	}
+
+	var wrappedLines []string
+	lines := strings.Split(content, "\n")
+	for _, line := range lines {
+		for len(line) > width {
+			wrappedLines = append(wrappedLines, line[:width])
+			line = line[width:]
+		}
+		wrappedLines = append(wrappedLines, line)
+	}
+	return strings.Join(wrappedLines, "\n")
 }
