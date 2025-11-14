@@ -54,7 +54,7 @@ func (m *Model) Update(msg tea.Msg) (tuiapi.ShantillyComponent, tea.Cmd) {
 	// Streaming de saída de scripts (linha a linha).
 	case tuiapi.ScriptStdoutMsg:
 		if msg.TargetID == m.id {
-			m.rawContent = msg.Line
+			m.rawContent += msg.Line
 			m.rawContentType = "text"
 			if m.viewport.Width > 0 {
 				m.content = m.wrapPlainText(m.rawContent)
