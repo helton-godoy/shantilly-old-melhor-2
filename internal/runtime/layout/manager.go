@@ -19,7 +19,6 @@ package layout
 // - Opera como root bubbletea.Model responsável por layout, foco global e integração futura com Modal Stack.
 
 import (
-	"fmt"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -146,6 +145,17 @@ func (m *Manager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, cmd)
 		}
 
+	// Saída de scripts destinada a um componente específico (ex.: viewport).
+	case tui.ScriptStdoutMsg:
+		if c, ok := m.components[msg.TargetID]; ok && c != nil {
+			var ccmd tea.Cmd
+			next, ccmd := c.Update(msg)
+			m.components[msg.TargetID] = next
+			if ccmd != nil {
+				cmds = append(cmds, ccmd)
+			}
+		}
+
 	// Eventos declarativos emitidos por componentes (via pkg/tui).
 	case tui.ShantillyEvent:
 		if m.eventManager != nil {
@@ -197,7 +207,6 @@ func (m *Manager) buildComponents(node *LayoutNodeRef) tea.Cmd {
 	var cmds []tea.Cmd
 
 	if node.Type == "box" && node.ComponentID != "" {
-		fmt.Printf("[layout] buildComponents: box id=%s componentID=%s\n", node.ID, node.ComponentID)
 		c := m.registry.Resolve(node.ComponentID)
 		if c != nil {
 			m.components[node.ComponentID] = c
@@ -236,7 +245,6 @@ func (m *Manager) applyDimensionsNode(node LayoutNodeRef, x, y, w, h int) {
 		if node.ComponentID == "" {
 			return
 		}
-		fmt.Printf("[layout] applyDimensionsNode: box id=%s componentID=%s x=%d y=%d w=%d h=%d\n", node.ID, node.ComponentID, x, y, w, h)
 		if c, ok := m.components[node.ComponentID]; ok && c != nil {
 			c.SetDimensions(w, h)
 		}
@@ -251,7 +259,6 @@ func (m *Manager) applyDimensionsNode(node LayoutNodeRef, x, y, w, h int) {
 			if i == count-1 {
 				cw = w - childWidth*(count-1)
 			}
-			fmt.Printf("[layout] applyDimensionsNode: row child index=%d parentID=%s childID=%s x=%d y=%d w=%d h=%d\n", i, node.ID, node.Items[i].ID, x+i*cw, y, cw, h)
 			m.applyDimensionsNode(node.Items[i], x+i*cw, y, cw, h)
 		}
 	case "column":
@@ -265,7 +272,6 @@ func (m *Manager) applyDimensionsNode(node LayoutNodeRef, x, y, w, h int) {
 			if i == count-1 {
 				ch = h - childHeight*(count-1)
 			}
-			fmt.Printf("[layout] applyDimensionsNode: column child index=%d parentID=%s childID=%s x=%d y=%d w=%d h=%d\n", i, node.ID, node.Items[i].ID, x, y+i*ch, w, ch)
 			m.applyDimensionsNode(node.Items[i], x, y+i*ch, w, ch)
 		}
 	}
@@ -282,12 +288,37 @@ func (m *Manager) renderNode(node LayoutNodeRef) string {
 		}
 		return ""
 	case "row":
-		// Hack de depuração: por enquanto, renderizamos apenas o primeiro filho
-		// (esperado ser o menu_box) para isolar o problema de layout.
 		if len(node.Items) == 0 {
 			return ""
 		}
-		return m.renderNode(node.Items[0])
+		// Renderiza os filhos lado a lado (composição horizontal básica),
+		// em vez de empilhá-los verticalmente. Isso permite que, por exemplo,
+		// menu e viewport apareçam na mesma linha de layout, evitando que um
+		// componente "empurre" o outro para fora da área visível.
+		childLines := make([][]string, len(node.Items))
+		maxLines := 0
+		for i, child := range node.Items {
+			v := m.renderNode(child)
+			lines := strings.Split(v, "\n")
+			childLines[i] = lines
+			if len(lines) > maxLines {
+				maxLines = len(lines)
+			}
+		}
+
+		resultLines := make([]string, 0, maxLines)
+		for lineIdx := 0; lineIdx < maxLines; lineIdx++ {
+			parts := make([]string, 0, len(childLines))
+			for _, lines := range childLines {
+				if lineIdx < len(lines) {
+					parts = append(parts, lines[lineIdx])
+				} else {
+					parts = append(parts, "")
+				}
+			}
+			resultLines = append(resultLines, strings.Join(parts, "  "))
+		}
+		return strings.Join(resultLines, "\n")
 	case "column":
 		views := make([]string, 0, len(node.Items))
 		for _, child := range node.Items {

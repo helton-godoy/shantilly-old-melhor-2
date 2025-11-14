@@ -52,7 +52,10 @@ func (m *Model) Update(msg tea.Msg) (tuiapi.ShantillyComponent, tea.Cmd) {
 	// Streaming de saída de scripts (linha a linha).
 	case tuiapi.ScriptStdoutMsg:
 		if msg.TargetID == m.id {
-			m.content += msg.Line
+			// Para cada nova execução, substituímos o conteúdo anterior pelo
+			// resultado mais recente, mantendo o viewport focado apenas na
+			// última run (útil para debug e para evitar ruído acumulado).
+			m.content = msg.Line
 			m.viewport.SetContent(m.content)
 			m.viewport.GotoBottom()
 		}

@@ -1,7 +1,7 @@
 version: "1.0"
 meta:
   name: "Shantilly Demo"
-  description: "Exemplo mínimo de AppConfig v2.0"
+  description: "Demo do Runtime TUI declarativo v2.0 com menu + execução de scripts"
 
 layout:
   id: root
@@ -23,17 +23,31 @@ components:
     props:
       items:
         - id: check_legacy
-          text: "Verificar encapsulamento do legado"
+          text: "1) Verificar encapsulamento do legado (script real)"
         - id: noop
-          text: "Não fazer nada"
+          text: "2) Não fazer nada (placeholder)"
+        - id: hello_demo
+          text: "3) Rodar script de Hello (demo rápida do viewport)"
 
   - id: output
     type: viewport
-    props: {}
+    props:
+      source:
+        type: static
+        content: |
+          Bem-vindo ao Shantilly Runtime v2.0
+
+          Use o menu à esquerda para disparar scripts de exemplo:
+          - "Verificar encapsulamento do legado" executa um script real que analisa o projeto.
+          - "Rodar script de Hello" executa um script simples para demonstrar o viewport.
+
+          A saída SEMPRE mostrará apenas o resultado do ÚLTIMO script executado.
+          Experimente navegar com as setas e pressionar Enter para ver o comportamento.
+        content_type: text
 
 on:
   - id: on_menu_select_check_legacy
-    event: "menu:select"
+    event: "menu:select_check_legacy"
     run:
       script: "./scripts/check-legacy-encapsulation.sh"
       args: []
@@ -43,8 +57,20 @@ on:
       confirm: true
       prompt_secrets: []
 
+  - id: on_menu_select_hello_demo
+    event: "menu:select_hello_demo"
+    run:
+      script: "./scripts/hello.sh"
+      args: []
+      stdin: {}
+      env: {}
+      update_target: "output"
+      confirm: false
+      prompt_secrets: []
+
 security:
   allowed_scripts:
     - "./scripts/check-legacy-encapsulation.sh"
+    - "./scripts/hello.sh"
   deny_unknown: true
   extra_rules: {}

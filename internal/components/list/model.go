@@ -1,8 +1,6 @@
 package list
 
 import (
-	"fmt"
-
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 
@@ -30,10 +28,8 @@ func (i item) FilterValue() string { return i.title }
 
 // New cria um componente de lista a partir de itens declarativos.
 func New(id string, theme *tui.Theme, items []declarative.Item) *Model {
-	fmt.Printf("[list] New: id=%s items=%d\n", id, len(items))
 	listItems := make([]list.Item, len(items))
 	for i, it := range items {
-		fmt.Printf("[list]   item[%d]: id=%s text=%s\n", i, it.ID, it.Text)
 		listItems[i] = item{id: it.ID, title: it.Text}
 	}
 
@@ -61,17 +57,24 @@ func (m *Model) Update(msg tea.Msg) (tuiapi.ShantillyComponent, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		fmt.Printf("[list] KeyMsg: id=%s key=%q type=%v\n", m.id, msg.String(), msg.Type)
 		// Enter dispara evento declarativo para o EventManager.
 		if msg.String() == "enter" {
 			selectedItem, ok := m.list.SelectedItem().(item)
 			if ok {
+				// Tipo de evento base.
+				eventType := "select"
+				// Especializações por ID de item para permitir regras distintas em on:.
+				switch selectedItem.id {
+				case "check_legacy":
+					eventType = "select_check_legacy"
+				case "hello_demo":
+					eventType = "select_hello_demo"
+				}
 				ev := tuiapi.ShantillyEvent{
 					ComponentID: m.id,
-					Type:        "select",        // o EventManager combina "id:select" via OnHandler.Event
+					Type:        eventType,
 					Payload:     selectedItem.id, // ex.: "users"
 				}
-				fmt.Printf("[list] Emitting ShantillyEvent: componentID=%s type=%s payload=%s\n", ev.ComponentID, ev.Type, selectedItem.id)
 				cmds = append(cmds, func() tea.Msg { return ev })
 			}
 		}
@@ -85,11 +88,12 @@ func (m *Model) Update(msg tea.Msg) (tuiapi.ShantillyComponent, tea.Cmd) {
 }
 
 func (m *Model) View() string {
-	return m.list.View()
+	// Adiciona um cabeçalho simples para tornar a área de menu mais
+	// evidente na renderização do layout.
+	return "Menu principal:\n" + m.list.View()
 }
 
 func (m *Model) SetDimensions(w, h int) {
-	fmt.Printf("[list] SetDimensions: id=%s w=%d h=%d\n", m.id, w, h)
 	m.list.SetSize(w, h)
 }
 

@@ -44,10 +44,11 @@ func Start(cfg *declarative.AppConfig) error {
 	mainModel := NewLayoutMainModel(lm)
 
 	// 7. Iniciar o programa Bubble Tea.
-	// Durante a depuração, evitamos AltScreen para conseguir enxergar logs
-	// de layout e a UI ao mesmo tempo no terminal.
+	// Nesta fase, utilizamos AltScreen para fornecer uma experiência mais
+	// próxima da interface final para o usuário.
 	p := tea.NewProgram(
 		mainModel,
+		tea.WithAltScreen(),
 	)
 
 	if _, err := p.Run(); err != nil {
