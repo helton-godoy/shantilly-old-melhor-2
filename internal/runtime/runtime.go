@@ -36,17 +36,18 @@ func Start(cfg *declarative.AppConfig) error {
 
 	// 5. Instanciar motores de eventos e scripts.
 	em := event.New(cfg.On)
-	sr := runner.NewScriptRunner(nil, cfg.Security)
+	sr := runner.NewScriptRunner(nil, convertSecurityPolicy(cfg.Security))
 	lm.SetEventManager(em)
 	lm.SetScriptRunner(sr)
 
 	// 6. Criar MainModel com overlay, embrulhando o LayoutManager.
 	mainModel := NewLayoutMainModel(lm)
 
-	// 7. Iniciar o programa Bubble Tea com AltScreen.
+	// 7. Iniciar o programa Bubble Tea.
+	// Durante a depuração, evitamos AltScreen para conseguir enxergar logs
+	// de layout e a UI ao mesmo tempo no terminal.
 	p := tea.NewProgram(
 		mainModel,
-		tea.WithAltScreen(),
 	)
 
 	if _, err := p.Run(); err != nil {
@@ -77,4 +78,20 @@ func convertLayoutNode(n declarative.LayoutNode) layout.LayoutNodeRef {
 	}
 
 	return ref
+}
+
+// convertSecurityPolicy adapta declarative.SecurityPolicy para o contrato do ScriptRunner.
+func convertSecurityPolicy(p *declarative.SecurityPolicy) *runner.SecurityPolicy {
+	if p == nil {
+		return nil
+	}
+	policy := &runner.SecurityPolicy{
+		AllowedScripts: append([]string(nil), p.AllowedScripts...),
+		DenyUnknown:    p.DenyUnknown,
+		ExtraRules:     make(map[string]string, len(p.ExtraRules)),
+	}
+	for k, v := range p.ExtraRules {
+		policy.ExtraRules[k] = v
+	}
+	return policy
 }

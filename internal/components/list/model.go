@@ -1,6 +1,8 @@
 package list
 
 import (
+	"fmt"
+
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 
@@ -28,12 +30,17 @@ func (i item) FilterValue() string { return i.title }
 
 // New cria um componente de lista a partir de itens declarativos.
 func New(id string, theme *tui.Theme, items []declarative.Item) *Model {
+	fmt.Printf("[list] New: id=%s items=%d\n", id, len(items))
 	listItems := make([]list.Item, len(items))
 	for i, it := range items {
+		fmt.Printf("[list]   item[%d]: id=%s text=%s\n", i, it.ID, it.Text)
 		listItems[i] = item{id: it.ID, title: it.Text}
 	}
 
-	l := list.New(listItems, list.NewDefaultDelegate(), 0, 0)
+	// Inicializa com dimensões mínimas para garantir que a lista
+	// tenha área visível mesmo antes de receber SetDimensions
+	// do LayoutManager. O layout irá ajustar depois via SetDimensions.
+	l := list.New(listItems, list.NewDefaultDelegate(), 40, 10)
 	l.Title = id // placeholder; estilos podem vir do theme
 
 	return &Model{
@@ -54,6 +61,7 @@ func (m *Model) Update(msg tea.Msg) (tuiapi.ShantillyComponent, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		fmt.Printf("[list] KeyMsg: id=%s key=%q type=%v\n", m.id, msg.String(), msg.Type)
 		// Enter dispara evento declarativo para o EventManager.
 		if msg.String() == "enter" {
 			selectedItem, ok := m.list.SelectedItem().(item)
@@ -63,6 +71,7 @@ func (m *Model) Update(msg tea.Msg) (tuiapi.ShantillyComponent, tea.Cmd) {
 					Type:        "select",        // o EventManager combina "id:select" via OnHandler.Event
 					Payload:     selectedItem.id, // ex.: "users"
 				}
+				fmt.Printf("[list] Emitting ShantillyEvent: componentID=%s type=%s payload=%s\n", ev.ComponentID, ev.Type, selectedItem.id)
 				cmds = append(cmds, func() tea.Msg { return ev })
 			}
 		}
@@ -80,6 +89,7 @@ func (m *Model) View() string {
 }
 
 func (m *Model) SetDimensions(w, h int) {
+	fmt.Printf("[list] SetDimensions: id=%s w=%d h=%d\n", m.id, w, h)
 	m.list.SetSize(w, h)
 }
 

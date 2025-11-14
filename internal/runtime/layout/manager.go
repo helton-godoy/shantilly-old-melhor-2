@@ -19,6 +19,9 @@ package layout
 // - Opera como root bubbletea.Model responsável por layout, foco global e integração futura com Modal Stack.
 
 import (
+	"fmt"
+	"strings"
+
 	tea "github.com/charmbracelet/bubbletea"
 
 	"shantilly/internal/runtime/event"
@@ -91,12 +94,16 @@ func (m *Manager) Init() tea.Cmd {
 		return nil
 	}
 
-	// Placeholder: em implementação futura,
-	// - percorrer árvore layout,
-	// - resolver ComponentID -> ShantillyComponent,
-	// - chamar Init() de cada componente.
+	// Se ainda não recebemos WindowSizeMsg, aplicamos dimensões padrão
+	// para evitar que componentes sejam inicializados com largura/altura zero.
+	if m.width == 0 || m.height == 0 {
+		m.width = 80
+		m.height = 24
+	}
+	cmd := m.buildComponents(&m.layout)
+	m.applyDimensions()
 	m.initialized = true
-	return nil
+	return cmd
 }
 
 // SetEventManager injeta o EventManager responsável por resolver on:/RunAction
@@ -121,12 +128,15 @@ func (m *Manager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		if msg.Type == tea.KeyCtrlC || msg.String() == "ctrl+c" {
+			return m, tea.Quit
+		}
+
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
-		// Em implementação futura:
-		// - recalcular bounds para todos os nós.
-		// - chamar SetDimensions em cada ShantillyComponent.
+		m.applyDimensions()
 		return m, nil
 
 	// Pedido de execução de script vindo do EventManager.
@@ -176,8 +186,116 @@ func (m *Manager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // Nesta fase, fornecemos apenas um placeholder neutro alinhado à governança:
 // nenhuma lógica de automação, apenas render estrutural.
 func (m *Manager) View() string {
-	// Implementação futura:
-	// - Percorrer árvore layout,
-	// - Concatenar views dos componentes respeitando bounds calculados.
-	return ""
+	return m.renderNode(m.layout)
+}
+
+func (m *Manager) buildComponents(node *LayoutNodeRef) tea.Cmd {
+	if node == nil {
+		return nil
+	}
+
+	var cmds []tea.Cmd
+
+	if node.Type == "box" && node.ComponentID != "" {
+		fmt.Printf("[layout] buildComponents: box id=%s componentID=%s\n", node.ID, node.ComponentID)
+		c := m.registry.Resolve(node.ComponentID)
+		if c != nil {
+			m.components[node.ComponentID] = c
+			if m.focusedID == "" {
+				m.focusedID = node.ComponentID
+			}
+			if initCmd := c.Init(); initCmd != nil {
+				cmds = append(cmds, initCmd)
+			}
+		}
+	}
+
+	for i := range node.Items {
+		if cmd := m.buildComponents(&node.Items[i]); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	}
+
+	if len(cmds) == 0 {
+		return nil
+	}
+
+	return tea.Batch(cmds...)
+}
+
+func (m *Manager) applyDimensions() {
+	if m.width <= 0 || m.height <= 0 {
+		return
+	}
+	m.applyDimensionsNode(m.layout, 0, 0, m.width, m.height)
+}
+
+func (m *Manager) applyDimensionsNode(node LayoutNodeRef, x, y, w, h int) {
+	switch node.Type {
+	case "box":
+		if node.ComponentID == "" {
+			return
+		}
+		fmt.Printf("[layout] applyDimensionsNode: box id=%s componentID=%s x=%d y=%d w=%d h=%d\n", node.ID, node.ComponentID, x, y, w, h)
+		if c, ok := m.components[node.ComponentID]; ok && c != nil {
+			c.SetDimensions(w, h)
+		}
+	case "row":
+		count := len(node.Items)
+		if count == 0 {
+			return
+		}
+		childWidth := w / count
+		for i := range node.Items {
+			cw := childWidth
+			if i == count-1 {
+				cw = w - childWidth*(count-1)
+			}
+			fmt.Printf("[layout] applyDimensionsNode: row child index=%d parentID=%s childID=%s x=%d y=%d w=%d h=%d\n", i, node.ID, node.Items[i].ID, x+i*cw, y, cw, h)
+			m.applyDimensionsNode(node.Items[i], x+i*cw, y, cw, h)
+		}
+	case "column":
+		count := len(node.Items)
+		if count == 0 {
+			return
+		}
+		childHeight := h / count
+		for i := range node.Items {
+			ch := childHeight
+			if i == count-1 {
+				ch = h - childHeight*(count-1)
+			}
+			fmt.Printf("[layout] applyDimensionsNode: column child index=%d parentID=%s childID=%s x=%d y=%d w=%d h=%d\n", i, node.ID, node.Items[i].ID, x, y+i*ch, w, ch)
+			m.applyDimensionsNode(node.Items[i], x, y+i*ch, w, ch)
+		}
+	}
+}
+
+func (m *Manager) renderNode(node LayoutNodeRef) string {
+	switch node.Type {
+	case "box":
+		if node.ComponentID == "" {
+			return ""
+		}
+		if c, ok := m.components[node.ComponentID]; ok && c != nil {
+			return c.View()
+		}
+		return ""
+	case "row":
+		// Hack de depuração: por enquanto, renderizamos apenas o primeiro filho
+		// (esperado ser o menu_box) para isolar o problema de layout.
+		if len(node.Items) == 0 {
+			return ""
+		}
+		return m.renderNode(node.Items[0])
+	case "column":
+		views := make([]string, 0, len(node.Items))
+		for _, child := range node.Items {
+			v := m.renderNode(child)
+			views = append(views, v)
+		}
+		return strings.Join(views, "\n")
+	default:
+		return ""
+	}
 }

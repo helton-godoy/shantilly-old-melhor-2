@@ -6,12 +6,12 @@ import (
 	"io"
 	"os"
 
+	"github.com/spf13/cobra"
 	"shantilly/internal/config"
 	"shantilly/internal/runtime"
 	"shantilly/internal/tui"
 	"shantilly/internal/util"
 	"shantilly/pkg/declarative"
-	"github.com/spf13/cobra"
 )
 
 var (
