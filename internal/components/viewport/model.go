@@ -21,22 +21,46 @@ type Model struct {
 	theme  *tui.Theme
 	source *declarative.Source
 
+	// mode controla como o conteúdo dinâmico é aplicado quando chegam
+	// mensagens de saída de script:
+	// - "replace" (padrão): cada execução sobrescreve o conteúdo anterior.
+	// - "append": acumula histórico, adicionando novas execuções ao final.
+	mode string
+
+	// wrap controla se o conteúdo de texto "plain" deve ser reformatado para
+	// caber na largura do viewport. Quando false, o conteúdo é tratado como
+	// preformatado/raw (por exemplo, saída de ferramentas como gum) e é
+	// repassado sem rewrap para o bubbles/viewport.
+	wrap bool
+
 	viewport       viewport.Model
 	content        string
 	rawContent     string
 	rawContentType string
+	baseContent    string // conteúdo estático inicial (ex.: mensagem de boas-vindas)
 }
 
-func New(id string, theme *tui.Theme, source *declarative.Source) *Model {
+func New(id string, theme *tui.Theme, source *declarative.Source, mode string, wrap bool) *Model {
 	vp := viewport.New(0, 0)
+	if mode == "" {
+		mode = "replace"
+	}
+	if !wrap {
+		// Valor explícito false é respeitado; qualquer outro caso vira true.
+	} else {
+		wrap = true
+	}
 	m := &Model{
 		id:       id,
 		theme:    theme,
 		source:   source,
 		viewport: vp,
+		mode:     strings.ToLower(mode),
+		wrap:     wrap,
 	}
 	if source != nil && source.Type == "static" {
 		m.SetContent(source.Content, source.ContentType)
+		m.baseContent = m.rawContent
 	}
 	return m
 }
@@ -54,9 +78,25 @@ func (m *Model) Update(msg tea.Msg) (tuiapi.ShantillyComponent, tea.Cmd) {
 	// Streaming de saída de scripts (linha a linha).
 	case tuiapi.ScriptStdoutMsg:
 		if msg.TargetID == m.id {
+			// Aplica política de atualização baseada em mode.
+			// - replace: cada nova execução sobrescreve o conteúdo anterior,
+			//   preservando apenas o baseContent estático (se houver).
+			// - append: acumula histórico, comportamento anterior.
+			if m.mode == "replace" {
+				if m.baseContent != "" {
+					m.rawContent = m.baseContent
+					if !strings.HasSuffix(m.rawContent, "\n\n") {
+						// Garante um espaçamento mínimo entre conteúdo estático e saída dinâmica.
+						m.rawContent += "\n\n"
+					}
+				} else {
+					m.rawContent = ""
+				}
+			}
+
 			m.rawContent += msg.Line
 			m.rawContentType = "text"
-			if m.viewport.Width > 0 {
+			if m.wrap && m.viewport.Width > 0 {
 				m.content = m.wrapPlainText(m.rawContent)
 			} else {
 				m.content = m.rawContent
@@ -81,7 +121,11 @@ func (m *Model) SetDimensions(w, h int) {
 	m.viewport.Width = w
 	m.viewport.Height = h
 	if m.rawContentType != "markdown" && m.rawContent != "" {
-		m.content = m.wrapPlainText(m.rawContent)
+		if m.wrap && m.viewport.Width > 0 {
+			m.content = m.wrapPlainText(m.rawContent)
+		} else {
+			m.content = m.rawContent
+		}
 		m.viewport.SetContent(m.content)
 	}
 }
@@ -109,7 +153,7 @@ func (m *Model) SetContent(content, contentType string) {
 			m.content = content
 		}
 	} else {
-		if m.viewport.Width > 0 {
+		if m.wrap && m.viewport.Width > 0 {
 			m.content = m.wrapPlainText(m.rawContent)
 		} else {
 			m.content = m.rawContent

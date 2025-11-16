@@ -61,14 +61,11 @@ func (m *Model) Update(msg tea.Msg) (tuiapi.ShantillyComponent, tea.Cmd) {
 		if msg.String() == "enter" {
 			selectedItem, ok := m.list.SelectedItem().(item)
 			if ok {
-				// Tipo de evento base.
+				// Para qualquer item, geramos um tipo de evento padronizado
+				// "select_<id>", permitindo que o YAML use event: "menu:select_<id>".
 				eventType := "select"
-				// Especializações por ID de item para permitir regras distintas em on:.
-				switch selectedItem.id {
-				case "check_legacy":
-					eventType = "select_check_legacy"
-				case "hello_demo":
-					eventType = "select_hello_demo"
+				if selectedItem.id != "" {
+					eventType = "select_" + selectedItem.id
 				}
 				ev := tuiapi.ShantillyEvent{
 					ComponentID: m.id,

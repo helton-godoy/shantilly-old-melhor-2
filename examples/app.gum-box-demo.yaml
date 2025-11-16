@@ -1,0 +1,74 @@
+version: "1.0"
+meta:
+  name: "Gum Box Demo"
+  description: "Demonstração de script com bordas do gum dentro de um viewport"
+
+layout:
+  id: root
+  type: column
+  items:
+    - id: main_row
+      type: row
+      items:
+        - id: menu_box
+          type: box
+          flex: 1
+          component: menu
+        - id: log_box
+          type: box
+          flex: 2
+          component: log
+
+components:
+  - id: menu
+    type: list
+    props:
+      items:
+        - id: run_gum_box
+          text: "1) Rodar script gum-box-demo.sh"
+        - id: run_gum_colors
+          text: "2) Rodar script gum-colors-demo.sh"
+
+  - id: log
+    type: viewport
+    props:
+      wrap: false
+      mode: "append"
+      source:
+        type: static
+        content_type: text
+        content: |
+          Gum Box Demo
+
+          Use o menu à esquerda para executar o script ./scripts/gum-box-demo.sh.
+          Observe como as bordas desenhadas pelo gum aparecem dentro deste viewport.
+
+on:
+  - id: on_menu_select_run_gum_box
+    event: "menu:select_run_gum_box"
+    run:
+      script: "./scripts/gum-box-demo.sh"
+      args: []
+      stdin: {}
+      env: {}
+      update_target: "log"
+      confirm: false
+      prompt_secrets: []
+
+  - id: on_menu_select_run_gum_colors
+    event: "menu:select_run_gum_colors"
+    run:
+      script: "./scripts/gum-colors-demo.sh"
+      args: []
+      stdin: {}
+      env: {}
+      update_target: "log"
+      confirm: false
+      prompt_secrets: []
+
+security:
+  allowed_scripts:
+    - "./scripts/gum-box-demo.sh"
+    - "./scripts/gum-colors-demo.sh"
+  deny_unknown: true
+  extra_rules: {}

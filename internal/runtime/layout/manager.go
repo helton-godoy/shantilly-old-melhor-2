@@ -22,6 +22,8 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	boxer "github.com/treilik/bubbleboxer"
 
 	"shantilly/internal/runtime/event"
 	"shantilly/internal/runtime/runner"
@@ -34,13 +36,17 @@ type ShantillyComponent = tui.ShantillyComponent
 // LayoutNodeRef é uma view mínima sobre o modelo declarativo de layout.
 // Em implementação completa, este tipo será abastecido a partir de pkg/declarative.
 type LayoutNodeRef struct {
-	ID          string
-	Type        string // "column" | "row" | "box"
-	Width       *int
-	Height      *int
-	Flex        *int
-	Items       []LayoutNodeRef
-	ComponentID string // válido apenas para type: box
+	ID             string
+	Type           string // "column" | "row" | "box"
+	Width          *int
+	Height         *int
+	Flex           *int
+	Padding        *int
+	Border         bool
+	ComputedWidth  int
+	ComputedHeight int
+	Items          []LayoutNodeRef
+	ComponentID    string // válido apenas para type: box
 }
 
 // ComponentRegistry expõe os componentes instanciáveis pelo LayoutManager.
@@ -82,6 +88,219 @@ func New(root LayoutNodeRef, registry ComponentRegistry) *Manager {
 		layout:     root,
 		registry:   registry,
 		components: make(map[string]ShantillyComponent),
+	}
+}
+
+// init configura parâmetros globais do BubbleBoxer utilizados pelo LayoutManager.
+func init() {
+	// Mantemos os separadores padrão do BubbleBoxer (│ e ─). O LayoutManager
+	// passa a tratar bordas dos componentes de forma mais neutra quando o
+	// layout é controlado pelo Boxer.
+	boxer.HorizontalSeparator = "│"
+	boxer.VerticalSeparator = "─"
+}
+
+// boxerLeafModel é um tea.Model mínimo usado apenas pelo BubbleBoxer para
+// compor layout. Ele delega View() para o ShantillyComponent correspondente
+// no Manager, sem interferir no ciclo de Update/foco do runtime.
+type boxerLeafModel struct {
+	componentID string
+	manager     *Manager
+}
+
+func (m boxerLeafModel) Init() tea.Cmd { return nil }
+
+func (m boxerLeafModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) { return m, nil }
+
+func (m boxerLeafModel) View() string {
+	if m.manager == nil || m.componentID == "" {
+		return ""
+	}
+	if c, ok := m.manager.components[m.componentID]; ok && c != nil {
+		return c.View()
+	}
+	return ""
+}
+
+// buildBubbleBoxerLayout converte o LayoutNodeRef raiz em uma árvore
+// bubbleboxer.Boxer. Em vez de recalcular o layout, ele reutiliza os valores
+// ComputedWidth/ComputedHeight já definidos por applyDimensions, gerando
+// SizeFunc fixas que refletem a distribuição já calculada.
+func (m *Manager) buildBubbleBoxerLayout() boxer.Boxer {
+	box := boxer.Boxer{}
+	rootNode := m.buildBoxerNode(&box, m.layout)
+	box.LayoutTree = rootNode
+	return box
+}
+
+// buildBoxerNode mapeia recursivamente um LayoutNodeRef para um boxer.Node.
+//   - Para type: box, cria um Leaf associado ao ComponentID.
+//   - Para type: row, monta um Node horizontal com SizeFunc fixa baseada em
+//     ComputedWidth dos filhos.
+//   - Para type: column, monta um Node vertical com SizeFunc fixa baseada em
+//     ComputedHeight dos filhos.
+func (m *Manager) buildBoxerNode(box *boxer.Boxer, node LayoutNodeRef) boxer.Node {
+	switch node.Type {
+	case "box":
+		if node.ComponentID == "" {
+			// Leaf vazio: apenas um placeholder sem conteúdo.
+			leaf, _ := box.CreateLeaf(node.ID, boxerLeafModel{componentID: "", manager: m})
+			return leaf
+		}
+		leafModel := boxerLeafModel{componentID: node.ComponentID, manager: m}
+		leaf, _ := box.CreateLeaf(node.ComponentID, leafModel)
+		return leaf
+	case "row":
+		children := make([]boxer.Node, len(node.Items))
+		ratios := make([]int, len(node.Items))
+		for i := range node.Items {
+			children[i] = m.buildBoxerNode(box, node.Items[i])
+			r := 1
+			if node.Items[i].Flex != nil && *node.Items[i].Flex > 0 {
+				r = *node.Items[i].Flex
+			}
+			ratios[i] = r
+		}
+		return boxer.Node{
+			Children:        children,
+			VerticalStacked: false,
+			SizeFunc:        flexHorizontalSizeFunc(ratios),
+		}
+	case "column":
+		children := make([]boxer.Node, len(node.Items))
+		ratios := make([]int, len(node.Items))
+		for i := range node.Items {
+			children[i] = m.buildBoxerNode(box, node.Items[i])
+			r := 1
+			if node.Items[i].Flex != nil && *node.Items[i].Flex > 0 {
+				r = *node.Items[i].Flex
+			}
+			ratios[i] = r
+		}
+		return boxer.Node{
+			Children:        children,
+			VerticalStacked: true,
+			SizeFunc:        flexVerticalSizeFunc(ratios),
+		}
+	default:
+		// Nó desconhecido: retorna um leaf vazio para evitar panics.
+		leaf, _ := box.CreateLeaf(node.ID, boxerLeafModel{componentID: "", manager: m})
+		return leaf
+	}
+}
+
+// flexHorizontalSizeFunc cria uma SizeFunc que distribui a largura entre os
+// filhos proporcionalmente aos ratios informados, seguindo o padrão usado no
+// spike bubbleboxer-layout-spike.
+func flexHorizontalSizeFunc(ratios []int) func(node boxer.Node, width int) []int {
+	return func(node boxer.Node, width int) []int {
+		count := len(node.Children)
+		if count == 0 {
+			return nil
+		}
+		// Se o tamanho da lista de ratios não bater, fazemos divisão igualitária.
+		if len(ratios) != count {
+			res := make([]int, count)
+			base := width / count
+			for i := range res {
+				res[i] = base
+			}
+			rest := width - base*count
+			for i := 0; i < rest && i < count; i++ {
+				res[i]++
+			}
+			return res
+		}
+
+		// Normaliza ratios, tratando zeros como 1.
+		norm := make([]int, count)
+		total := 0
+		for i, r := range ratios {
+			if r <= 0 {
+				r = 1
+			}
+			norm[i] = r
+			total += r
+		}
+		if total <= 0 {
+			res := make([]int, count)
+			base := width / count
+			for i := range res {
+				res[i] = base
+			}
+			return res
+		}
+
+		res := make([]int, count)
+		remaining := width
+		remainingTotal := total
+		for i, r := range norm {
+			if i == count-1 {
+				res[i] = remaining
+				break
+			}
+			v := remaining * r / remainingTotal
+			res[i] = v
+			remaining -= v
+			remainingTotal -= r
+		}
+		return res
+	}
+}
+
+// flexVerticalSizeFunc cria uma SizeFunc que distribui a altura entre os
+// filhos proporcionalmente aos ratios informados.
+func flexVerticalSizeFunc(ratios []int) func(node boxer.Node, height int) []int {
+	return func(node boxer.Node, height int) []int {
+		count := len(node.Children)
+		if count == 0 {
+			return nil
+		}
+		if len(ratios) != count {
+			res := make([]int, count)
+			base := height / count
+			for i := range res {
+				res[i] = base
+			}
+			rest := height - base*count
+			for i := 0; i < rest && i < count; i++ {
+				res[i]++
+			}
+			return res
+		}
+
+		norm := make([]int, count)
+		total := 0
+		for i, r := range ratios {
+			if r <= 0 {
+				r = 1
+			}
+			norm[i] = r
+			total += r
+		}
+		if total <= 0 {
+			res := make([]int, count)
+			base := height / count
+			for i := range res {
+				res[i] = base
+			}
+			return res
+		}
+
+		res := make([]int, count)
+		remaining := height
+		remainingTotal := total
+		for i, r := range norm {
+			if i == count-1 {
+				res[i] = remaining
+				break
+			}
+			v := remaining * r / remainingTotal
+			res[i] = v
+			remaining -= v
+			remainingTotal -= r
+		}
+		return res
 	}
 }
 
@@ -196,6 +415,9 @@ func (m *Manager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // Nesta fase, fornecemos apenas um placeholder neutro alinhado à governança:
 // nenhuma lógica de automação, apenas render estrutural.
 func (m *Manager) View() string {
+	if m.width <= 0 || m.height <= 0 {
+		return ""
+	}
 	return m.renderNode(m.layout)
 }
 
@@ -236,10 +458,18 @@ func (m *Manager) applyDimensions() {
 	if m.width <= 0 || m.height <= 0 {
 		return
 	}
-	m.applyDimensionsNode(m.layout, 0, 0, m.width, m.height)
+	m.applyDimensionsNode(&m.layout, 0, 0, m.width, m.height)
 }
 
-func (m *Manager) applyDimensionsNode(node LayoutNodeRef, x, y, w, h int) {
+func (m *Manager) applyDimensionsNode(node *LayoutNodeRef, x, y, w, h int) {
+	if node == nil {
+		return
+	}
+
+	// Registra dimensões calculadas para uso posterior na renderização.
+	node.ComputedWidth = w
+	node.ComputedHeight = h
+
 	switch node.Type {
 	case "box":
 		if node.ComponentID == "" {
@@ -253,26 +483,107 @@ func (m *Manager) applyDimensionsNode(node LayoutNodeRef, x, y, w, h int) {
 		if count == 0 {
 			return
 		}
-		childWidth := w / count
+
+		// Primeiro, verificamos se algum filho define Flex explicitamente.
+		// Se sim, usamos divisão proporcional por Flex; caso contrário,
+		// mantemos o comportamento anterior (divisão igualitária).
+		hasFlex := false
+		totalFlex := 0
+		childFlex := make([]int, count)
 		for i := range node.Items {
-			cw := childWidth
-			if i == count-1 {
-				cw = w - childWidth*(count-1)
+			f := 0
+			if node.Items[i].Flex != nil && *node.Items[i].Flex > 0 {
+				f = *node.Items[i].Flex
+				hasFlex = true
 			}
-			m.applyDimensionsNode(node.Items[i], x+i*cw, y, cw, h)
+			childFlex[i] = f
+			totalFlex += f
+		}
+
+		if !hasFlex || totalFlex == 0 {
+			// Fallback: divisão em colunas iguais (comportamento anterior).
+			childWidth := w / count
+			for i := range node.Items {
+				cw := childWidth
+				if i == count-1 {
+					cw = w - childWidth*(count-1)
+				}
+				m.applyDimensionsNode(&node.Items[i], x+i*cw, y, cw, h)
+			}
+			return
+		}
+
+		// Quando há Flex, consideramos todos os filhos com Flex==0 como 1
+		// para evitar colunas invisíveis.
+		for i := range childFlex {
+			if childFlex[i] == 0 {
+				childFlex[i] = 1
+				totalFlex++
+			}
+		}
+
+		remainingWidth := w
+		for i := range node.Items {
+			// Distribui largura proporcionalmente ao Flex.
+			cw := remainingWidth * childFlex[i] / totalFlex
+			if i == count-1 {
+				// Garante que o somatório não ultrapasse/escape por causa de divisão inteira.
+				cw = remainingWidth
+			}
+			m.applyDimensionsNode(&node.Items[i], x, y, cw, h)
+			x += cw
+			remainingWidth -= cw
+			totalFlex -= childFlex[i]
 		}
 	case "column":
 		count := len(node.Items)
 		if count == 0 {
 			return
 		}
-		childHeight := h / count
+
+		// Similar ao caso row, mas dividindo altura.
+		hasFlex := false
+		totalFlex := 0
+		childFlex := make([]int, count)
 		for i := range node.Items {
-			ch := childHeight
-			if i == count-1 {
-				ch = h - childHeight*(count-1)
+			f := 0
+			if node.Items[i].Flex != nil && *node.Items[i].Flex > 0 {
+				f = *node.Items[i].Flex
+				hasFlex = true
 			}
-			m.applyDimensionsNode(node.Items[i], x, y+i*ch, w, ch)
+			childFlex[i] = f
+			totalFlex += f
+		}
+
+		if !hasFlex || totalFlex == 0 {
+			childHeight := h / count
+			for i := range node.Items {
+				ch := childHeight
+				if i == count-1 {
+					ch = h - childHeight*(count-1)
+				}
+				m.applyDimensionsNode(&node.Items[i], x, y+i*ch, w, ch)
+			}
+			return
+		}
+
+		for i := range childFlex {
+			if childFlex[i] == 0 {
+				childFlex[i] = 1
+				totalFlex++
+			}
+		}
+
+		remainingHeight := h
+		for i := range node.Items {
+			ch := remainingHeight * childFlex[i] / totalFlex
+			if i == count-1 {
+				ch = remainingHeight
+			}
+			m.applyDimensionsNode(&node.Items[i], x, y, w, ch)
+			y += ch
+			remainingHeight -= ch
+			totalFlex -= childFlex[i]
 		}
 	}
 }
@@ -283,50 +594,92 @@ func (m *Manager) renderNode(node LayoutNodeRef) string {
 		if node.ComponentID == "" {
 			return ""
 		}
+		inner := ""
 		if c, ok := m.components[node.ComponentID]; ok && c != nil {
-			return c.View()
+			inner = c.View()
 		}
-		return ""
+		// Aplica padding/borda declarativos apenas na renderização textual.
+		pad := 0
+		if node.Padding != nil && *node.Padding > 0 {
+			pad = *node.Padding
+		}
+		if !node.Border && pad == 0 {
+			return inner
+		}
+		boxView := renderBox(inner, pad, node.Border)
+		// Normaliza a largura final do box para a largura calculada do layout,
+		// garantindo que bordas e colunas alinhem visualmente.
+		if node.ComputedWidth > 0 {
+			lines := strings.Split(boxView, "\n")
+			for i, l := range lines {
+				if len(l) < node.ComputedWidth {
+					lines[i] = l + strings.Repeat(" ", node.ComputedWidth-len(l))
+				} else if len(l) > node.ComputedWidth {
+					lines[i] = l[:node.ComputedWidth]
+				}
+			}
+			boxView = strings.Join(lines, "\n")
+		}
+		return boxView
 	case "row":
 		if len(node.Items) == 0 {
 			return ""
 		}
-		// Renderiza os filhos lado a lado (composição horizontal básica),
-		// em vez de empilhá-los verticalmente. Isso permite que, por exemplo,
-		// menu e viewport apareçam na mesma linha de layout, evitando que um
-		// componente "empurre" o outro para fora da área visível.
-		childLines := make([][]string, len(node.Items))
-		maxLines := 0
-		for i, child := range node.Items {
-			v := m.renderNode(child)
-			lines := strings.Split(v, "\n")
-			childLines[i] = lines
-			if len(lines) > maxLines {
-				maxLines = len(lines)
-			}
-		}
-
-		resultLines := make([]string, 0, maxLines)
-		for lineIdx := 0; lineIdx < maxLines; lineIdx++ {
-			parts := make([]string, 0, len(childLines))
-			for _, lines := range childLines {
-				if lineIdx < len(lines) {
-					parts = append(parts, lines[lineIdx])
-				} else {
-					parts = append(parts, "")
-				}
-			}
-			resultLines = append(resultLines, strings.Join(parts, "  "))
-		}
-		return strings.Join(resultLines, "\n")
-	case "column":
-		views := make([]string, 0, len(node.Items))
+		// Renderização horizontal usando Lip Gloss, respeitando larguras/alturas
+		// calculadas para cada filho.
+		childViews := make([]string, 0, len(node.Items))
 		for _, child := range node.Items {
 			v := m.renderNode(child)
-			views = append(views, v)
+			style := lipgloss.NewStyle()
+			if child.ComputedWidth > 0 {
+				style = style.Width(child.ComputedWidth)
+			}
+			if child.ComputedHeight > 0 {
+				style = style.Height(child.ComputedHeight)
+			}
+			childViews = append(childViews, style.Render(v))
 		}
-		return strings.Join(views, "\n")
+		return lipgloss.JoinHorizontal(lipgloss.Top, childViews...)
+	case "column":
+		if len(node.Items) == 0 {
+			return ""
+		}
+		childViews := make([]string, 0, len(node.Items))
+		for _, child := range node.Items {
+			v := m.renderNode(child)
+			style := lipgloss.NewStyle()
+			if child.ComputedWidth > 0 {
+				style = style.Width(child.ComputedWidth)
+			}
+			if child.ComputedHeight > 0 {
+				style = style.Height(child.ComputedHeight)
+			}
+			childViews = append(childViews, style.Render(v))
+		}
+		return lipgloss.JoinVertical(lipgloss.Left, childViews...)
 	default:
 		return ""
 	}
+}
+
+// canRenderColumnWithFlexbox verifica se uma coluna é simples o suficiente
+// para ser renderizada por um único FlexBox, onde cada row declarativa vira
+// uma Row do FlexBox e cada box dentro dela vira uma Cell.
+// Critérios atuais:
+// - coluna tem largura/altura calculadas (>0);
+// - todos os filhos imediatos são rows;
+// - cada row contém apenas boxes com ComponentID definido.
+
+// renderBox aplica padding e borda usando Lip Gloss.
+// - padding controla a quantidade de espaços internos ao redor do conteúdo.
+// - quando border==true, desenha uma borda normal.
+func renderBox(content string, padding int, border bool) string {
+	style := lipgloss.NewStyle()
+	if padding > 0 {
+		style = style.Padding(padding)
+	}
+	if border {
+		style = style.Border(lipgloss.NormalBorder())
+	}
+	return style.Render(content)
 }

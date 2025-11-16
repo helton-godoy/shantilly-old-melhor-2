@@ -4,7 +4,10 @@ import (
 	"fmt"
 
 	components_buttongroup "shantilly/internal/components/buttongroup"
+	components_input "shantilly/internal/components/input"
 	components_list "shantilly/internal/components/list"
+	components_multiselect "shantilly/internal/components/multiselect"
+	components_select "shantilly/internal/components/select"
 	components_viewport "shantilly/internal/components/viewport"
 	"shantilly/internal/tui"
 	"shantilly/pkg/declarative"
@@ -46,7 +49,7 @@ func (r *DefaultRegistry) Resolve(id string) ShantillyComponent {
 		return components_viewport.New(id, r.Theme, &declarative.Source{
 			Type:    "static",
 			Content: fmt.Sprintf("Componente desconhecido: %s", id),
-		})
+		}, "replace", true)
 	}
 
 	switch comp.Type {
@@ -62,10 +65,17 @@ func (r *DefaultRegistry) Resolve(id string) ShantillyComponent {
 				return components_viewport.New(comp.ID, r.Theme, &declarative.Source{
 					Type:    "static",
 					Content: fmt.Sprintf("Erro ao interpretar source do componente %s: %v", comp.ID, err),
-				})
+				}, "replace", true)
 			}
 		}
-		return components_viewport.New(comp.ID, r.Theme, src)
+		mode, _ := comp.Props["mode"].(string)
+		wrap := true
+		if rawWrap, ok := comp.Props["wrap"]; ok {
+			if b, okb := rawWrap.(bool); okb {
+				wrap = b
+			}
+		}
+		return components_viewport.New(comp.ID, r.Theme, src, mode, wrap)
 
 	case "list":
 		var items []declarative.Item
@@ -77,7 +87,7 @@ func (r *DefaultRegistry) Resolve(id string) ShantillyComponent {
 				return components_viewport.New(comp.ID, r.Theme, &declarative.Source{
 					Type:    "static",
 					Content: fmt.Sprintf("Erro ao interpretar items do componente %s: %v", comp.ID, err),
-				})
+				}, "replace", true)
 			}
 		}
 
@@ -92,6 +102,34 @@ func (r *DefaultRegistry) Resolve(id string) ShantillyComponent {
 		}
 		return components_list.New(comp.ID, r.Theme, items)
 
+	case "select":
+		var items []declarative.Item
+		if raw, ok := comp.Props["items"]; ok {
+			if converted, err := convertItems(raw); err == nil {
+				items = converted
+			} else {
+				return components_viewport.New(comp.ID, r.Theme, &declarative.Source{
+					Type:    "static",
+					Content: fmt.Sprintf("Erro ao interpretar items do componente %s: %v", comp.ID, err),
+				}, "replace", true)
+			}
+		}
+		return components_select.New(comp.ID, r.Theme, items)
+
+	case "multiselect":
+		var items []declarative.Item
+		if raw, ok := comp.Props["items"]; ok {
+			if converted, err := convertItems(raw); err == nil {
+				items = converted
+			} else {
+				return components_viewport.New(comp.ID, r.Theme, &declarative.Source{
+					Type:    "static",
+					Content: fmt.Sprintf("Erro ao interpretar items do componente %s: %v", comp.ID, err),
+				}, "replace", true)
+			}
+		}
+		return components_multiselect.New(comp.ID, r.Theme, items)
+
 	case "buttongroup":
 		var items []declarative.Item
 		if raw, ok := comp.Props["items"]; ok {
@@ -102,17 +140,24 @@ func (r *DefaultRegistry) Resolve(id string) ShantillyComponent {
 				return components_viewport.New(comp.ID, r.Theme, &declarative.Source{
 					Type:    "static",
 					Content: fmt.Sprintf("Erro ao interpretar items do componente %s: %v", comp.ID, err),
-				})
+				}, "replace", true)
 			}
 		}
 		return components_buttongroup.New(comp.ID, r.Theme, items)
+
+	case "input":
+		label, _ := comp.Props["label"].(string)
+		placeholder, _ := comp.Props["placeholder"].(string)
+		initial, _ := comp.Props["default"].(string)
+		secret, _ := comp.Props["secret"].(bool)
+		return components_input.New(comp.ID, r.Theme, label, placeholder, initial, secret)
 
 	default:
 		// Fallback: viewport com mensagem sobre tipo desconhecido.
 		return components_viewport.New(comp.ID, r.Theme, &declarative.Source{
 			Type:    "static",
 			Content: fmt.Sprintf("Tipo de componente desconhecido: %s", comp.Type),
-		})
+		}, "replace", true)
 	}
 }
 
