@@ -1,0 +1,59 @@
+version: "1.0"
+meta:
+  name: "Input Demo"
+  description: "Demonstração do componente input + viewport"
+
+layout:
+  id: root
+  type: column
+  items:
+    - id: main_row
+      type: row
+      items:
+        - id: left_box
+          type: box
+          flex: 1
+          component: input_box
+        - id: right_box
+          type: box
+          flex: 2
+          component: output_box
+
+components:
+  - id: input_box
+    type: input
+    props:
+      label: "Parâmetro:"
+      placeholder: "Digite algo e pressione Enter…"
+      default: "Olá"
+      secret: false
+
+  - id: output_box
+    type: viewport
+    props:
+      source:
+        type: static
+        content_type: text
+        content: |
+          Bem-vindo ao demo de input.
+
+          Digite um valor no campo à esquerda e pressione Enter.
+          O script será executado e o resultado aparecerá aqui.
+
+on:
+  - id: on_input_submit
+    event: "input_box:submit"
+    run:
+      script: "./scripts/show-input-env.sh"
+      args: []
+      stdin: {}
+      env: {}
+      update_target: "output_box"
+      confirm: false
+      prompt_secrets: []
+
+security:
+  allowed_scripts:
+    - "./scripts/show-input-env.sh"
+  deny_unknown: true
+  extra_rules: {}

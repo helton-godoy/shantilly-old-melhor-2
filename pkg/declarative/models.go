@@ -52,6 +52,8 @@ type LayoutNode struct {
 	Width       *int         `yaml:"width,omitempty" json:"width,omitempty"`
 	Height      *int         `yaml:"height,omitempty" json:"height,omitempty"`
 	Flex        *int         `yaml:"flex,omitempty" json:"flex,omitempty"`
+	Padding     *int         `yaml:"padding,omitempty" json:"padding,omitempty"`
+	Border      bool         `yaml:"border,omitempty" json:"border,omitempty"`
 	Items       []LayoutNode `yaml:"items,omitempty" json:"items,omitempty"`
 	ComponentID string       `yaml:"component,omitempty" json:"component,omitempty"` // apenas para type: box
 }
@@ -193,7 +195,7 @@ func (c *AppConfig) Validate() error {
 			return fmt.Errorf("duplicate component id: %s", comp.ID)
 		}
 		switch comp.Type {
-		case "list", "viewport", "form", "buttongroup":
+		case "list", "viewport", "form", "buttongroup", "input", "select", "multiselect":
 			// ok
 		default:
 			return fmt.Errorf("invalid component type for %s: %s", comp.ID, comp.Type)

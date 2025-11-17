@@ -1,0 +1,42 @@
+# .github/workflows/lint.yml
+# Este workflow executa o golangci-lint para garantir a qualidade e o padrão do código.
+# É otimizado para ser reprodutível e fornecer feedback consistente, o que é
+# essencial para o ciclo de desenvolvimento acelerado por IA.
+
+name: Lint
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  golangci:
+    name: Run golangci-lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4 # v4 é a versão LTS mais estável no momento.
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          # 1. REPRODUTIBILIDADE: Fixa a versão do Go para evitar quebras inesperadas.
+          #    Deve ser a mesma versão definida no seu arquivo go.mod.
+          go-version: "1.24.2"
+          # 2. PERFORMANCE: Habilita o cache de dependências.
+          cache: true
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6 # v6 é a versão LTS mais estável.
+        with:
+          # 3. REPRODUTIBILIDADE: Fixa a versão da ferramenta golangci-lint.
+          #    Isso garante que as regras de lint não mudarão inesperadamente.
+          version: v1.59.1
+
+          # 4. CLAREZA: Aponta explicitamente para o nosso arquivo de configuração.
+          #    Isso torna o workflow mais fácil de entender e depurar.
+          args: --config=.golangci.yml

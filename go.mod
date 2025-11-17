@@ -8,6 +8,7 @@ go 1.24.2
 
 // Adicione aqui as dependências que você precisa, por exemplo:
 require (
+	github.com/76creates/stickers v1.4.1
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/glamour v0.7.0
 	github.com/charmbracelet/lipgloss v1.1.0
@@ -18,6 +19,7 @@ require (
 require (
 	github.com/charmbracelet/bubbles v0.21.1-0.20250623103423-23b8fd6302d7
 	github.com/charmbracelet/huh v0.8.0
+	github.com/treilik/bubbleboxer v0.2.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 

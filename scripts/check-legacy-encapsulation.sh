@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+echo "========================================"
+echo " Shantilly Gate • E1.6 Encapsulamento do Legado"
+echo "========================================"
+echo ""
+
 # Gate E1.6 — Encapsulamento do Legado (FormComponent + internal/tui)
 # Referência normativa:
 # - docs/qa/gates/1.x.legacy-formcomponent-encapsulation.yml
@@ -62,8 +67,12 @@ else
 fi
 
 if [[ "$violation" -ne 0 ]]; then
-  echo "[gate:E1.6] FALHA: Encapsulamento do legado violado. Corrija antes de fazer merge."
-  exit 1
+	echo ""
+	echo "[gate:E1.6] FALHA: Encapsulamento do legado violado. Corrija antes de fazer merge."
+	echo "----------------------------------------"
+	exit 1
 fi
 
+echo ""
 echo "[gate:E1.6] SUCESSO: Legado confinado aos pontos autorizados."
+echo "----------------------------------------"

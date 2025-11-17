@@ -95,3 +95,69 @@ go build ./...
 4. Próxima etapa de implementação:
 - Começar pela refatoração do `ScriptRunner` + `tea_adapter` para streaming real.
 - Depois, decidir configuração fina do viewport (limpar/acomodar histórico) com base nesses casos de uso.
+
+---
+
+## Decisão de nomenclatura para binding `input` → script (env vars)
+
+Contexto:
+- O runtime v2.0 passa a ter componentes de entrada (`type: input`) que podem alimentar scripts.
+- Queremos um padrão de nomenclatura **claro, coerente e identitário**, inspirado em ferramentas como o Ansible.
+
+Referência Ansible (inspiração conceitual, não cópia literal):
+- Variáveis de playbook/facts: `lower_snake_case` (ex.: `deploy_version`, `http_port`).
+- Variáveis internas de ambiente: prefixo `ANSIBLE_` em `UPPER_SNAKE_CASE` (ex.: `ANSIBLE_CONFIG`).
+- Inputs interativos (`vars_prompt`) deixam o autor do playbook escolher o nome da variável, usado depois como `{{ deploy_version }}`.
+
+### Decisão atual (Wave: binding automático input → env)
+
+Para o binding inicial de inputs do Shantilly para scripts via variáveis de ambiente:
+
+- **Prefixo reservado do runtime:** `SHANTILLY_`.
+- Para componentes `type: input`, o runtime exporta automaticamente:
+
+  - `SHANTILLY_INPUT_<ID_EM_UPPER_SNAKE>`
+
+  Onde:
+  - `ID_EM_UPPER_SNAKE` é derivado do `components[].id` (ex.: `input_box` → `INPUT_BOX`).
+
+Exemplo:
+
+```yaml
+components:
+  - id: param_input
+    type: input
+    props:
+      label: "Parâmetro"
+      placeholder: "Digite e pressione Enter…"
+```
+
+Ao submeter (`param_input:submit`), o runtime definirá para o script:
+
+```bash
+SHANTILLY_INPUT_PARAM_INPUT="<valor_digitado>"
+```
+
+Scripts podem consumir isso via `"$SHANTILLY_INPUT_PARAM_INPUT"`.
+
+### Plano futuro: nome explícito via `env_name` (inspirado em `vars_prompt` do Ansible)
+
+Para aproximar ainda mais da ergonomia do Ansible, planejamos introduzir um campo opcional em `props`:
+
+```yaml
+components:
+  - id: param_input
+    type: input
+    props:
+      label: "Parâmetro"
+      env_name: "DEPLOY_VERSION"
+```
+
+Regras planejadas:
+- Quando `env_name` estiver presente e válido:
+  - O valor do input será exportado como `DEPLOY_VERSION=<valor>` para o script.
+  - O binding automático `SHANTILLY_INPUT_PARAM_INPUT` poderá ser mantido por compatibilidade ou tornado opcional (a decidir na Wave correspondente).
+- Quando `env_name` não estiver definido:
+  - Vale o padrão automático `SHANTILLY_INPUT_<ID_EM_UPPER_SNAKE>`.
+
+Este bloco serve como referência de governança para futuras Waves que implementarem efetivamente o binding `input` → env/stdin no `EventManager` + `ScriptRunner`.

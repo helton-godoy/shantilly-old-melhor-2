@@ -1,0 +1,38 @@
+# .github/dependabot.yml
+# Configuração para o Dependabot, que mantém as dependências do projeto atualizadas automaticamente.
+
+version: 2
+updates:
+  # Mantém as dependências do Go (go.mod) atualizadas.
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    # Agrupa todas as atualizações de gomod em um único Pull Request.
+    groups:
+      all:
+        patterns:
+          - "*"
+
+  # Mantém as GitHub Actions (arquivos .github/workflows) atualizadas.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    # Agrupa todas as atualizações de actions em um único Pull Request.
+    groups:
+      all:
+        patterns:
+          - "*"

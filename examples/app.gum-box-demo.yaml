@@ -28,6 +28,8 @@ components:
           text: "1) Rodar script gum-box-demo.sh"
         - id: run_gum_colors
           text: "2) Rodar script gum-colors-demo.sh"
+        - id: run_ansi_colors
+          text: "3) Rodar script ansi-colors-demo.sh"
 
   - id: log
     type: viewport
@@ -55,6 +57,17 @@ on:
       confirm: false
       prompt_secrets: []
 
+  - id: on_menu_select_run_ansi_colors
+    event: "menu:select_run_ansi_colors"
+    run:
+      script: "./scripts/ansi-colors-demo.sh"
+      args: []
+      stdin: {}
+      env: {}
+      update_target: "log"
+      confirm: false
+      prompt_secrets: []
+
   - id: on_menu_select_run_gum_colors
     event: "menu:select_run_gum_colors"
     run:
@@ -70,5 +83,6 @@ security:
   allowed_scripts:
     - "./scripts/gum-box-demo.sh"
     - "./scripts/gum-colors-demo.sh"
+    - "./scripts/ansi-colors-demo.sh"
   deny_unknown: true
   extra_rules: {}

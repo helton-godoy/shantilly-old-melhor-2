@@ -67,6 +67,8 @@ func convertLayoutNode(n declarative.LayoutNode) layout.LayoutNodeRef {
 		Width:       n.Width,
 		Height:      n.Height,
 		Flex:        n.Flex,
+		Padding:     n.Padding,
+		Border:      n.Border,
 		ComponentID: n.ComponentID,
 	}
 

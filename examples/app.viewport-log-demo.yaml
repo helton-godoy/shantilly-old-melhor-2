@@ -1,0 +1,59 @@
+version: "1.0"
+meta:
+  name: "Viewport Log Demo"
+  description: "Demonstração do viewport em modo append (log de execuções)"
+
+layout:
+  id: root
+  type: column
+  items:
+    - id: main_row
+      type: row
+      items:
+        - id: menu_box
+          type: box
+          flex: 1
+          component: menu
+        - id: log_box
+          type: box
+          flex: 2
+          component: log
+
+components:
+  - id: menu
+    type: list
+    props:
+      items:
+        - id: hello_demo
+          text: "1) Rodar script de Hello (log)"
+
+  - id: log
+    type: viewport
+    props:
+      mode: "append"  # acumula histórico das execuções
+      source:
+        type: static
+        content_type: text
+        content: |
+          Demo de viewport em modo append (log)
+
+          Use o menu à esquerda para disparar o script.
+          Cada execução será acrescentada abaixo neste painel.
+
+on:
+  - id: on_menu_select_hello_demo
+    event: "menu:select_hello_demo"
+    run:
+      script: "./scripts/hello.sh"
+      args: []
+      stdin: {}
+      env: {}
+      update_target: "log"
+      confirm: false
+      prompt_secrets: []
+
+security:
+  allowed_scripts:
+    - "./scripts/hello.sh"
+  deny_unknown: true
+  extra_rules: {}

@@ -1,0 +1,102 @@
+version: "1.0"
+meta:
+  name: "Layout Flex Demo"
+  description: "Demonstração de layout row/column com flex"
+
+layout:
+  id: root
+  type: column
+  items:
+    - id: header_row
+      type: row
+      flex: 1
+      items:
+        - id: header_box
+          type: box
+          padding: 1
+          border: true
+          component: header
+    - id: main_row
+      type: row
+      flex: 4
+      items:
+        - id: left_box
+          type: box
+          flex: 1
+          padding: 1
+          component: left_panel
+        - id: center_box
+          type: box
+          flex: 2
+          padding: 1
+          border: true
+          component: center_panel
+        - id: right_box
+          type: box
+          flex: 1
+          padding: 1
+          component: right_panel
+    - id: footer_row
+      type: row
+      flex: 1
+      items:
+        - id: footer_box
+          type: box
+          padding: 1
+          border: true
+          component: footer_panel
+
+components:
+  - id: header
+    type: viewport
+    props:
+      source:
+        type: static
+        content_type: text
+        content: "Layout Flex Demo — header ocupando a largura inteira"
+
+  - id: left_panel
+    type: viewport
+    props:
+      source:
+        type: static
+        content_type: text
+        content: |
+          Painel esquerdo (flex: 1)
+
+          Esta área deve ocupar 1/4 da largura total.
+
+  - id: center_panel
+    type: viewport
+    props:
+      source:
+        type: static
+        content_type: text
+        content: |
+          Painel central (flex: 2)
+
+          Esta área deve ocupar 2/4 (metade) da largura total.
+
+  - id: right_panel
+    type: viewport
+    props:
+      source:
+        type: static
+        content_type: text
+        content: |
+          Painel direito (flex: 1)
+
+          Esta área deve ocupar 1/4 da largura total.
+
+  - id: footer_panel
+    type: viewport
+    props:
+      source:
+        type: static
+        content_type: text
+        content: |
+          Footer / Barra de status (flex: 1 na coluna)
+
+          Esta área demonstra um padrão comum de UI: header + conteúdo + footer.
+
+# Nenhum on:/security aqui; foco é apenas layout/flex.

@@ -567,6 +567,20 @@ func (r *ScriptRunner) emitErrorEvent(source string, eventType string, run RunAc
 	if run.UpdateTarget != "" {
 		payload["update_target"] = run.UpdateTarget
 	}
+
+	// Além do evento estruturado, quando houver update_target associado,
+	// enviamos também uma atualização textual para o viewport correspondente,
+	// garantindo feedback visível para o usuário (ex.: permissão negada,
+	// script não permitido pela SecurityPolicy, script inexistente, etc.).
+	if run.UpdateTarget != "" {
+		msg := fmt.Sprintf("[erro] Falha ao executar script '%s'\nMotivo: %s", run.Script, err.Error())
+		r.sink.EmitUpdate(UpdateTargetUpdate{
+			TargetID: run.UpdateTarget,
+			Mode:     "append",
+			Content:  msg,
+		})
+	}
+
 	r.sink.EmitEvent(ShantillyEvent{
 		SourceComponentID: source,
 		Type:              eventType,
