@@ -31,8 +31,6 @@ func Handle(err error) int {
 	// Check for specific error types (ex.: cancelamento explícito)
 	if errors.Is(err, ErrAborted) {
 		exitCode = ExitCancelled
-		// Optionally print a message for cancellation
-		// fmt.Fprintln(os.Stderr, "Operation cancelled.")
 	} else {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 	}
