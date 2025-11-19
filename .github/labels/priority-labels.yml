@@ -1,0 +1,13 @@
+labels:
+  - name: "priority::critical"
+    color: "d73a4a"
+    description: "Crítico - precisa ser resolvido imediatamente"
+  - name: "priority::high"
+    color: "fb8500"
+    description: "Alto - importante para o próximo release"
+  - name: "priority::medium"
+    color: "fbbf24"
+    description: "Médio - planejado para release futuro"
+  - name: "priority::low"
+    color: "10b981"
+    description: "Baixo - nice to have"

@@ -1,0 +1,74 @@
+name: Auto Label Issues and PRs
+
+on:
+  issues:
+    types: [opened, edited]
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const issueNumber = context.payload.issue?.number || context.payload.pull_request?.number;
+            const issueBody = context.payload.issue?.body || context.payload.pull_request?.body || '';
+            const issueTitle = context.payload.issue?.title || context.payload.pull_request?.title || '';
+            
+            const labels = [];
+            
+            // Priority labels based on keywords
+            if (issueTitle.match(/urgent|critical|emergency|blocking/i) || issueBody.match(/critical|urgent|emergency|blocking/i)) {
+              labels.push('priority::critical');
+            } else if (issueTitle.match(/important|high|asap/i) || issueBody.match(/high|important|asap/i)) {
+              labels.push('priority::high');
+            } else if (issueTitle.match(/when convenient|nice to have|enhancement/i) || issueBody.match(/enhancement|nice to have|when convenient/i)) {
+              labels.push('priority::low');
+            } else {
+              labels.push('priority::medium');
+            }
+            
+            // Type labels based on content
+            if (issueBody.match(/bug|error|broken|fix|wrong/i) || issueTitle.match(/bug|error|broken|fix/i)) {
+              labels.push('type::bug');
+            } else if (issueTitle.match(/feature|new|add|implement/i) || issueBody.match(/feature|add|implement|new/i)) {
+              labels.push('type::feature');
+            } else if (issueTitle.match(/documentation|docs|readme|guide/i) || issueBody.match(/documentation|docs|readme|guide/i)) {
+              labels.push('type::docs');
+            } else if (issueTitle.match(/refactor|cleanup|improve|optimize/i) || issueBody.match(/refactor|cleanup|improve|optimize/i)) {
+              labels.push('type::refactor');
+            } else if (issueTitle.match(/test|testing|spec/i) || issueBody.match(/test|testing|spec/i)) {
+              labels.push('type::testing');
+            } else {
+              labels.push('type::task');
+            }
+            
+            // Area labels based on keywords
+            if (issueBody.match(/tui|ui|interface|frontend|display/i) || issueTitle.match(/ui|tui|interface|display/i)) {
+              labels.push('area::frontend');
+            } else if (issueBody.match(/backend|api|server|logic/i) || issueTitle.match(/backend|api|server/i)) {
+              labels.push('area::backend');
+            } else if (issueBody.match(/cli|command|terminal/i) || issueTitle.match(/cli|command|terminal/i)) {
+              labels.push('area::cli');
+            } else if (issueBody.match(/documentation|docs|readme/i) || issueTitle.match(/documentation|docs/i)) {
+              labels.push('area::docs');
+            } else if (issueBody.match(/deployment|ci|cd|build|docker/i) || issueTitle.match(/deployment|ci|cd|build/i)) {
+              labels.push('area::devops');
+            } else if (issueBody.match(/security|auth|vulnerability/i) || issueTitle.match(/security|auth/i)) {
+              labels.push('area::security');
+            }
+            
+            // Status labels
+            labels.push('status::needs-triage');
+            
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number: issueNumber,
+                labels
+              });
+            }

@@ -1,0 +1,107 @@
+name: "📋 Task"
+description: "Tarefas de desenvolvimento, refatoração ou melhorias"
+title: "[TASK] "
+labels: ["type::task", "status::needs-triage"]
+assignees:
+  - ""
+body:
+
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por adicionar esta tarefa! Por favor, preencha as informações abaixo.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "Descrição da tarefa"
+      description: "Descreva detalhadamente o que precisa ser feito"
+      placeholder: "Descreva a tarefa em detalhes..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: "Tipo de tarefa"
+      description: "Qual o tipo desta tarefa?"
+      options:
+        - "type::refactor"
+        - "type::improvement"
+        - "type::documentation"
+        - "type::automation"
+        - "type::testing"
+        - "type::maintenance"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Prioridade"
+      description: "Qual a prioridade desta tarefa?"
+      options:
+        - "priority::low"
+        - "priority::medium"
+        - "priority::high"
+        - "priority::critical"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: "Área de impacto"
+      description: "Em qual área do projeto esta tarefa teria impacto?"
+      options:
+        - "area::frontend"
+        - "area::backend"
+        - "area::cli"
+        - "area::docs"
+        - "area::devops"
+        - "area::security"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: team
+    attributes:
+      label: "Equipe responsável"
+      description: "Quem seria responsável por esta tarefa?"
+      options:
+        - "team::human"
+        - "team::ai"
+        - "team::mixed"
+    validations:
+      required: true
+
+  - type: input
+    id: story_points
+    attributes:
+      label: "Story Points"
+      description: "Estimativa de esforço em story points (1, 2, 3, 5, 8, 13, 21)"
+      placeholder: "ex: 3"
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: "Critérios de Aceitação"
+      description: "Como saberemos quando esta tarefa está completa?"
+      placeholder: |
+        - [ ] Critério 1
+        - [ ] Critério 2
+        - [ ] Critério 3
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: "Dependências"
+      description: "Esta tarefa depende de outras? Liste os números das issues"
+      placeholder: "Depends on: #123, #456"
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "Contexto adicional"
+      description: "Qualquer informação adicional relevante para a execução da tarefa"
+      placeholder: "Adicione contexto adicional aqui..."

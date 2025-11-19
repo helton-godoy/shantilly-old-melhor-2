@@ -1,0 +1,83 @@
+name: "🐛 Bug Report"
+description: "Relate um bug para nos ajudar a melhorar"
+title: "[BUG] "
+labels: ["type::bug", "status::needs-triage"]
+assignees:
+  - ""
+body:
+
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por dedicar tempo para relatar este bug! Por favor, preencha as informações abaixo.
+
+  - type: input
+    id: version
+    attributes:
+      label: "Versão do Shantilly"
+      description: "Qual versão do Shantilly você está usando?"
+      placeholder: "ex: v1.0.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: "Sistema Operacional"
+      description: "Em qual sistema operacional o bug ocorre?"
+      options:
+        - "Linux"
+        - "macOS"
+        - "Windows"
+        - "WSL"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: "O que aconteceu?"
+      description: "Descreva o comportamento inesperado em detalhes"
+      placeholder: "Relate exatamente o que aconteceu..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Comportamento esperado"
+      description: "O que deveria ter acontecido?"
+      placeholder: "Descreva o comportamento esperado..."
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Passos para reproduzir"
+      description: "Liste os passos para reproduzir este bug"
+      placeholder: |
+        1. Vá para '...'
+        2. Clique em '....'
+        3. Veja erro
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: "Configuração YAML"
+      description: "Se aplicável, cole sua configuração YAML aqui"
+      render: yaml
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: "Logs relevantes"
+      description: "Cole qualquer log de erro relevante aqui"
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: "Confirmação"
+      description: "Ao enviar este relatório, você concorda com nossos [Termos de Serviço](https://github.com/helton-godoy/shantilly/blob/main/CODE_OF_CONDUCT.md)"
+      options:
+        - label: "Concordo em seguir os termos de serviço"

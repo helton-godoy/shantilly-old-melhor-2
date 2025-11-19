@@ -1,0 +1,164 @@
+name: Weekly Progress Report
+
+on:
+  schedule:
+    - cron: '0 9 * * 1' # Every Monday at 9 AM UTC
+  workflow_dispatch:
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate Weekly Report
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+            
+            // Get issues created in the last week
+            const { data: newIssues } = await github.rest.issues.listForRepo({
+              owner,
+              repo,
+              state: 'all',
+              since: weekAgo.toISOString(),
+              per_page: 100
+            });
+            
+            // Get PRs created in the last week
+            const { data: newPRs } = await github.rest.pulls.list({
+              owner,
+              repo,
+              state: 'all',
+              per_page: 100
+            });
+            
+            // Filter PRs by creation date
+            const recentPRs = newPRs.filter(pr => 
+              new Date(pr.created_at) >= weekAgo
+            );
+            
+            // Get open issues by priority
+            const { data: openIssues } = await github.rest.issues.listForRepo({
+              owner,
+              repo,
+              state: 'open',
+              per_page: 100
+            });
+            
+            const priorityBreakdown = {
+              critical: openIssues.filter(issue => 
+                issue.labels.some(label => label.name === 'priority::critical')
+              ).length,
+              high: openIssues.filter(issue => 
+                issue.labels.some(label => label.name === 'priority::high')
+              ).length,
+              medium: openIssues.filter(issue => 
+                issue.labels.some(label => label.name === 'priority::medium')
+              ).length,
+              low: openIssues.filter(issue => 
+                issue.labels.some(label => label.name === 'priority::low')
+              ).length
+            };
+            
+            // Calculate velocity metrics
+            const closedLastWeek = newIssues.filter(issue => 
+              issue.state === 'closed' && new Date(issue.closed_at) >= weekAgo
+            ).length;
+            
+            // Get current date
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Generate issues list
+            const issuesList = newIssues.filter(issue => new Date(issue.created_at) >= weekAgo)
+              .map(issue => '- #' + issue.number + ': ' + issue.title + ' (' + issue.labels.map(l => l.name).join(', ') + ')')
+              .join('\n') || '_No new issues this week_';
+            
+            // Generate PRs list
+            const prsList = recentPRs.map(pr => 
+              '- #' + pr.number + ': ' + pr.title + ' - ' + pr.state.toUpperCase()
+            ).join('\n') || '_No new pull requests this week_';
+            
+            // Calculate average resolution time
+            const avgResolutionTime = closedLastWeek > 0 ? 
+              '~' + Math.round((Date.now() - weekAgo.getTime()) / (7 * 24 * 60 * 60 * 1000) * closedLastWeek) + ' days' : 'N/A';
+            
+            // Generate development focus message
+            const devFocus = priorityBreakdown.critical > 0 ? 
+              '⚠️ **Attention Required:** ' + priorityBreakdown.critical + ' critical issues need immediate resolution!' : 
+              '✅ **No critical issues** - Great job keeping the project healthy!';
+            
+            // Build report sections
+            const newIssuesCount = newIssues.filter(issue => new Date(issue.created_at) >= weekAgo).length;
+            const currentOpenIssues = openIssues.length;
+            
+            // Generate report
+            const report = [
+              '# 📊 Weekly Progress Report - Shantilly Project',
+              '*Generated on ' + today + '*',
+              '',
+              '## 📈 Activity Summary',
+              '- **New Issues Created:** ' + newIssuesCount,
+              '- **New Pull Requests:** ' + recentPRs.length,
+              '- **Issues Closed:** ' + closedLastWeek,
+              '- **Current Open Issues:** ' + currentOpenIssues,
+              '',
+              '## 🎯 Priority Breakdown (Open Issues)',
+              '- 🔴 Critical: ' + priorityBreakdown.critical,
+              '- 🟠 High: ' + priorityBreakdown.high,
+              '- 🟡 Medium: ' + priorityBreakdown.medium,
+              '- 🟢 Low: ' + priorityBreakdown.low,
+              '',
+              '## 📋 New Issues This Week',
+              issuesList,
+              '',
+              '## 🔄 Pull Requests This Week',
+              prsList,
+              '',
+              '## 🏃 Velocity Metrics',
+              '- **Issues Closed/Week:** ' + closedLastWeek,
+              '- **Average Resolution Time:** ' + avgResolutionTime,
+              '',
+              '## 🚀 Development Focus',
+              devFocus,
+              '',
+              '## 📅 Next Week Goals',
+              '- [ ] Address ' + priorityBreakdown.critical + ' critical issues',
+              '- [ ] Close ' + Math.min(priorityBreakdown.high, 3) + ' high-priority issues',
+              '- [ ] Review and merge ' + recentPRs.filter(pr => pr.state === 'open').length + ' open pull requests',
+              '- [ ] Plan sprint for upcoming week',
+              '',
+              '---',
+              '*This report was automatically generated by GitHub Actions*'
+            ].join('\n');
+            
+            // Create or update issue
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner,
+              repo,
+              state: 'all',
+              labels: 'weekly-report',
+              per_page: 1
+            });
+            
+            const existingReport = issues.find(issue => 
+              issue.title.startsWith('Weekly Progress Report')
+            );
+            
+            if (existingReport) {
+              await github.rest.issues.update({
+                owner,
+                repo,
+                issue_number: existingReport.number,
+                body: report,
+                title: 'Weekly Progress Report - ' + today
+              });
+            } else {
+              await github.rest.issues.create({
+                owner,
+                repo,
+                title: 'Weekly Progress Report - ' + today,
+                body: report,
+                labels: ['weekly-report', 'status::triage']
+              });
+            }

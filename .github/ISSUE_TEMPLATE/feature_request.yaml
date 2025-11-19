@@ -1,0 +1,88 @@
+name: "✨ Feature Request"
+description: "Sugira uma nova funcionalidade"
+title: "[FEATURE] "
+labels: ["type::feature", "status::needs-triage"]
+assignees:
+  - ""
+body:
+
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por sugerir uma nova funcionalidade! Por favor, preencha as informações abaixo.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: "Problema ou necessidade"
+      description: "Qual problema esta funcionalidade resolveria? Quais são as limitações atuais?"
+      placeholder: "Descreva o problema ou necessidade..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: "Solução proposta"
+      description: "Como esta funcionalidade funcionaria? Descreva a solução desejada"
+      placeholder: "Descreva como você imagina a solução..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: "Alternativas consideradas"
+      description: "Que outras soluções você tentou ou considerou?"
+      placeholder: "Descreva as alternativas consideradas..."
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Prioridade"
+      description: "Qual a prioridade desta funcionalidade?"
+      options:
+        - "priority::low"
+        - "priority::medium"
+        - "priority::high"
+        - "priority::critical"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: "Área de impacto"
+      description: "Em qual área do projeto esta funcionalidade teria impacto?"
+      options:
+        - "area::frontend"
+        - "area::backend"
+        - "area::cli"
+        - "area::docs"
+        - "area::devops"
+    validations:
+      required: true
+
+  - type: input
+    id: user_stories
+    attributes:
+      label: "User Stories"
+      description: "Como um [tipo de usuário], eu quero [funcionalidade] para que [benefício]"
+      placeholder: "Como um desenvolvedor de scripts, eu quero..."
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: "Critérios de Aceitação"
+      description: "Como saberemos quando esta funcionalidade está completa?"
+      placeholder: |
+        - [ ] Critério 1
+        - [ ] Critério 2
+        - [ ] Critério 3
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "Contexto adicional"
+      description: "Qualquer informação adicional, screenshots, mockups, etc."
+      placeholder: "Adicione qualquer contexto adicional aqui..."
