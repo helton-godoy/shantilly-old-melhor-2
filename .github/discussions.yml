@@ -1,0 +1,35 @@
+# GitHub Discussions Configuration for Shantilly
+# Categories: Ideas, Q&A, Polls, General
+
+# Each category needs:
+# - name: Display name
+# - about: Description
+# - color: Hex color (without #)
+# - slug: URL-friendly version
+
+categories:
+  - name: Ideas 💡
+    about: Share and discuss new features, enhancements, and creative ideas for Shantilly
+    color: f2d604
+    slug: ideas
+    type: discussion
+    
+  - name: Q&A ❓
+    about: Ask questions, get help, and share knowledge about Shantilly
+    color: c5def5
+    slug: q-and-a
+    type: question
+    
+  - name: Polls 📊
+    about: Gather community feedback and opinions through polls and surveys
+    color: fbca04
+    slug: polls
+    type: poll
+    
+  - name: General 💬
+    about: General discussions, announcements, and community chat
+    color: d4c5f9
+    slug: general
+    type: discussion
+
+# Guidelines for each category will be documented in the Wiki
