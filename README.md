@@ -11,6 +11,12 @@
 [![GitHub stars](https://img.shields.io/github/stars/helton-godoy/shantilly.svg?style=social&label=Star)](https://github.com/helton-godoy/shantilly)
 [![GitHub forks](https://img.shields.io/github/forks/helton-godoy/shantilly.svg?style=social&label=Fork)](https://github.com/helton-godoy/shantilly)
 
+## 🌐 Site Oficial
+
+**Visite [helton-godoy.github.io/shantilly](https://helton-godoy.github.io/shantilly) para documentação completa, demonstrações interativas e guias de início rápido.**
+
+---
+
 > **Runtime TUI Declarativo orientado a eventos** que consome YAML único para definir layout, componentes e lógica de automação.
 
 Shantilly é uma ferramenta CLI escrita em Go que funciona como um intérprete para definições declarativas de TUI (YAML). Permite que desenvolvedores de scripts criem interfaces TUI modernas, ricas e portáveis diretamente de seus scripts shell.
@@ -28,20 +34,24 @@ Shantilly é uma ferramenta CLI escrita em Go que funciona como um intérprete p
 ## 🚀 Instalação Rápida
 
 ### Via Homebrew (macOS/Linux)
+
 ```bash
 brew tap helton-godoy/shantilly
 brew install shantilly
 ```
 
 ### Via Go
+
 ```bash
 go install github.com/helton-godoy/shantilly@latest
 ```
 
 ### Download Binário
+
 Baixe o binário mais recente em [Releases](https://github.com/helton-godoy/shantilly/releases)
 
 ### Verificação
+
 ```bash
 shantilly --version
 ```
@@ -157,15 +167,18 @@ fi
 
 ## 📖 Documentação Completa
 
-- **[User Guide](docs/user-guide.md)** - Guia completo para usuários
+> **Nota:** A documentação está disponível em [Português (PT-BR)](docs/pt-br/) e [Inglês (EN)](docs/en/).
+
+- **[User Guide](docs/pt-br/user-guide.md)** - Guia completo para usuários
 - **[Developer Guide](CONTRIBUTING.md)** - Como contribuir para o projeto
-- **[API Reference](docs/api-reference.md)** - Documentação detalhada da API
+- **[API Reference](docs/pt-br/api-reference.md)** - Documentação detalhada da API
 - **[Examples](examples/)** - Exemplos práticos de uso
-- **[Architecture](docs/architecture.md)** - Arquitetura do projeto
+- **[Architecture](docs/pt-br/architecture.md)** - Arquitetura do projeto
 
 ## 🛠️ Componentes Suportados
 
 ### Campos de Formulário
+
 - `input` - Campo de texto simples
 - `textarea` - Campo de texto multilinha  
 - `select` - Seleção de uma opção
@@ -177,6 +190,7 @@ fi
 - `file` - Seleção de arquivo com filtro de tipos
 
 ### Regras de Validação
+
 - `required` - Campo obrigatório
 - `min`/`max` - Limites numéricos
 - `minLength`/`maxLength` - Limites de comprimento
@@ -184,6 +198,7 @@ fi
 - `fileTypes` - Tipos de arquivo permitidos
 
 ### Recursos Avançados
+
 - Layouts hierárquicos (columns, rows, boxes)
 - Sistema de temas personalizável
 - Suporte completo a mouse
@@ -218,13 +233,16 @@ go run .
 Olá! Você foi encarregado de desenvolver este projeto. Siga estas diretrizes para garantir que seu código seja de alta qualidade:
 
 #### 1. Padrões de Qualidade do Código
+
 A qualidade é garantida pelo `golangci-lint` com regras definidas em `.golangci.yml`:
+
 - **Tratamento de Erros:** Todos os erros devem ser tratados
 - **Performance:** Pré-alocação de slices é obrigatória
 - **Complexidade:** Funções devem ser curtas e focadas
 - **Estilo:** Código deve seguir convenções idiomáticas do Go
 
 #### 2. Fluxo de Desenvolvimento
+
 1. **Desenvolva:** Modifique arquivos Go, atenção aos comentários `// TODO: IA`
 2. **Verificação CI:** GitHub Actions executam:
    - **Lint:** Verifica qualidade do código
@@ -232,6 +250,7 @@ A qualidade é garantida pelo `golangci-lint` com regras definidas em `.golangci
 3. **Correção:** Ambos os checks devem estar verdes
 
 #### 3. Processo de PR
+
 - Use branch `feat/issue-XXX-descricao`
 - Commits seguem [Conventional Commits](https://conventionalcommits.org/)
 - Adicione testes para novas funcionalidades
