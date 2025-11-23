@@ -70,6 +70,7 @@ jobs:
         run: go vet ./...
       - name: Run golangci-lint (non-blocking)
         uses: golangci/golangci-lint-action@v6
+        continue-on-error: true
         with:
           version: v1.59.0 # Mantendo a versão do arquivo original
           # --issues-exit-code=0 mantém os avisos como feedback, mas não falha o job.
