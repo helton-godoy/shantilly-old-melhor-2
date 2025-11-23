@@ -28,6 +28,16 @@ shantilly --file exemplo.yaml > output.json
 ## 📚 Documentação
 
 - [Architecture](pt-br/architecture.md)
+
+## Wiki Expandida
+
+Esta seção contém a documentação ampliada do projeto, integrando recursos do GitHub (issues, discussions, actions) e fluxos de trabalho descritos com diagramas Mermaid.
+
+- [Wiki Expandida](wiki_expanded.md)
+- [Diagrama de Fluxo](diagrams/flow.mmd)
+
+[//]: # (Fim da nova seção)
+
 - [PRD](pt-br/prd.md)
 - [Project Brief](pt-br/project-brief.md)
 - [Contributing](../CONTRIBUTING.md)

@@ -1,0 +1,10 @@
+flowchart TD
+    A[Ideia] --> B[Issue criada]
+    B --> C[Triagem automática]
+    C --> D[Pull Request aberto]
+    D --> E[Revisão + Aprovações]
+    E --> F[Merge na branch develop]
+    F --> G[Deploy de preview (Vercel/Netlify)]
+    G --> H[Merge na branch main]
+    H --> I[Deploy GitHub Pages]
+    I --> J[Site publicado]
