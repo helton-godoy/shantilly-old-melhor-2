@@ -1,0 +1,97 @@
+# Gate QA — 1.x.event-engine.yml
+# Epic 1 - Runtime TUI Declarativo — Fundação do Runtime (v2.0)
+# Bloco: E1.3 - Event Engine (EventManager + ShantillyEvent + on:)
+#
+# Objetivo:
+# - Garantir que toda lógica reativa e de automação passe exclusivamente por:
+#   ShantillyEvent + EventManager + on: + ações declarativas (RunAction, ModalRequest, UpdateState).
+# - Impedir handlers soltos, execuções diretas de scripts e rotas paralelas fora do contrato declarativo v2.0.
+# - Prover critérios objetivos de aprovação para PRs que toquem o Event Engine.
+
+gate_id: "qa-gate-e1.3-event-engine"
+epic: 1
+block: "E1.3"
+name: "Event Engine — EventManager + ShantillyEvent + on:"
+status: "planned"
+owner: "bmad-qa"
+severity: "blocker"
+
+scope:
+  affects:
+    - "docs/stories/3.3.event-engine-and-on-routing.story.md"
+    - "docs/architecture/data-models.md"
+    - "docs/architecture/components.md"
+    - "docs/architecture/core-workflows.md"
+    - "internal/runtime/event/**"
+
+criteria:
+  - id: "E1.3-STORY-1"
+    description: "Story canônica E1.3 descreve EventManager + ShantillyEvent + on: como pipeline único, sem rotas alternativas."
+    files:
+      - "docs/stories/3.3.event-engine-and-on-routing.story.md"
+    required: true
+
+  - id: "E1.3-DATA-1"
+    description: "Modelos OnHandler e ShantillyEvent definidos em docs/architecture/data-models.md estão alinhados: Event vinculado a ShantillyEvent; sem lógica fora de on:."
+    files:
+      - "docs/architecture/data-models.md"
+    required: true
+
+  - id: "E1.3-ARCH-1"
+    description: "Seção EventManager em docs/architecture/components.md o define como roteador único, não executor de scripts, integrando-se apenas via ações declarativas."
+    files:
+      - "docs/architecture/components.md"
+    required: true
+
+  - id: "E1.3-WORKFLOW-1"
+    description: "Core workflows documentam fluxo completo: Component → ShantillyEvent → EventManager → on: → RunAction/Modal/UpdateState → ScriptRunner/Modal Stack/LM."
+    files:
+      - "docs/architecture/core-workflows.md"
+    required: true
+
+  - id: "E1.3-IMPL-1"
+    description: "Existe skeleton de internal/runtime/event/manager.go implementando EventManager como resolvedor de OnHandler, retornando ações declarativas sem executar scripts."
+    files:
+      - "internal/runtime/event/manager.go"
+    required: true
+
+  - id: "E1.3-NO-LOOSE-HANDLERS"
+    description: "Não existem handlers soltos ou chamadas diretas a ScriptRunner/ModalStack fora do pipeline EventManager + on: em internal/runtime/event/**."
+    check:
+      type: "regex_forbidden_any"
+      path: "internal/runtime/event"
+      patterns:
+        - "os\\.Exec"
+        - "ScriptRunner"
+        - "exec\\.Command"
+        - "Run\\("        # uso direto suspeito; ajustar via whitelist no futuro
+    required: true
+
+  - id: "E1.3-NO-BYPASS-LM"
+    description: "LayoutManager não resolve on: nem chama ScriptRunner/ModalStack diretamente; apenas interage via eventos/mensagens."
+    check:
+      type: "regex_forbidden_any"
+      path: "internal/runtime/layout"
+      patterns:
+        - "RunAction"
+        - "on:"
+        - "ScriptRunner"
+        - "OpenModal"
+    required: true
+
+  - id: "E1.3-QA-MATRIX-1"
+    description: "Matriz QA contém linhas E1.3 cobrindo: mapeamento tea/ShantillyEvent, resolução de on:, fluxo UI → on: → ação."
+    files:
+      - "docs/qa/matrix-epic-1-runtime-tui-coverage.md"
+    required: true
+
+pass_conditions:
+  - "Todos os critérios required marcados como atendidos."
+  - "Nenhum padrão regex_forbidden_any encontrado nas áreas monitoradas."
+  - "PRs relevantes descrevem rastreabilidade: Story 3.3 → Arquitetura (data-models/components/core-workflows) → internal/runtime/event/manager.go → este gate."
+
+on_fail:
+  - "Bloquear PR até correção."
+  - "Se encontrado código executando scripts ou abrindo modais diretamente em internal/runtime/event/**, internal/runtime/layout/** ou componentes: marcar como violação de E1.3 e da governança."
+  - "Se detectados handlers de eventos fora do EventManager + on:, exigir refatoração imediata para o pipeline declarativo."
+  - "Se QA Matrix não estiver alinhada (sem linhas E1.3 apropriadas), exigir atualização antes de merge."

@@ -40,7 +40,7 @@ Esta seção contém a documentação ampliada do projeto, integrando recursos d
 
 - [PRD](pt-br/prd.md)
 - [Project Brief](pt-br/project-brief.md)
-- [Contributing](../CONTRIBUTING.md)
+- [Contributing]({{ site.baseurl }}/CONTRIBUTING.md)
 
 ## 🌐 Recursos
 
@@ -56,8 +56,8 @@ Esta seção contém a documentação ampliada do projeto, integrando recursos d
 
 ## 🤝 Contribuindo
 
-Consulte nosso [Guia de Contribuição](../CONTRIBUTING.md) para saber como ajudar no desenvolvimento do Shantilly.
+Consulte nosso [Guia de Contribuição]({{ site.baseurl }}/CONTRIBUTING.md) para saber como ajudar no desenvolvimento do Shantilly.
 
 ## 📄 Licença
 
-MIT License - veja [LICENSE](../LICENSE) para detalhes.
+MIT License - veja [LICENSE]({{ site.baseurl }}/LICENSE) para detalhes.

@@ -1,0 +1,247 @@
+generate-report	Set up job	﻿2025-11-23T04:13:52.2856867Z Current runner version: '2.329.0'
+generate-report	Set up job	2025-11-23T04:13:52.2890137Z ##[group]Runner Image Provisioner
+generate-report	Set up job	2025-11-23T04:13:52.2891584Z Hosted Compute Agent
+generate-report	Set up job	2025-11-23T04:13:52.2892539Z Version: 20251016.436
+generate-report	Set up job	2025-11-23T04:13:52.2893492Z Commit: 8ab8ac8bfd662a3739dab9fe09456aba92132568
+generate-report	Set up job	2025-11-23T04:13:52.2894759Z Build Date: 2025-10-15T20:44:12Z
+generate-report	Set up job	2025-11-23T04:13:52.2895690Z ##[endgroup]
+generate-report	Set up job	2025-11-23T04:13:52.2896485Z ##[group]Operating System
+generate-report	Set up job	2025-11-23T04:13:52.2897304Z Ubuntu
+generate-report	Set up job	2025-11-23T04:13:52.2898176Z 24.04.3
+generate-report	Set up job	2025-11-23T04:13:52.2898895Z LTS
+generate-report	Set up job	2025-11-23T04:13:52.2899706Z ##[endgroup]
+generate-report	Set up job	2025-11-23T04:13:52.2900779Z ##[group]Runner Image
+generate-report	Set up job	2025-11-23T04:13:52.2901757Z Image: ubuntu-24.04
+generate-report	Set up job	2025-11-23T04:13:52.2902605Z Version: 20251112.124.1
+generate-report	Set up job	2025-11-23T04:13:52.2904446Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20251112.124/images/ubuntu/Ubuntu2404-Readme.md
+generate-report	Set up job	2025-11-23T04:13:52.2907091Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20251112.124
+generate-report	Set up job	2025-11-23T04:13:52.2909239Z ##[endgroup]
+generate-report	Set up job	2025-11-23T04:13:52.2911199Z ##[group]GITHUB_TOKEN Permissions
+generate-report	Set up job	2025-11-23T04:13:52.2914071Z Contents: read
+generate-report	Set up job	2025-11-23T04:13:52.2914853Z Metadata: read
+generate-report	Set up job	2025-11-23T04:13:52.2915626Z Packages: read
+generate-report	Set up job	2025-11-23T04:13:52.2916472Z ##[endgroup]
+generate-report	Set up job	2025-11-23T04:13:52.2919282Z Secret source: Actions
+generate-report	Set up job	2025-11-23T04:13:52.2920556Z Prepare workflow directory
+generate-report	Set up job	2025-11-23T04:13:52.3377325Z Prepare all required actions
+generate-report	Set up job	2025-11-23T04:13:52.3433591Z Getting action download info
+generate-report	Set up job	2025-11-23T04:13:52.5852737Z Download action repository 'actions/github-script@v7' (SHA:f28e40c7f34bde8b3046d885e986cb6290c5673b)
+generate-report	Set up job	2025-11-23T04:13:52.9491512Z Complete job name: generate-report
+generate-report	Generate Weekly Report	﻿2025-11-23T04:13:53.0239055Z ##[group]Run actions/github-script@v7
+generate-report	Generate Weekly Report	2025-11-23T04:13:53.0239942Z with:
+generate-report	Generate Weekly Report	2025-11-23T04:13:53.0260666Z   script: const { owner, repo } = context.repo;
+generate-report	Generate Weekly Report	const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+generate-report	Generate Weekly Report	
+generate-report	Generate Weekly Report	// Get issues created in the last week
+generate-report	Generate Weekly Report	const { data: newIssues } = await github.rest.issues.listForRepo({
+generate-report	Generate Weekly Report	  owner,
+generate-report	Generate Weekly Report	  repo,
+generate-report	Generate Weekly Report	  state: 'all',
+generate-report	Generate Weekly Report	  since: weekAgo.toISOString(),
+generate-report	Generate Weekly Report	  per_page: 100
+generate-report	Generate Weekly Report	});
+generate-report	Generate Weekly Report	
+generate-report	Generate Weekly Report	// Get PRs created in the last week
+generate-report	Generate Weekly Report	const { data: newPRs } = await github.rest.pulls.list({
+generate-report	Generate Weekly Report	  owner,
+generate-report	Generate Weekly Report	  repo,
+generate-report	Generate Weekly Report	  state: 'all',
+generate-report	Generate Weekly Report	  per_page: 100
+generate-report	Generate Weekly Report	});
+generate-report	Generate Weekly Report	
+generate-report	Generate Weekly Report	// Filter PRs by creation date
+generate-report	Generate Weekly Report	const recentPRs = newPRs.filter(pr => 
+generate-report	Generate Weekly Report	  new Date(pr.created_at) >= weekAgo
+generate-report	Generate Weekly Report	);
+generate-report	Generate Weekly Report	
+generate-report	Generate Weekly Report	// Get open issues by priority
+generate-report	Generate Weekly Report	const { data: openIssues } = await github.rest.issues.listForRepo({
+generate-report	Generate Weekly Report	  owner,
+generate-report	Generate Weekly Report	  repo,
+generate-report	Generate Weekly Report	  state: 'open',
+generate-report	Generate Weekly Report	  per_page: 100
+generate-report	Generate Weekly Report	});
+generate-report	Generate Weekly Report	
+generate-report	Generate Weekly Report	const priorityBreakdown = {
+generate-report	Generate Weekly Report	  critical: openIssues.filter(issue => 
+generate-report	Generate Weekly Report	    issue.labels.some(label => label.name === 'priority::critical')
+generate-report	Generate Weekly Report	  ).length,
+generate-report	Generate Weekly Report	  high: openIssues.filter(issue => 
+generate-report	Generate Weekly Report	    issue.labels.some(label => label.name === 'priority::high')
+generate-report	Generate Weekly Report	  ).length,
+generate-report	Generate Weekly Report	  medium: openIssues.filter(issue => 
+generate-report	Generate Weekly Report	    issue.labels.some(label => label.name === 'priority::medium')
+generate-report	Generate Weekly Report	  ).length,
+generate-report	Generate Weekly Report	  low: openIssues.filter(issue => 
+generate-report	Generate Weekly Report	    issue.labels.some(label => label.name === 'priority::low')
+generate-report	Generate Weekly Report	  ).length
+generate-report	Generate Weekly Report	};
+generate-report	Generate Weekly Report	
+generate-report	Generate Weekly Report	// Calculate velocity metrics
+generate-report	Generate Weekly Report	const closedLastWeek = newIssues.filter(issue => 
+generate-report	Generate Weekly Report	  issue.state === 'closed' && new Date(issue.closed_at) >= weekAgo
+generate-report	Generate Weekly Report	).length;
+generate-report	Generate Weekly Report	
+generate-report	Generate Weekly Report	// Get current date
+generate-report	Generate Weekly Report	const today = new Date().toISOString().split('T')[0];
+generate-report	Generate Weekly Report	
+generate-report	Generate Weekly Report	// Generate issues list
+generate-report	Generate Weekly Report	const issuesList = newIssues.filter(issue => new Date(issue.created_at) >= weekAgo)
+generate-report	Generate Weekly Report	  .map(issue => '- #' + issue.number + ': ' + issue.title + ' (' + issue.labels.map(l => l.name).join(', ') + ')')
+generate-report	Generate Weekly Report	  .join('\n') || '_No new issues this week_';
+generate-report	Generate Weekly Report	
+generate-report	Generate Weekly Report	// Generate PRs list
+generate-report	Generate Weekly Report	const prsList = recentPRs.map(pr => 
+generate-report	Generate Weekly Report	  '- #' + pr.number + ': ' + pr.title + ' - ' + pr.state.toUpperCase()
+generate-report	Generate Weekly Report	).join('\n') || '_No new pull requests this week_';
+generate-report	Generate Weekly Report	
+generate-report	Generate Weekly Report	// Calculate average resolution time
+generate-report	Generate Weekly Report	const avgResolutionTime = closedLastWeek > 0 ? 
+generate-report	Generate Weekly Report	  '~' + Math.round((Date.now() - weekAgo.getTime()) / (7 * 24 * 60 * 60 * 1000) * closedLastWeek) + ' days' : 'N/A';
+generate-report	Generate Weekly Report	
+generate-report	Generate Weekly Report	// Generate development focus message
+generate-report	Generate Weekly Report	const devFocus = priorityBreakdown.critical > 0 ? 
+generate-report	Generate Weekly Report	  '⚠️ **Attention Required:** ' + priorityBreakdown.critical + ' critical issues need immediate resolution!' : 
+generate-report	Generate Weekly Report	  '✅ **No critical issues** - Great job keeping the project healthy!';
+generate-report	Generate Weekly Report	
+generate-report	Generate Weekly Report	// Build report sections
+generate-report	Generate Weekly Report	const newIssuesCount = newIssues.filter(issue => new Date(issue.created_at) >= weekAgo).length;
+generate-report	Generate Weekly Report	const currentOpenIssues = openIssues.length;
+generate-report	Generate Weekly Report	
+generate-report	Generate Weekly Report	// Generate report
+generate-report	Generate Weekly Report	const report = [
+generate-report	Generate Weekly Report	  '# 📊 Weekly Progress Report - Shantilly Project',
+generate-report	Generate Weekly Report	  '*Generated on ' + today + '*',
+generate-report	Generate Weekly Report	  '',
+generate-report	Generate Weekly Report	  '## 📈 Activity Summary',
+generate-report	Generate Weekly Report	  '- **New Issues Created:** ' + newIssuesCount,
+generate-report	Generate Weekly Report	  '- **New Pull Requests:** ' + recentPRs.length,
+generate-report	Generate Weekly Report	  '- **Issues Closed:** ' + closedLastWeek,
+generate-report	Generate Weekly Report	  '- **Current Open Issues:** ' + currentOpenIssues,
+generate-report	Generate Weekly Report	  '',
+generate-report	Generate Weekly Report	  '## 🎯 Priority Breakdown (Open Issues)',
+generate-report	Generate Weekly Report	  '- 🔴 Critical: ' + priorityBreakdown.critical,
+generate-report	Generate Weekly Report	  '- 🟠 High: ' + priorityBreakdown.high,
+generate-report	Generate Weekly Report	  '- 🟡 Medium: ' + priorityBreakdown.medium,
+generate-report	Generate Weekly Report	  '- 🟢 Low: ' + priorityBreakdown.low,
+generate-report	Generate Weekly Report	  '',
+generate-report	Generate Weekly Report	  '## 📋 New Issues This Week',
+generate-report	Generate Weekly Report	  issuesList,
+generate-report	Generate Weekly Report	  '',
+generate-report	Generate Weekly Report	  '## 🔄 Pull Requests This Week',
+generate-report	Generate Weekly Report	  prsList,
+generate-report	Generate Weekly Report	  '',
+generate-report	Generate Weekly Report	  '## 🏃 Velocity Metrics',
+generate-report	Generate Weekly Report	  '- **Issues Closed/Week:** ' + closedLastWeek,
+generate-report	Generate Weekly Report	  '- **Average Resolution Time:** ' + avgResolutionTime,
+generate-report	Generate Weekly Report	  '',
+generate-report	Generate Weekly Report	  '## 🚀 Development Focus',
+generate-report	Generate Weekly Report	  devFocus,
+generate-report	Generate Weekly Report	  '',
+generate-report	Generate Weekly Report	  '## 📅 Next Week Goals',
+generate-report	Generate Weekly Report	  '- [ ] Address ' + priorityBreakdown.critical + ' critical issues',
+generate-report	Generate Weekly Report	  '- [ ] Close ' + Math.min(priorityBreakdown.high, 3) + ' high-priority issues',
+generate-report	Generate Weekly Report	  '- [ ] Review and merge ' + recentPRs.filter(pr => pr.state === 'open').length + ' open pull requests',
+generate-report	Generate Weekly Report	  '- [ ] Plan sprint for upcoming week',
+generate-report	Generate Weekly Report	  '',
+generate-report	Generate Weekly Report	  '---',
+generate-report	Generate Weekly Report	  '*This report was automatically generated by GitHub Actions*'
+generate-report	Generate Weekly Report	].join('\n');
+generate-report	Generate Weekly Report	
+generate-report	Generate Weekly Report	// Create or update issue
+generate-report	Generate Weekly Report	const { data: issues } = await github.rest.issues.listForRepo({
+generate-report	Generate Weekly Report	  owner,
+generate-report	Generate Weekly Report	  repo,
+generate-report	Generate Weekly Report	  state: 'all',
+generate-report	Generate Weekly Report	  labels: 'weekly-report',
+generate-report	Generate Weekly Report	  per_page: 1
+generate-report	Generate Weekly Report	});
+generate-report	Generate Weekly Report	
+generate-report	Generate Weekly Report	const existingReport = issues.find(issue => 
+generate-report	Generate Weekly Report	  issue.title.startsWith('Weekly Progress Report')
+generate-report	Generate Weekly Report	);
+generate-report	Generate Weekly Report	
+generate-report	Generate Weekly Report	if (existingReport) {
+generate-report	Generate Weekly Report	  await github.rest.issues.update({
+generate-report	Generate Weekly Report	    owner,
+generate-report	Generate Weekly Report	    repo,
+generate-report	Generate Weekly Report	    issue_number: existingReport.number,
+generate-report	Generate Weekly Report	    body: report,
+generate-report	Generate Weekly Report	    title: 'Weekly Progress Report - ' + today
+generate-report	Generate Weekly Report	  });
+generate-report	Generate Weekly Report	} else {
+generate-report	Generate Weekly Report	  await github.rest.issues.create({
+generate-report	Generate Weekly Report	    owner,
+generate-report	Generate Weekly Report	    repo,
+generate-report	Generate Weekly Report	    title: 'Weekly Progress Report - ' + today,
+generate-report	Generate Weekly Report	    body: report,
+generate-report	Generate Weekly Report	    labels: ['weekly-report', 'status::triage']
+generate-report	Generate Weekly Report	  });
+generate-report	Generate Weekly Report	}
+generate-report	Generate Weekly Report	
+generate-report	Generate Weekly Report	2025-11-23T04:13:53.0282740Z   github-token: ***
+generate-report	Generate Weekly Report	2025-11-23T04:13:53.0283147Z   debug: false
+generate-report	Generate Weekly Report	2025-11-23T04:13:53.0283565Z   user-agent: actions/github-script
+generate-report	Generate Weekly Report	2025-11-23T04:13:53.0284066Z   result-encoding: json
+generate-report	Generate Weekly Report	2025-11-23T04:13:53.0284476Z   retries: 0
+generate-report	Generate Weekly Report	2025-11-23T04:13:53.0284911Z   retry-exempt-status-codes: 400,401,403,404,422
+generate-report	Generate Weekly Report	2025-11-23T04:13:53.0285756Z ##[endgroup]
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1337458Z RequestError [HttpError]: Resource not accessible by integration
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1375088Z ##[error]Unhandled error: HttpError: Resource not accessible by integration
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1383912Z     at /home/runner/work/_actions/actions/github-script/v7/dist/index.js:9537:21
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1385414Z     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1388351Z     at async eval (eval at callAsyncFunction (/home/runner/work/_actions/actions/github-script/v7/dist/index.js:36187:16), <anonymous>:144:3)
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1391011Z     at async main (/home/runner/work/_actions/actions/github-script/v7/dist/index.js:36285:20) {
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1392446Z   status: 403,
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1393098Z   response: {
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1394089Z     url: 'https://api.github.com/repos/helton-godoy/shantilly/issues',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1395289Z     status: 403,
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1395956Z     headers: {
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1396661Z       'access-control-allow-origin': '*',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1401697Z       'access-control-expose-headers': 'ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1406968Z       'content-encoding': 'gzip',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1408359Z       'content-security-policy': "default-src 'none'",
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1409786Z       'content-type': 'application/json; charset=utf-8',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1411271Z       date: 'Sun, 23 Nov 2025 04:13:54 GMT',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1412997Z       'referrer-policy': 'origin-when-cross-origin, strict-origin-when-cross-origin',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1414814Z       server: 'github.com',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1416338Z       'strict-transport-security': 'max-age=31536000; includeSubdomains; preload',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1418105Z       'transfer-encoding': 'chunked',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1419328Z       vary: 'Accept-Encoding, Accept, X-Requested-With',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1420957Z       'x-accepted-github-permissions': 'issues=write',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1422424Z       'x-content-type-options': 'nosniff',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1423819Z       'x-frame-options': 'deny',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1425169Z       'x-github-api-version-selected': '2022-11-28',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1426756Z       'x-github-media-type': 'github.v3; format=json',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1428555Z       'x-github-request-id': '0C02:2CFEBD:794FC8:224DF82:69228A02',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1430242Z       'x-ratelimit-limit': '5000',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1432007Z       'x-ratelimit-remaining': '4901',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1433432Z       'x-ratelimit-reset': '1763873317',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1434816Z       'x-ratelimit-resource': 'core',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1436159Z       'x-ratelimit-used': '99',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1437457Z       'x-xss-protection': '0'
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1438631Z     },
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1439556Z     data: {
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1440846Z       message: 'Resource not accessible by integration',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1443062Z       documentation_url: 'https://docs.github.com/rest/issues/issues#create-an-issue',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1445336Z       status: '403'
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1446350Z     }
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1447251Z   },
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1448154Z   request: {
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1449119Z     method: 'POST',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1450695Z     url: 'https://api.github.com/repos/helton-godoy/shantilly/issues',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1452467Z     headers: {
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1453579Z       accept: 'application/vnd.github.v3+json',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1455715Z       'user-agent': 'actions/github-script octokit-core.js/5.0.1 Node.js/20.19.5 (linux; x64)',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1457843Z       authorization: 'token [REDACTED]',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1459340Z       'content-type': 'application/json; charset=utf-8'
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1460886Z     },
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1544519Z     body: '{"title":"Weekly Progress Report - 2025-11-23","body":"# 📊 Weekly Progress Report - Shantilly Project\\n*Generated on 2025-11-23*\\n\\n## 📈 Activity Summary\\n- **New Issues Created:** 58\\n- **New Pull Requests:** 2\\n- **Issues Closed:** 3\\n- **Current Open Issues:** 56\\n\\n## 🎯 Priority Breakdown (Open Issues)\\n- 🔴 Critical: 2\\n- 🟠 High: 24\\n- 🟡 Medium: 20\\n- 🟢 Low: 4\\n\\n## 📋 New Issues This Week\\n- #64: Documentation Portal (priority::medium, type::documentation, epic::e16, area::docs)\\n- #63: Performance Optimization (priority::medium, type::optimization, epic::e15, area::performance)\\n- #62: Enhanced Security Policies (priority::medium, type::security, area::security, epic::e14)\\n- #61: Multi-tenant Support (priority::low, type::feature, epic::e13, area::enterprise)\\n- #60: Plugin Architecture (priority::low, type::feature, epic::e12, area::extensibility)\\n- #59: Advanced Layout System (priority::medium, type::feature, area::ui, epic::e11)\\n- #58: Predictive Runtime Components (priority::medium, type::feature, epic::e10, area::ai)\\n- #57: SSH Server Mode Implementation (priority::medium, type::feature, epic::e9, area::server)\\n- #56: Ansible Runner Integration (priority::high, type::feature, area::integrations, epic::e8)\\n- #55: Hardening Security JIT Anti-Trojan (priority::critical, type::security, area::security, epic::e7)\\n- #54: Encapsulamento FormComponent Legacy (priority::medium, type::refactor, epic::e6, area::legacy)\\n- #53: Modal Stack & JIT Security (E15) (priority::high, type::feature, area::security, epic::e5)\\n- #52: ScriptRunner Execution Declarativa (E14) (priority::high, type::feature, area::runtime, epic::e4)\\n- #51: Event Engine & on: Routing (priority::high, type::feature, area::core, epic::e3)\\n- #50: Basic Multi-Panel Navigation (priority::high, type::feature, area::ui, epic::e3)\\n- #49: Enhanced Error Handling & UX (priority::medium, type::feature, area::ui, epic::e2)\\n- #48: Advanced Form Types & Validation (priority::high, type::feature, area::core, epic::e2)\\n- #47: Static Build & Distribution (priority::medium, type::task, area::infrastructure, epic::e1)\\n- #46: Basic Styling & Alignment (priority::medium, type::feature, area::ui, epic::e1)\\n- #45: Submission & JSON Output (priority::high, type::feature, area::core, epic::e1)\\n- #44: Keyboard Navigation & Interaction (priority::high, type::feature, area::ui, epic::e1)\\n- #43: Form Rendering with huh (priority::high, type::feature, area::ui, epic::e1)\\n- #42: Basic TUI Structure with Bubble Tea (priority::high, type::feature, area::ui, epic::e1)\\n- #41: YAML Configuration Parsing (priority::high, type::feature, area::core, epic::e1)\\n- #40: CLI Foundation & Project Structure (priority::high, type::feature, area::core, epic::e1)\\n- #39: Tarefas pendentes do site: Wiki Expandida, Diagramas e GitHub Pages (documentation, site, github-pages)\\n- #38: chore: add package-lock.json for GitHub Actions cache ()\\n- #37: feat: migrate shantilly-site to GitHub Pages ()\\n- #36: Documentation Portal (priority::medium, type::documentation, epic::e16, area::docs)\\n- #35: Performance Optimization (priority::medium, type::optimization, epic::e15, area::performance)\\n- #34: Enhanced Security Policies (priority::medium, type::security, area::security, epic::e14)\\n- #33: Multi-tenant Support (priority::low, type::feature, epic::e13, area::enterprise)\\n- #32: Plugin Architecture (priority::low, type::feature, epic::e12, area::extensibility)\\n- #31: Advanced Layout System (priority::medium, type::feature, area::ui, epic::e11)\\n- #30: Predictive Runtime Components (priority::medium, type::feature, epic::e10, area::ai)\\n- #29: SSH Server Mode Implementation (priority::medium, type::feature, epic::e9, area::server)\\n- #28: Ansible Runner Integration (priority::high, type::feature, area::integrations, epic::e8)\\n- #27: Hardening Security JIT Anti-Trojan (priority::critical, type::security, area::security, epic::e7)\\n- #26: Encapsulamento FormComponent Legacy (priority::medium, type::refactor, epic::e6, area::legacy)\\n- #25: Modal Stack & JIT Security (E15) (priority::high, type::feature, area::security, epic::e5)\\n- #24: ScriptRunner Execution Declarativa (E14) (priority::high, type::feature, area::runtime, epic::e4)\\n- #23: Event Engine & on: Routing (priority::high, type::feature, area::core, epic::e3)\\n- #22: Basic Multi-Panel Navigation (priority::high, type::feature, area::ui, epic::e3)\\n- #21: Enhanced Error Handling & UX (priority::medium, type::feature, area::ui, epic::e2)\\n- #20: Advanced Form Types & Validation (priority::high, type::feature, area::core, epic::e2)\\n- #19: Static Build & Distribution (priority::medium, type::task, area::infrastructure, epic::e1)\\n- #18: Basic Styling & Alignment (priority::medium, type::feature, area::ui, epic::e1)\\n- #17: Submission & JSON Output (priority::high, type::feature, area::core, epic::e1)\\n- #16: Keyboard Navigation & Interaction (priority::high, type::feature, area::ui, epic::e1)\\n- #15: Form Rendering with huh (priority::high, type::feature, area::ui, epic::e1)\\n- #14: Basic TUI Structure with Bubble Tea (priority::high, type::feature, area::ui, epic::e1)\\n- #13: YAML Configuration Parsing (priority::high, type::feature, area::core, epic::e1)\\n- #12: CLI Foundation & Project Structure (priority::high, type::feature, area::core, epic::e1)\\n- #11: 🚀 Sprint 4: Alpha Release v1.0 ()\\n- #10: 🔗 Sprint 3: Integration & Polish - Alpha v1.0 ()\\n- #9: 🔧 Finalizar PR #6 - Foundation Runtime v2.0 ()\\n- #8: 🎨 Sprint 2: Core TUI Components - Alpha v1.0 ()\\n- #7: 🚀 Sprint 1: Foundation Runtime - Alpha v1.0 ()\\n\\n## 🔄 Pull Requests This Week\\n- #38: chore: add package-lock.json for GitHub Actions cache - CLOSED\\n- #37: feat: migrate shantilly-site to GitHub Pages - CLOSED\\n\\n## 🏃 Velocity Metrics\\n- **Issues Closed/Week:** 3\\n- **Average Resolution Time:** ~3 days\\n\\n## 🚀 Development Focus\\n⚠️ **Attention Required:** 2 critical issues need immediate resolution!\\n\\n## 📅 Next Week Goals\\n- [ ] Address 2 critical issues\\n- [ ] Close 3 high-priority issues\\n- [ ] Review and merge 0 open pull requests\\n- [ ] Plan sprint for upcoming week\\n\\n---\\n*This report was automatically generated by GitHub Actions*","labels":["weekly-report","status::triage"]}',
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1615061Z     request: {
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1615976Z       agent: [Agent],
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1616960Z       fetch: [Function: proxyFetch],
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1618159Z       hook: [Function: bound bound register]
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1619326Z     }
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1620105Z   }
+generate-report	Generate Weekly Report	2025-11-23T04:13:54.1620961Z }
+generate-report	Complete job	﻿2025-11-23T04:13:54.1740277Z Cleaning up orphan processes

@@ -1,0 +1,71 @@
+name: Release Notes Stubs
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  create-stubs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Determine tag name
+        id: vars
+        run: |
+          echo "tag_name=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Create release stub files if missing
+        run: |
+          TAG="${{ steps.vars.outputs.tag_name }}"
+          echo "Using tag: $TAG"
+
+          mkdir -p docs/pt-br/release docs/en/release
+
+          PT_FILE="docs/pt-br/release/${TAG}.md"
+          EN_FILE="docs/en/release/${TAG}.md"
+
+          if [ ! -f "$PT_FILE" ]; then
+            cat > "$PT_FILE" <<EOF
+# ${TAG} – Notas de lançamento (PT-BR)
+
+> Stub automático gerado para a versão ${TAG}.
+> Preencha aqui as notas detalhadas em português.
+
+EOF
+          fi
+
+          if [ ! -f "$EN_FILE" ]; then
+            cat > "$EN_FILE" <<EOF
+# ${TAG} – Release notes (EN)
+
+> Automatically generated stub for version ${TAG}.
+> Add detailed release notes in English here.
+
+EOF
+          fi
+
+      - name: Commit and push changes (if any)
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          TAG="${{ steps.vars.outputs.tag_name }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add docs/pt-br/release docs/en/release
+          git commit -m "chore: add release stubs for ${TAG}"
+          git push origin main

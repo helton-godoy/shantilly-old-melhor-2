@@ -1,0 +1,57 @@
+# .github/workflows/external-notifications.yml
+# Skeleton workflow for external notifications (Slack / Discord).
+# IMPORTANT: This workflow currently does NOT send any external messages.
+# It only logs events so you can later wire real webhooks when you are ready.
+
+name: External Notifications (Skeleton)
+
+on:
+  # Trigger on completion of key workflows
+  workflow_run:
+    workflows:
+      - Build and Test
+      - Lint
+      - Release
+    types:
+      - completed
+
+  # Trigger when a release is published
+  release:
+    types:
+      - published
+
+  # Trigger for issues, especially useful for critical ones
+  issues:
+    types:
+      - opened
+      - labeled
+
+permissions:
+  contents: read
+  issues: read
+  actions: read
+
+jobs:
+  notify_slack:
+    name: Slack Notification (skeleton)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log event for Slack (no-op)
+        run: |
+          echo "[Slack skeleton] Event name: ${{ github.event_name }}"
+          echo "[Slack skeleton] Workflow: ${{ github.workflow }}"
+          echo "[Slack skeleton] Action: ${{ github.event.action || '' }}"
+          echo "[Slack skeleton] No message is being sent to Slack."
+          echo "[Slack skeleton] When ready, edit this job to call your SLACK_WEBHOOK_URL."
+
+  notify_discord:
+    name: Discord Notification (skeleton)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log event for Discord (no-op)
+        run: |
+          echo "[Discord skeleton] Event name: ${{ github.event_name }}"
+          echo "[Discord skeleton] Workflow: ${{ github.workflow }}"
+          echo "[Discord skeleton] Action: ${{ github.event.action || '' }}"
+          echo "[Discord skeleton] No message is being sent to Discord."
+          echo "[Discord skeleton] When ready, edit this job to call your DISCORD_WEBHOOK_URL."
