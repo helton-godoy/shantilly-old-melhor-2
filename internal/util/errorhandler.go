@@ -32,7 +32,7 @@ func Handle(err error) {
 
 	// Check for specific error types
 	// Check if it's our specific abort error OR if it's the standard bubbletea Quit message
-	if errors.Is(err, ErrAborted) || errors.As(err, &tea.QuitMsg{}) {
+	if errors.Is(err, ErrAborted) {
 		exitCode = ExitCancelled
 		// Optionally print a message for cancellation
 		// fmt.Fprintln(os.Stderr, "Operation cancelled.")
