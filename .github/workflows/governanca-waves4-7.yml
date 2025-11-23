@@ -89,10 +89,13 @@ jobs:
 
       - name: Gate 1.x.no-osexit-core
         run: |
-          echo "Verificando uso de os.Exit fora de cmd/shantilly/main.go..."
-          violations=$(grep -RIn "os.Exit" --exclude-dir=.git --exclude="cmd/shantilly/main.go" || true)
+          echo "Verificando uso de os.Exit fora de cmd/shantilly/main.go (apenas código Go)..."
+          violations=$(grep -RIn "os.Exit" internal pkg cmd \
+            --include="*.go" \
+            --exclude-dir=".git" \
+            --exclude="cmd/shantilly/main.go" || true)
           if [ -n "$violations" ]; then
-            echo "FALHA: Encontrado os.Exit fora de cmd/shantilly/main.go:"
+            echo "FALHA: Encontrado os.Exit fora de cmd/shantilly/main.go em código Go:"
             echo "$violations"
             exit 1
           fi
