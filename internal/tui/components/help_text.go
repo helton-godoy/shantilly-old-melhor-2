@@ -42,7 +42,8 @@ func (h *HelpText) Render() string {
 		return h.theme.FieldInput.Render("Ajuda: " + help)
 	}
 
-	return ""
+	// Quando a ajuda está visível mas não há campo atual, renderiza um placeholder genérico.
+	return h.theme.FieldInput.Render("Ajuda disponível. Use TAB ou as setas para navegar pelos campos.")
 }
 
 // IsHelpVisible retorna se a ajuda está visível.

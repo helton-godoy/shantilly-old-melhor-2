@@ -125,6 +125,7 @@ func ShantillyEventFromModalConfirm(id string, vals map[string]interface{}) decl
 		Payload: payload,
 	}
 }
+
 func ShantillyEventFromModalCancel(id string) declarative.ShantillyEvent {
 	return declarative.ShantillyEvent{
 		Type:    modal.ModalCancelledType,

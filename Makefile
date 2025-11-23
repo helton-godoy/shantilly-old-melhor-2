@@ -14,7 +14,7 @@ BINARY_DIR=bin
 PLATFORMS := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64
 
 # Targets
-.PHONY: all build test lint clean build-all $(PLATFORMS)
+.PHONY: all build test vet lint ci clean build-all $(PLATFORMS)
 
 all: build
 
@@ -26,9 +26,19 @@ test:
 	@echo "Running tests..."
 	$(GOTEST) -v -race ./...
 
+vet:
+	@echo "Running go vet..."
+	$(GOCMD) vet ./...
+
 lint:
 	@echo "Running linter..."
 	@$(GOLINT)
+
+ci:
+	@echo "Running full CI suite (test + vet + lint)..."
+	@$(MAKE) test
+	@$(MAKE) vet
+	@$(MAKE) lint
 
 clean:
 	@echo "Cleaning..."

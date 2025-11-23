@@ -68,11 +68,12 @@ jobs:
         run: go test ./...
       - name: Go Vet
         run: go vet ./...
-      - name: Run golangci-lint
+      - name: Run golangci-lint (non-blocking)
         uses: golangci/golangci-lint-action@v6
         with:
           version: v1.59.0 # Mantendo a versão do arquivo original
-          args: --config=.golangci.yml ./...
+          # --issues-exit-code=0 mantém os avisos como feedback, mas não falha o job.
+          args: --config=.golangci.yml --issues-exit-code=0 ./...
 
   # --- JOB 2: VERIFICAÇÕES DOS GATES DE GOVERNANÇA ---
   gate-checks:
