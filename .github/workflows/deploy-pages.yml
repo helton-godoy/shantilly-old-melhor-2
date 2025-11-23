@@ -43,6 +43,9 @@ jobs:
         uses: actions/configure-pages@v4
 
       - name: Upload artifact
+        # Em execuções locais com act, o runtime de artifacts não está disponível.
+        # Pulamos este passo para evitar erros de ACTIONS_RUNTIME_TOKEN ausente.
+        if: ${{ !env.ACT }}
         uses: actions/upload-pages-artifact@v3
         with:
           path: 'site/dist'
