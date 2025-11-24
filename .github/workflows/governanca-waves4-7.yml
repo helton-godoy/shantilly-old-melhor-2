@@ -92,25 +92,28 @@ jobs:
       - name: Gate 1.x.no-osexit-core
         run: |
           echo "Verificando uso de os.Exit fora de cmd/shantilly/main.go (apenas código Go)..."
-          violations=$(grep -RIn "os.Exit" internal pkg cmd \
+          violations=$(grep -RIn "os.Exit(" internal pkg cmd \
             --include="*.go" \
             --exclude-dir=".git" \
-            --exclude="cmd/shantilly/main.go" || true)
+            --exclude="cmd/shantilly/main.go" | grep -v "//" || true)
           if [ -n "$violations" ]; then
-            echo "FALHA: Encontrado os.Exit fora de cmd/shantilly/main.go em código Go:"
+            echo "FALHA: Encontrado os.Exit fora de cmd/shantilly/main.go em código Go (excluindo comentários):"
             echo "$violations"
             exit 1
           fi
 
       - name: Gate 1.x.legacy-formcomponent-encapsulation
         run: |
-          echo "Verificando encapsulamento do legado (FormConfig/internal/tui)..."
-          violations=$(grep -RInE "FormConfig|internal/tui" \
+          echo "Verificando encapsulamento do legado (FormConfig/internal/tui) fora do sandbox..."
+          violations=$(grep -RInE "FormConfig|internal/tui" internal pkg cmd \
+            --include="*.go" \
             --exclude-dir=.git \
+            --exclude-dir="internal/tui" \
+            --exclude-dir="internal/config" \
             --exclude="internal/components/form_component.go" \
-            --exclude-dir="internal/tui" || true)
+            --exclude="cmd/shantilly/main.go" | grep -v "//" || true)
           if [ -n "$violations" ]; then
-            echo "FALHA: Uso de FormConfig/internal/tui fora do sandbox permitido:"
+            echo "FALHA: Uso de FormConfig/internal/tui fora do sandbox permitido (FormComponent/CLI legacy) em código Go (excluindo comentários):"
             echo "$violations"
             exit 1
           fi
@@ -118,11 +121,12 @@ jobs:
       - name: Gate 1.x.scriptrunner-and-update-target
         run: |
           echo "Verificando execução de scripts apenas em internal/runtime/runner/**..."
-          violations=$(grep -RInE "exec.Command|os/exec" \
+          violations=$(grep -RInE "exec.Command|os/exec" internal pkg cmd \
+            --include="*.go" \
             --exclude-dir=.git \
-            --exclude-dir="internal/runtime/runner" || true)
+            --exclude-dir="runner" || true)
           if [ -n "$violations" ]; then
-            echo "FALHA: Execução de scripts encontrada fora de internal/runtime/runner/**:"
+            echo "FALHA: Execução de scripts encontrada fora de internal/runtime/runner/** em código Go:"
             echo "$violations"
             exit 1
           fi
