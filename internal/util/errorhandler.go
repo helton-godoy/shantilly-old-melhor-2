@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 // Exit codes
