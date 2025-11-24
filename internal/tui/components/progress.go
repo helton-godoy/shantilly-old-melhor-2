@@ -3,17 +3,19 @@ package components
 import (
 	"fmt"
 	"strings"
+
+	"shantilly/internal/tui"
 )
 
 // ProgressIndicator é um componente para exibir o progresso do preenchimento do formulário.
 type ProgressIndicator struct {
 	completed int
 	total     int
-	theme     *Theme
+	theme     *tui.Theme
 }
 
 // NewProgressIndicator cria um novo ProgressIndicator.
-func NewProgressIndicator(theme *Theme) *ProgressIndicator {
+func NewProgressIndicator(theme *tui.Theme) *ProgressIndicator {
 	return &ProgressIndicator{
 		theme: theme,
 	}

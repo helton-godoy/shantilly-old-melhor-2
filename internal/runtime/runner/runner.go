@@ -129,6 +129,7 @@ type EventSink interface {
 	EmitEvent(ev ShantillyEvent)
 	EmitUpdate(update UpdateTargetUpdate)
 }
+
 func NewScriptRunner(sink EventSink, policy *SecurityPolicy) *ScriptRunner {
 	r := &ScriptRunner{
 		processes:       make(map[string]*managedProcess),
