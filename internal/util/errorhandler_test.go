@@ -4,127 +4,95 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"os"
-	"os/exec"
 	"strings"
 	"testing"
 )
 
+func captureStderr(t *testing.T, fn func()) string {
+	t.Helper()
+
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("Erro ao criar pipe: %v", err)
+	}
+
+	oldStderr := os.Stderr
+	os.Stderr = w
+
+	fn()
+
+	_ = w.Close()
+	os.Stderr = oldStderr
+
+	var buf bytes.Buffer
+	if _, err := io.Copy(&buf, r); err != nil {
+		t.Fatalf("Erro ao ler stderr: %v", err)
+	}
+	_ = r.Close()
+
+	return buf.String()
+}
+
 // TestHandle_NilError testa que Handle(nil) sai com código 0
 func TestHandle_NilError(t *testing.T) {
-	if os.Getenv("TEST_HANDLE_NIL") == "1" {
-		Handle(nil)
-		return
-	}
-
-	// Execute o teste em um subprocesso
-	cmd := exec.Command(os.Args[0], "-test.run=TestHandle_NilError")
-	cmd.Env = append(os.Environ(), "TEST_HANDLE_NIL=1")
-
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-
-	err := cmd.Run()
-	// Handle(nil) deve sair com código 0, então não esperamos erro
-	if err != nil {
-		t.Fatalf("Esperado código de saída 0, mas obteve erro: %v", err)
-	}
+	output := captureStderr(t, func() {
+		code := Handle(nil)
+		if code != ExitSuccess {
+			t.Fatalf("Esperado código de saída %d, mas obteve: %d", ExitSuccess, code)
+		}
+	})
 
 	// Não deve haver saída para stderr
-	if stderr.Len() > 0 {
-		t.Errorf("Esperado nenhuma saída stderr, mas obteve: %s", stderr.String())
+	if output != "" {
+		t.Errorf("Esperado nenhuma saída stderr, mas obteve: %s", output)
 	}
 }
 
 // TestHandle_AbortedError testa que Handle(ErrAborted) sai com código 2
 func TestHandle_AbortedError(t *testing.T) {
-	if os.Getenv("TEST_HANDLE_ABORTED") == "1" {
-		Handle(ErrAborted)
-		return
-	}
-
-	cmd := exec.Command(os.Args[0], "-test.run=TestHandle_AbortedError")
-	cmd.Env = append(os.Environ(), "TEST_HANDLE_ABORTED=1")
-
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-
-	err := cmd.Run()
-
-	// Esperamos código de saída 2 (ExitCancelled)
-	var exitErr *exec.ExitError
-	if errors.As(err, &exitErr) {
-		if exitErr.ExitCode() != ExitCancelled {
-			t.Errorf("Esperado código de saída %d, mas obteve %d", ExitCancelled, exitErr.ExitCode())
+	output := captureStderr(t, func() {
+		code := Handle(ErrAborted)
+		if code != ExitCancelled {
+			t.Fatalf("Esperado código de saída %d, mas obteve: %d", ExitCancelled, code)
 		}
-	} else {
-		t.Fatalf("Esperado exit error com código %d, mas obteve: %v", ExitCancelled, err)
-	}
+	})
 
 	// Para ErrAborted, não deve haver mensagem de erro impressa
-	stderrStr := stderr.String()
-	if strings.Contains(stderrStr, "Error:") {
-		t.Errorf("Não esperado mensagem de erro para ErrAborted, mas obteve: %s", stderrStr)
+	if strings.Contains(output, "Error:") {
+		t.Errorf("Não esperado mensagem de erro para ErrAborted, mas obteve: %s", output)
 	}
 }
 
 // TestHandle_GenericError testa que Handle(erro genérico) sai com código 1
 func TestHandle_GenericError(t *testing.T) {
-	if os.Getenv("TEST_HANDLE_GENERIC") == "1" {
-		err := errors.New("erro de teste")
-		Handle(err)
-		return
-	}
-
-	cmd := exec.Command(os.Args[0], "-test.run=TestHandle_GenericError")
-	cmd.Env = append(os.Environ(), "TEST_HANDLE_GENERIC=1")
-
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-
-	err := cmd.Run()
-
-	// Esperamos código de saída 1 (ExitError)
-	var exitErr *exec.ExitError
-	if errors.As(err, &exitErr) {
-		if exitErr.ExitCode() != ExitError {
-			t.Errorf("Esperado código de saída %d, mas obteve %d", ExitError, exitErr.ExitCode())
+	output := captureStderr(t, func() {
+		code := Handle(errors.New("erro de teste"))
+		if code != ExitError {
+			t.Fatalf("Esperado código de saída %d, mas obteve: %d", ExitError, code)
 		}
-	} else {
-		t.Fatalf("Esperado exit error com código %d, mas obteve: %v", ExitError, err)
-	}
+	})
 
 	// Deve haver mensagem de erro impressa
-	stderrStr := stderr.String()
-	if !strings.Contains(stderrStr, "Error: erro de teste") {
-		t.Errorf("Esperado 'Error: erro de teste' em stderr, mas obteve: %s", stderrStr)
+	if !strings.Contains(output, "Error: erro de teste") {
+		t.Errorf("Esperado 'Error: erro de teste' em stderr, mas obteve: %s", output)
 	}
 }
 
 // TestHandle_WrappedAbortedError testa que erros encapsulados são tratados corretamente
 func TestHandle_WrappedAbortedError(t *testing.T) {
-	if os.Getenv("TEST_HANDLE_WRAPPED") == "1" {
-		wrappedErr := fmt.Errorf("operação falhou: %w", ErrAborted)
-		Handle(wrappedErr)
-		return
-	}
+	wrappedErr := fmt.Errorf("operação falhou: %w", ErrAborted)
 
-	cmd := exec.Command(os.Args[0], "-test.run=TestHandle_WrappedAbortedError")
-	cmd.Env = append(os.Environ(), "TEST_HANDLE_WRAPPED=1")
-
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-
-	err := cmd.Run()
-
-	// Mesmo encapsulado, deve reconhecer ErrAborted e sair com código 2
-	var exitErr *exec.ExitError
-	if errors.As(err, &exitErr) {
-		if exitErr.ExitCode() != ExitCancelled {
-			t.Errorf("Esperado código de saída %d para erro encapsulado, mas obteve %d", ExitCancelled, exitErr.ExitCode())
+	output := captureStderr(t, func() {
+		code := Handle(wrappedErr)
+		if code != ExitCancelled {
+			t.Fatalf("Esperado código de saída %d para erro encapsulado, mas obteve: %d", ExitCancelled, code)
 		}
-	} else {
-		t.Fatalf("Esperado exit error com código %d, mas obteve: %v", ExitCancelled, err)
+	})
+
+	if strings.Contains(output, "Error:") {
+		t.Errorf("Não esperado mensagem de erro para ErrAborted encapsulado, mas obteve: %s", output)
 	}
 }
 

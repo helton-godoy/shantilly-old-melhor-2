@@ -83,7 +83,10 @@ e executa o fluxo TUI v1.x. No runtime v2.0, novos fluxos devem usar AppConfig +
 
 func main() {
 	err := rootCmd.Execute()
-	util.Handle(err)
+	code := util.Handle(err)
+	if code != util.ExitSuccess {
+		os.Exit(code)
+	}
 }
 
 func init() {

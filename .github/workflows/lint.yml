@@ -18,6 +18,8 @@ jobs:
   path-filter:
     name: Check for relevant file changes
     runs-on: ubuntu-latest
+    # Em execuções locais com act, pulamos este job para evitar erros de payload incompleto.
+    if: ${{ !env.ACT }}
     outputs:
       should_run: ${{ steps.filter.outputs.go_code_changes == 'true' }}
     steps:
