@@ -1,68 +1,42 @@
 # .github/workflows/lint.yml
-# Otimizado para acionar apenas em alterações de código relevantes, push para main ou manualmente.
-name: Lint
+# Este workflow executa o golangci-lint para garantir a qualidade e o padrão do código.
+# É otimizado para ser reprodutível e fornecer feedback consistente, o que é
+# essencial para o ciclo de desenvolvimento acelerado por IA.
 
+name: Lint
 on:
   push:
     branches:
       - main
   pull_request:
-  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  # --- JOB 0: FILTRO DE CAMINHOS ---
-  # Verifica se as alterações no PR são relevantes para o linting.
-  path-filter:
-    name: Check for relevant file changes
-    runs-on: ubuntu-latest
-    # Em execuções locais com act, pulamos este job para evitar erros de payload incompleto.
-    if: ${{ !env.ACT }}
-    outputs:
-      should_run: ${{ steps.filter.outputs.go_code_changes == 'true' }}
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Check for Go code changes
-        id: filter
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            go_code_changes:
-              - '**/*.go'
-              - 'go.mod'
-              - 'go.sum'
-              - '.golangci.yml'
-              - '.github/workflows/lint.yml'
-
-  # --- JOB 1: EXECUÇÃO DO LINTER ---
   golangci:
     name: Run golangci-lint
-    needs: [path-filter]
-    # CONDIÇÃO DE EXECUÇÃO:
-    # 1. Se o path-filter detectar alterações relevantes em um PR.
-    # 2. Sempre em push para a branch 'main'.
-    # 3. Sempre em acionamentos manuais.
-    if: |
-      needs.path-filter.outputs.should_run == 'true' ||
-      github.event_name == 'push' ||
-      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4 # v4 é a versão LTS mais estável no momento.
 
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
+          # 1. REPRODUTIBILIDADE: Fixa a versão do Go para evitar quebras inesperadas.
+          #    Deve ser a mesma versão definida no seu arquivo go.mod.
           go-version: "1.24.2"
+          # 2. PERFORMANCE: Habilita o cache de dependências.
           cache: true
 
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v6 # v6 é a versão LTS mais estável.
         with:
+          # 3. REPRODUTIBILIDADE: Fixa a versão da ferramenta golangci-lint.
+          #    Isso garante que as regras de lint não mudarão inesperadamente.
           version: v1.59.1
+
+          # 4. CLAREZA: Aponta explicitamente para o nosso arquivo de configuração.
+          #    Isso torna o workflow mais fácil de entender e depurar.
           args: --config=.golangci.yml

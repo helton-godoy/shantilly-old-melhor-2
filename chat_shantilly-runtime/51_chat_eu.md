@@ -1,0 +1,1 @@
+Ótimo, para concluir, faça uma relação, em forma de árvore, com todos os artefatos que devo copiar para meu repositório local, que foram importantes para o trabalho desenvolvido aqui.

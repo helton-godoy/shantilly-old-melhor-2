@@ -1,0 +1,1 @@
+Quantos épicos seriam necessários para cobrir de forma completa e integrada todo o escopo do projeto, contemplando todas as frentes, dependências, áreas envolvidas e entregas essenciais até a conclusão efetiva de todas as tarefas?

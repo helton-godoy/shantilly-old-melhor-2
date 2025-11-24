@@ -16,8 +16,8 @@ const (
 // ErrAborted represents a user cancellation error.
 var ErrAborted = errors.New("operation aborted by user")
 
-// Handle verifica se um erro é não-nulo, imprime-o para stderr e sai.
-// Se o erro for nulo, a função retorna sem fazer nada.
+// Handle verifica se um erro é não-nulo, imprime-o para stderr e retorna um código de saída.
+// Se o erro for nulo, a função retorna ExitSuccess.
 func Handle(err error) int {
 	if err == nil {
 		// Em vez de encerrar o processo aqui (os.Exit), retornamos sucesso ao chamador.
@@ -28,11 +28,9 @@ func Handle(err error) int {
 
 	exitCode := ExitError
 
-	// Check for specific error types
+	// Check for specific error types (ex.: cancelamento explícito)
 	if errors.Is(err, ErrAborted) {
 		exitCode = ExitCancelled
-		// Optionally print a message for cancellation
-		// fmt.Fprintln(os.Stderr, "Operation cancelled.")
 	} else {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 	}

@@ -1,0 +1,61 @@
+version: "1.0"
+meta:
+  name: "Select Demo"
+  description: "Demonstração do componente select (escolha única)"
+
+layout:
+  id: root
+  type: column
+  items:
+    - id: main_row
+      type: row
+      items:
+        - id: left_box
+          type: box
+          flex: 1
+          component: select_box
+        - id: right_box
+          type: box
+          flex: 2
+          component: select_output
+
+components:
+  - id: select_box
+    type: select
+    props:
+      items:
+        - id: opt_hello
+          text: "Rodar script de Hello"
+        - id: opt_noop
+          text: "Não fazer nada (placeholder)"
+
+  - id: select_output
+    type: viewport
+    props:
+      source:
+        type: static
+        content_type: text
+        content: |
+          Select Demo
+
+          Use as setas para escolher uma opção e pressione Enter.
+          A saída aparecerá neste painel.
+
+on:
+  - id: on_select_change_show_env
+    event: "select_box:change"
+    when: ""  # reservado para uso futuro
+    run:
+      script: "./scripts/show-select-env.sh"
+      args: []
+      stdin: {}
+      env: {}
+      update_target: "select_output"
+      confirm: false
+      prompt_secrets: []
+
+security:
+  allowed_scripts:
+    - "./scripts/show-select-env.sh"
+  deny_unknown: true
+  extra_rules: {}

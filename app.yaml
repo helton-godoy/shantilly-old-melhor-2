@@ -1,0 +1,37 @@
+version: "1.0"
+meta:
+    description: App para teste do Wizard.
+    name: app_teste
+layout:
+    id: root
+    type: column
+    items:
+        - id: main_row
+          type: row
+          items:
+            - id: menu_box
+              type: box
+              component: menu
+            - id: output_box
+              type: box
+              component: output
+components:
+    - id: menu
+      type: list
+      props:
+        items:
+            - id: check_legacy
+              text: Verificar legado
+            - id: noop
+              text: Não fazer nada
+    - id: output
+      type: viewport
+      props:
+        source:
+            content: |-
+                Bem-vindo ao Shantilly Runtime v2.0
+
+                Use o menu à esquerda para disparar ações.
+            content_type: text
+            type: static
+security: {}

@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "github.com/upstash/context7-mcp": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"],
+      "disabled": false,
+      "autoApprove": []
+    },
+    "github.com/NightTrek/Software-planning-mcp": {
+      "command": "node",
+      "args": [
+        "/home/helton/git/shantilly/mcp-servers/Software-planning-mcp/build/index.js"
+      ],
+      "disabled": false,
+      "autoApprove": []
+    },
+    "taskmanager": {
+      "command": "node",
+      "args": [
+        "/home/helton/git/mcp-taskmanager/dist/index.js"
+      ],
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}

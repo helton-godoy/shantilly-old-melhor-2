@@ -1,0 +1,17 @@
+version: "1.0"
+meta:
+  name: "List Only"
+  description: "Exemplo mínimo com apenas um componente list"
+
+layout:
+  id: root
+  type: box
+  component: menu
+
+components:
+  - id: menu
+    type: list
+    props: {}
+
+on: []
+security: {}

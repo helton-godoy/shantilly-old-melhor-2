@@ -1,0 +1,65 @@
+version: "1.0"
+meta:
+  name: "Multiselect Demo"
+  description: "Demonstração do componente multiselect (escolha múltipla)"
+
+layout:
+  id: root
+  type: column
+  items:
+    - id: main_row
+      type: row
+      items:
+        - id: left_box
+          type: box
+          flex: 1
+          component: multiselect_box
+        - id: right_box
+          type: box
+          flex: 2
+          component: multiselect_output
+
+components:
+  - id: multiselect_box
+    type: multiselect
+    props:
+      items:
+        - id: opt_a
+          text: "Opção A"
+        - id: opt_b
+          text: "Opção B"
+        - id: opt_c
+          text: "Opção C"
+
+  - id: multiselect_output
+    type: viewport
+    props:
+      source:
+        type: static
+        content_type: text
+        content: |
+          Multiselect Demo
+
+          Use as setas para navegar.
+          Espaço marca/desmarca itens.
+          Enter confirma e executa o script.
+          A saída aparecerá neste painel.
+
+on:
+  - id: on_multiselect_change_show_env
+    event: "multiselect_box:change"
+    when: ""  # reservado para uso futuro
+    run:
+      script: "./scripts/show-multiselect-env.sh"
+      args: []
+      stdin: {}
+      env: {}
+      update_target: "multiselect_output"
+      confirm: false
+      prompt_secrets: []
+
+security:
+  allowed_scripts:
+    - "./scripts/show-multiselect-env.sh"
+  deny_unknown: true
+  extra_rules: {}
