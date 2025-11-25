@@ -52,6 +52,8 @@ type LayoutNode struct {
 	Width       *int         `yaml:"width,omitempty" json:"width,omitempty"`
 	Height      *int         `yaml:"height,omitempty" json:"height,omitempty"`
 	Flex        *int         `yaml:"flex,omitempty" json:"flex,omitempty"`
+	Padding     *int         `yaml:"padding,omitempty" json:"padding,omitempty"`
+	Border      bool         `yaml:"border,omitempty" json:"border,omitempty"`
 	Items       []LayoutNode `yaml:"items,omitempty" json:"items,omitempty"`
 	ComponentID string       `yaml:"component,omitempty" json:"component,omitempty"` // apenas para type: box
 }
@@ -64,6 +66,20 @@ type Component struct {
 	Type     string            `yaml:"type" json:"type"` // "list" | "viewport" | "form" | "buttongroup"
 	Props    map[string]any    `yaml:"props,omitempty" json:"props,omitempty"`
 	Bindings map[string]string `yaml:"bind,omitempty" json:"bind,omitempty"` // ex.: estados, seleção, etc.
+}
+
+// Item representa opções declarativas usadas por componentes como listas e grupos de botões.
+type Item struct {
+	ID    string `yaml:"id" json:"id"`
+	Text  string `yaml:"text,omitempty" json:"text,omitempty"`
+	Label string `yaml:"label,omitempty" json:"label,omitempty"`
+}
+
+// Source descreve conteúdos exibidos por componentes como Viewport.
+type Source struct {
+	Type        string `yaml:"type" json:"type"`
+	Content     string `yaml:"content,omitempty" json:"content,omitempty"`
+	ContentType string `yaml:"content_type,omitempty" json:"content_type,omitempty"`
 }
 
 // OnHandler modela uma regra declarativa on:.
@@ -179,7 +195,7 @@ func (c *AppConfig) Validate() error {
 			return fmt.Errorf("duplicate component id: %s", comp.ID)
 		}
 		switch comp.Type {
-		case "list", "viewport", "form", "buttongroup":
+		case "list", "viewport", "form", "buttongroup", "input", "select", "multiselect":
 			// ok
 		default:
 			return fmt.Errorf("invalid component type for %s: %s", comp.ID, comp.Type)

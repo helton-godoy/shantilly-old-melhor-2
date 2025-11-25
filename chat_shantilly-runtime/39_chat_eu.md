@@ -1,0 +1,1 @@
+Reapresente o PRD.md completo a seguir, nada mais, pois vou copiar para minha máquina local.

@@ -4,7 +4,10 @@
 GOCMD=go
 GOBUILD=$(GOCMD) build
 GOTEST=$(GOCMD) test
-GOLINT=./lint.sh
+
+# Tools
+GOFUMPT=gofumpt
+GOLANGCI_LINT=golangci-lint
 
 # Binaries
 BINARY_NAME=shantilly
@@ -14,7 +17,7 @@ BINARY_DIR=bin
 PLATFORMS := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64
 
 # Targets
-.PHONY: all build test lint clean build-all $(PLATFORMS)
+.PHONY: all build test lint fmt fmt-check check clean build-all $(PLATFORMS)
 
 all: build
 
@@ -26,9 +29,28 @@ test:
 	@echo "Running tests..."
 	$(GOTEST) -v -race ./...
 
+fmt:
+	@echo "Formatting code with gofumpt..."
+	@$(GOFUMPT) -w .
+
+fmt-check:
+	@echo "Checking code format with gofumpt..."
+	@output=$$($(GOFUMPT) -l .); \
+		if [ -n "$$output" ]; then \
+			echo "The following files need formatting:"; \
+			echo "$$output"; \
+			exit 1; \
+		fi
+
 lint:
 	@echo "Running linter..."
-	@$(GOLINT)
+	@$(GOLANGCI_LINT) run --config=.golangci.yml ./...
+
+check:
+	@echo "Running full local checks (format, lint, tests)..."
+	@$(MAKE) fmt-check
+	@$(MAKE) lint
+	@$(MAKE) test
 
 clean:
 	@echo "Cleaning..."

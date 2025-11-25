@@ -1,0 +1,5 @@
+- [ ] Verificar documentação oficial do git-mcp
+- [ ] Criar backup da configuração atual do Cline
+- [ ] Aplicar configuração correta baseada na documentação oficial
+- [ ] Testar conectividade do git-mcp.io no Cline
+- [ ] Verificar se as ferramentas estão disponíveis

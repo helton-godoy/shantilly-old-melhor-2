@@ -1,0 +1,64 @@
+# TODO: Migração Estratégica e Finalização Sprint 1
+
+## 🎯 OBJETIVO ESTRATÉGICO
+Migrar componentes únicos da `runtime-v2-impl` para `runtime-migration`, acelerar desenvolvimento em 40-60% e finalizar Sprint 1 em 100%.
+
+## 📋 CHECKLIST EXECUTIVO
+
+### FASE 1: MIGRAÇÃO ESTRATÉGICA ✅
+- [x] 1.1 Análise comparativa completa das branches
+- [x] 1.2 Identificação de componentes únicos valiosos
+- [x] 1.3 Decisão estratégica: MIGRAÇÃO (não abandono)
+- [x] 1.4 Validação: ProgressIndicator + HelpText são únicos e úteis
+- [x] 1.5 Confirmação: 99% código idêntico, apenas limpeza necessária
+
+### FASE 2: EXECUÇÃO DA MIGRAÇÃO
+- [ ] 2.1 Backup da branch runtime-migration atual
+- [ ] 2.2 Migrar ProgressIndicator (componente visual de progresso)
+- [ ] 2.3 Migrar HelpText (sistema de ajuda contextual)
+- [ ] 2.4 Limpar código runner.go (remover comentários excessivos)
+- [ ] 2.5 Testar integração dos componentes migrados
+- [ ] 2.6 Validar que Sprint 1 atinge 95-100%
+
+### FASE 3: FINALIZAÇÃO SPRINT 1
+- [ ] 3.1 Revisar estado atual da runtime-migration
+- [ ] 3.2 Identificar tarefas finais para completar Sprint 1
+- [ ] 3.3 Executar tarefas pendentes
+- [ ] 3.4 Validação completa do runtime TUI v2.0
+- [ ] 3.5 Update Issue #9: Sprint 1 finalizado (100%)
+
+### FASE 4: PREPARAÇÃO SPRINTS 2-4
+- [ ] 4.1 Atualizar todo_list.txt principal com descobertas
+- [ ] 4.2 Confirmar timeline: 3-4 semanas para Alpha v1.0
+- [ ] 4.3 Preparar execução paralela dos Issues #7, #8, #10, #11
+- [ ] 4.4 Finalizar estratégia de branch management
+
+## 💎 DESCOBERTAS CRÍTICAS
+**BRANCH RUNTIME-V2-IMPL CONTÉM:**
+- ✅ ProgressIndicator: Sistema de barra de progresso visual
+- ✅ HelpText: Sistema de ajuda contextual com toggle (? key)
+- ✅ Código mais limpo (menos comentários verbosos)
+
+**BRANCH RUNTIME-MIGATION MANTÉM:**
+- ✅ LayoutManager + EventManager + ScriptRunner completos
+- ✅ Modal stack, theme system, security policy
+- ✅ 80% Sprint 1 completo
+
+## 🚀 IMPACTO ESPERADO
+- **Tempo economizado:** 1-2 semanas de desenvolvimento
+- **Sprint 1:** 80% → 95-100% completo
+- **Timeline total:** 3-4 semanas confirmadas para Alpha v1.0
+- **Aceleração:** 40-60% conforme objetivo inicial
+
+## ⚡ EXECUÇÃO IMEDIATA
+```bash
+# Estratégia de merge inteligente
+git checkout feat/runtime-migration
+git merge feat/runtime-v2-impl --no-ff --strategy-option=ours
+```
+
+## 🎯 RESULTADO FINAL
+- Runtime-migration como branch única (95-100% Sprint 1)
+- Componentes UI adicionais prontos para uso
+- Alpha v1.0 delivery em 3-4 semanas
+- Estratégia de colaboração otimizada implementada

@@ -1,0 +1,1 @@
+Por favor, gere todos os artefatos separadamente e use o Canvas para disponibilizá-los.

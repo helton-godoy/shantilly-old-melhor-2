@@ -1,0 +1,1 @@
+Vamos aproveitar ao máximo tudo o que já temos pronto, dentro dessa nossa nova perspectiva de começar um projeto do zero, aproveitando apenas o conteúdo dos artefatos do projeto atual para alimentar nossos novos artefatos e deixá-los o mais completo possível.

@@ -1,0 +1,125 @@
+# GitHub Action for Auto-Translation
+# Supports bilingual documentation (English + Portuguese Brazil)
+# Triggered on documentation changes
+
+name: Auto-Translate Documentation
+
+on:
+  push:
+    paths:
+      - 'docs/**'
+      - 'README.md'
+      - 'CONTRIBUTING.md'
+      - 'SECURITY.md'
+      - 'docs/**.md'
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'README.md'
+      - 'CONTRIBUTING.md'
+      - 'SECURITY.md'
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install translation dependencies
+        run: |
+          npm install -g @deeplcom/deepl-node google-translate-api
+      
+      - name: Detect changed files
+        id: changes
+        run: |
+          # Get list of changed markdown files
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD | grep '\.md$')
+          echo "changed_files=$CHANGED_FILES" >> $GITHUB_OUTPUT
+          echo "Changed files: $CHANGED_FILES"
+
+      - name: Translate documentation
+        if: steps.changes.outputs.changed_files != ''
+        run: |
+          # Create translation script
+          cat > translate.sh << 'EOF'
+          #!/bin/bash
+          
+          # Translation function using multiple services
+          translate_file() {
+            local input_file="$1"
+            local lang="$2"
+            
+            # Create output directory
+            mkdir -p "docs/$lang"
+            
+            # Copy and translate content
+            if [[ "$lang" == "pt-BR" ]]; then
+              echo "# $(echo "$(head -1 "$input_file")" | sed 's/^# //')" > "docs/$lang/$(basename "$input_file")"
+              echo "" >> "docs/$lang/$(basename "$input_file")"
+              echo "**Tradução para Português Brasileiro**" >> "docs/$lang/$(basename "$input_file")"
+              echo "" >> "docs/$lang/$(basename "$input_file")"
+              tail -n +3 "$input_file" | while IFS= read -r line; do
+                if [[ "$line" =~ ^# ]]; then
+                  echo "$line" >> "docs/$lang/$(basename "$input_file")"
+                elif [[ "$line" =~ ^[[:space:]]*- ]]; then
+                  echo "$line" >> "docs/$lang/$(basename "$input_file")"
+                else
+                  echo "<!-- $(echo "$line" | google-translate-api --to pt) -->" >> "docs/$lang/$(basename "$input_file")"
+                  echo "$line" >> "docs/$lang/$(basename "$input_file")"
+                  echo "" >> "docs/$lang/$(basename "$input_file")"
+                fi
+              done
+            fi
+          }
+          
+          # Process each changed file
+          IFS=' ' read -ra FILES <<< "$CHANGED_FILES"
+          for file in "${FILES[@]}"; do
+            echo "Translating: $file"
+            translate_file "$file" "pt-BR"
+          done
+          EOF
+          
+          chmod +x translate.sh
+          ./translate.sh
+
+      - name: Commit translated files
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Actions"
+          git add docs/pt-BR/
+          
+          # Check if there are changes to commit
+          if ! git diff --staged --quiet; then
+            git commit -m "docs: Add Portuguese translations for changed files" || echo "No changes to commit"
+          else
+            echo "No translation changes to commit"
+          fi
+
+      - name: Create Translation PR
+        if: github.ref == 'refs/heads/main'
+        run: |
+          if ! git diff --staged --quiet; then
+            # Create a branch for translations
+            git checkout -b translations/$(date +%Y%m%d-%H%M%S)
+            git push origin translations/$(date +%Y%m%d-%H%M%S)
+            
+            # Create PR
+            gh pr create \
+              --title "docs: Portuguese translations update" \
+              --body "Automated translation updates for changed documentation files.\n\nModified files:" \
+              --base main \
+              --head translations/$(date +%Y%m%d-%H%M%S)
+          fi

@@ -35,3 +35,8 @@ func DefaultTheme() *Theme {
 		Border:     lipgloss.NewStyle().Foreground(lipgloss.Color("#00BFFF")),
 	}
 }
+
+// NewDefaultTheme mantém a compatibilidade com chamadas anteriores.
+func NewDefaultTheme() *Theme {
+	return DefaultTheme()
+}

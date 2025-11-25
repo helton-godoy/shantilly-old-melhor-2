@@ -1,0 +1,23 @@
+version: "1.0"
+meta:
+  name: "Shantilly Simple"
+  description: "Layout column/row minimal com apenas menu"
+
+layout:
+  id: root
+  type: column
+  items:
+    - id: main_row
+      type: row
+      items:
+        - id: menu_box
+          type: box
+          component: menu
+
+components:
+  - id: menu
+    type: list
+    props: {}
+
+on: []
+security: {}

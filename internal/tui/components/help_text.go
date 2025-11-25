@@ -1,15 +1,17 @@
 package components
 
+import "shantilly/internal/tui"
+
 // HelpText é um componente para exibir texto de ajuda contextual.
 type HelpText struct {
 	helpTexts    map[string]string
 	currentField string
 	showHelp     bool
-	theme        *Theme
+	theme        *tui.Theme
 }
 
 // NewHelpText cria um novo HelpText.
-func NewHelpText(theme *Theme) *HelpText {
+func NewHelpText(theme *tui.Theme) *HelpText {
 	return &HelpText{
 		helpTexts: make(map[string]string),
 		showHelp:  false,
@@ -38,11 +40,13 @@ func (h *HelpText) Render() string {
 		return ""
 	}
 
-	if help, exists := h.helpTexts[h.currentField]; exists {
-		return h.theme.FieldInput.Render("Ajuda: " + help)
+	if h.currentField != "" {
+		if help, exists := h.helpTexts[h.currentField]; exists {
+			return h.theme.FieldInput.Render("Ajuda: " + help)
+		}
 	}
 
-	return ""
+	return h.theme.FieldInput.Render("Navegue para um campo e pressione ? para ajuda.")
 }
 
 // IsHelpVisible retorna se a ajuda está visível.
