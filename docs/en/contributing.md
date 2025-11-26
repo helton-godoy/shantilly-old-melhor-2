@@ -8,5 +8,5 @@ For now, please refer to the Portuguese guide (authoritative version):
 
 You can also explore:
 
-- Issues: https://github.com/helton-godoy/shantilly/issues
-- Discussions: https://github.com/helton-godoy/shantilly/discussions
+- Issues: <https://github.com/helton-godoy/shantilly/issues>
+- Discussions: <https://github.com/helton-godoy/shantilly/discussions>

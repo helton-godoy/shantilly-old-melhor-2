@@ -23,6 +23,7 @@ graph TD
 ## 🤖 Colaboração Híbrida: Humanos + IA
 
 ### Para Humanos
+
 ```bash
 # Clone e setup
 git clone https://github.com/helton-godoy/shantilly.git
@@ -37,6 +38,7 @@ docs/issue-101-update-docs
 ```
 
 ### Para Agentes IA
+
 - **GitHub App Integration**: @dependabot, @github-actions
 - **API Endpoints**: createIssue, updateProject, assignReviewer
 - **Bot Commands**: Auto-PR creation, issue linking
@@ -44,6 +46,7 @@ docs/issue-101-update-docs
 ## 📊 Automação com GitHub Actions
 
 ### Workflows Principais
+
 1. **CI/CD Pipeline**: Build, Test, Security Scan
 2. **Auto-labeling**: Baseado em conteúdo
 3. **Weekly Reports**: Progresso e métricas

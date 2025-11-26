@@ -3,6 +3,7 @@
 ## 📋 Status: Issues Preparadas para Importação
 
 ### ✅ Material Preparado
+
 - **25 issues estruturadas** organizadas por épicos (github_roadmap_issues.md)
 - **Labels hierárquicas** configuradas (.github/labels/)
 - **Milestones** definidos (.github/milestones.yml)
@@ -11,15 +12,19 @@
 ### 📋 Estrutura das Issues
 
 #### Foundation Sprint (v1.0 Alpha - 3-4 semanas)
+
 - **Issues #001-#008**: CLI Foundation, YAML Parsing, TUI Structure, Form Rendering, Navigation, Submission, Styling, Build
 
 #### Advanced Features Sprint (v1.0 Beta)
+
 - **Issues #009-#010**: Advanced Form Types, Enhanced Error Handling
 
 #### Runtime Architecture Sprint (v2.0 Features)
+
 - **Issues #011-#016**: Multi-Panel Navigation, Event Engine, ScriptRunner, Modal Stack, Legacy Encapsulation, Security Hardening
 
 #### Extensions & Integrations
+
 - **Issues #017-#025**: Ansible Integration, SSH Server, Predictive Components, Layout System, Plugin Architecture, Multi-tenant, Security Policies, Performance, Documentation Portal
 
 ## 🚀 Implementação no GitHub
@@ -27,12 +32,14 @@
 ### Opção 1: Interface Web (Recomendado para teste inicial)
 
 #### Passo 1: Criar Issues Manualmente
+
 1. Acessar repository `helton-godoy/shantilly`
 2. Ir em **Issues** → **New issue**
 3. Usar templates apropriados para cada tipo
 4. Aplicar labels e milestons correspondentes
 
 #### Passo 2: Aplicar Labels em Lote
+
 1. Configurar labels hierárquicas conforme `.github/labels/`
 2. Labels de prioridade: `priority::critical`, `priority::high`, etc.
 3. Labels de tipo: `type::feature`, `type::bug`, etc.
@@ -41,6 +48,7 @@
 ### Opção 2: GitHub CLI (gh) - Para Importação em Lote
 
 #### Instalação e Setup
+
 ```bash
 # Instalar gh (se não tiver)
 # Ubuntu/Debian
@@ -57,6 +65,7 @@ gh auth login
 ```
 
 #### Criar Labels
+
 ```bash
 # Priority Labels
 gh label create "priority::critical" --color "d73a4a" --description "Critical priority - must fix immediately"
@@ -79,6 +88,7 @@ gh label create "area::runtime" --color "bcbd22" --description "Runtime engine"
 ```
 
 #### Criar Milestones
+
 ```bash
 # v1.0 Alpha
 gh milestone create "v1.0 Alpha" --title "v1.0 Alpha" --description "MVP funcional com foundations básicas" --due-on "2025-12-19"
@@ -94,6 +104,7 @@ gh milestone create "v2.0 Extensions" --title "v2.0 Extensions" --description "I
 ```
 
 #### Criar Issues via CLI
+
 ```bash
 # Exemplo: CLI Foundation Issue
 gh issue create \
@@ -124,6 +135,7 @@ EOF
 ### Opção 3: GitHub API Script (Recomendado para importação completa)
 
 #### Script de Importação em Lote
+
 ```bash
 #!/bin/bash
 
@@ -164,6 +176,7 @@ done
 ### Opção 4: Import via CSV/JSON
 
 #### Preparar Dados para Importação
+
 ```json
 [
   {
@@ -179,6 +192,7 @@ done
 ## 📊 GitHub Project: "Shantilly Roadmap"
 
 ### Configuração Recomendada
+
 - **Columns**: Backlog | Prioritized | To Do | In Progress | Review | Blocked | Done
 - **Automation Rules**:
   - Auto-move to "In Progress" when assigned
@@ -187,6 +201,7 @@ done
   - Auto-add to "Blocked" when labeled "status::blocked"
 
 ### Como Configurar
+
 1. **Settings** → **Features** → **Projects** → **Enable projects**
 2. **Create a project** → **Table** layout
 3. **Add automation** → **Move issues when...**
@@ -195,18 +210,21 @@ done
 ## 🎯 Próximos Passos
 
 ### Imediato
+
 1. **Escolher método de importação** (recomendo Option 2 - gh CLI)
 2. **Configurar labels e milestones** primeiro
 3. **Importar issues em batches** (Foundation → Advanced → Extensions)
 4. **Configurar GitHub Project** com automações
 
 ### Após Import
+
 1. **Validar estrutura** - verificar labels, milestones, templates
 2. **Importar no GitHub Project** - adicionar todas as issues
 3. **Configurar automações** - auto-labeling, auto-movement
 4. **Documentar workflow** - guidelines para contributors
 
 ### Benefícios Esperados
+
 - **Visibilidade**: Roadmap claro e organizado
 - **Triage**: Issues automaticamente categorizadas
 - **Progress Tracking**: Milestones com deadlines

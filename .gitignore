@@ -7,3 +7,4 @@ dist/
 
 # Local chats (não versionar)
 docs/chats/
+node_modules/

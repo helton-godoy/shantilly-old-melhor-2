@@ -30,10 +30,8 @@ When reporting a vulnerability, please include:
 
 We actively support the following versions of Shantilly with security updates:
 
-| Version | Supported          |
-| ------- | ------------------ |
-| v1.x.x  | ✅                |
-| v0.x.x  | ❌ (End of Life)  |
+- **v1.x.x** – ✅ Supported
+- **v0.x.x** – ❌ End of Life (no longer supported)
 
 ## 🔐 Security Features
 
@@ -64,21 +62,25 @@ We actively support the following versions of Shantilly with security updates:
 ## 🚨 Vulnerability Response Process
 
 ### 1. **Initial Response** (Within 48 hours)
+
 - Acknowledge receipt of the report
 - Assign a tracking number
 - Begin investigation
 
 ### 2. **Investigation** (1-7 days)
+
 - Reproduce and verify the vulnerability
 - Assess the scope and impact
 - Develop a fix or mitigation
 
 ### 3. **Fix Development** (1-14 days)
+
 - Develop and test the fix
 - Ensure the fix doesn't introduce new vulnerabilities
 - Prepare documentation
 
 ### 4. **Disclosure** (After fix is ready)
+
 - Coordinate with the reporter on disclosure timing
 - Release security update
 - Publish security advisory

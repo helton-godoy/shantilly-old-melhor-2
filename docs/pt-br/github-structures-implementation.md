@@ -3,81 +3,91 @@
 ## 📋 Status: Structures Preparadas para Implementação
 
 ### ✅ Material Preparado
+
 - **Labels hierárquicas** configuradas (.github/labels/)
-- **Milestones** definidos (.github/milestones.yml) 
+- **Milestones** definidos (.github/milestones.yml)
 - **GitHub Projects** estruturado (.github/projects.yml)
 - **Templates** personalizados (.github/ISSUE_TEMPLATE/)
 
 ### 🏷️ Labels Hierárquicas (15+ labels)
 
 #### Priority Labels
-| Label | Color | Description | Usage |
-|-------|-------|-------------|-------|
-| `priority::critical` | #d73a4a | Critical priority - must fix immediately | Must-have fixes |
-| `priority::high` | #fb8500 | High priority - important for next release | Next release scope |
-| `priority::medium` | #fbbf24 | Medium priority - nice to have | Nice to have features |
-| `priority::low` | #10b981 | Low priority - future consideration | Future planning |
+
+| Label                | Color   | Description                                | Usage                 |
+| -------------------- | ------- | ------------------------------------------ | --------------------- |
+| `priority::critical` | #d73a4a | Critical priority - must fix immediately   | Must-have fixes       |
+| `priority::high`     | #fb8500 | High priority - important for next release | Next release scope    |
+| `priority::medium`   | #fbbf24 | Medium priority - nice to have             | Nice to have features |
+| `priority::low`      | #10b981 | Low priority - future consideration        | Future planning       |
 
 #### Type Labels  
-| Label | Color | Description | Usage |
-|-------|-------|-------------|-------|
-| `type::feature` | #1f77b4 | New functionality | New features |
-| `type::bug` | #d62728 | Something isn't working | Bug fixes |
-| `type::refactor` | #ff7f0e | Refactoring code | Code improvements |
-| `type::task` | #2ca02c | Non-code related tasks | Administrative work |
-| `type::security` | #e377c2 | Security related | Security concerns |
-| `type::documentation` | #9467bd | Documentation changes | Docs updates |
-| `type::optimization` | #bcbd22 | Performance improvements | Performance work |
+
+| Label                 | Color   | Description              | Usage               |
+| --------------------- | ------- | ------------------------ | ------------------- |
+| `type::feature`       | #1f77b4 | New functionality        | New features        |
+| `type::bug`           | #d62728 | Something isn't working  | Bug fixes           |
+| `type::refactor`      | #ff7f0e | Refactoring code         | Code improvements   |
+| `type::task`          | #2ca02c | Non-code related tasks   | Administrative work |
+| `type::security`      | #e377c2 | Security related         | Security concerns   |
+| `type::documentation` | #9467bd | Documentation changes    | Docs updates        |
+| `type::optimization`  | #bcbd22 | Performance improvements | Performance work    |
 
 #### Area Labels
-| Label | Color | Description | Usage |
-|-------|-------|-------------|-------|
-| `area::core` | #8c564b | Core functionality | Core system |
-| `area::ui` | #17becf | User Interface | UI/UX work |
-| `area::security` | #9467bd | Security | Security features |
-| `area::runtime` | #bcbd22 | Runtime engine | Runtime system |
-| `area::integrations` | #ffbb78 | Third-party integrations | External services |
-| `area::infrastructure` | #98df8a | Infrastructure | DevOps/Infrastructure |
+
+| Label                  | Color   | Description              | Usage                 |
+| ---------------------- | ------- | ------------------------ | --------------------- |
+| `area::core`           | #8c564b | Core functionality       | Core system           |
+| `area::ui`             | #17becf | User Interface           | UI/UX work            |
+| `area::security`       | #9467bd | Security                 | Security features     |
+| `area::runtime`        | #bcbd22 | Runtime engine           | Runtime system        |
+| `area::integrations`   | #ffbb78 | Third-party integrations | External services     |
+| `area::infrastructure` | #98df8a | Infrastructure           | DevOps/Infrastructure |
 
 #### Status Labels
-| Label | Color | Description | Usage |
-|-------|-------|-------------|-------|
-| `status::triage` | #c7c7c7 | Needs initial assessment | Newly created issues |
-| `status::in-progress` | #6f42c1 | Currently being worked on | Active development |
-| `status::review` | #fd7e14 | Needs code review | Ready for review |
-| `status::blocked` | #dc3545 | Cannot proceed | Blocked issues |
-| `status::done` | #28a745 | Completed | Finished work |
+
+| Label                 | Color   | Description               | Usage                |
+| --------------------- | ------- | ------------------------- | -------------------- |
+| `status::triage`      | #c7c7c7 | Needs initial assessment  | Newly created issues |
+| `status::in-progress` | #6f42c1 | Currently being worked on | Active development   |
+| `status::review`      | #fd7e14 | Needs code review         | Ready for review     |
+| `status::blocked`     | #dc3545 | Cannot proceed            | Blocked issues       |
+| `status::done`        | #28a745 | Completed                 | Finished work        |
 
 #### Epic Labels
-| Label | Color | Description | Usage |
-|-------|-------|-------------|-------|
-| `epic::e1` | #6f42c1 | E1 Foundation | Foundation Sprint |
-| `epic::e2` | #fd7e14 | E2 Advanced Features | Advanced Features |
-| `epic::e3` | #20c997 | E3 Multi-Panel | Multi-Panel Runtime |
-| `epic::e4` | #ffc107 | E4 ScriptRunner | ScriptRunner Architecture |
-| `epic::e5` | #17a2b8 | E5 Security | Security & Modal System |
+
+| Label      | Color   | Description          | Usage                     |
+| ---------- | ------- | -------------------- | ------------------------- |
+| `epic::e1` | #6f42c1 | E1 Foundation        | Foundation Sprint         |
+| `epic::e2` | #fd7e14 | E2 Advanced Features | Advanced Features         |
+| `epic::e3` | #20c997 | E3 Multi-Panel       | Multi-Panel Runtime       |
+| `epic::e4` | #ffc107 | E4 ScriptRunner      | ScriptRunner Architecture |
+| `epic::e5` | #17a2b8 | E5 Security          | Security & Modal System   |
 
 ### 🎯 Milestones Estratégicos (4 milestones)
 
 #### v1.0 Alpha - 19/12/2025
+
 - **Issues**: #001-#008 (Foundation Sprint)
 - **Goal**: MVP funcional com foundations básicas
 - **Duration**: 3-4 semanas
 - **Deliverables**: CLI Foundation, YAML Parsing, TUI Structure, Form Rendering
 
 #### v1.0 Beta - 15/01/2026  
+
 - **Issues**: #009-#010 (Advanced Features)
 - **Goal**: Funcionalidades avançadas e UX melhorada
 - **Duration**: 2-3 semanas após Alpha
 - **Deliverables**: Advanced Form Types, Enhanced Error Handling
 
 #### v2.0 Features - 20/02/2026
+
 - **Issues**: #011-#016 (Runtime Architecture)  
 - **Goal**: Runtime architecture completa
 - **Duration**: 4-5 semanas
 - **Deliverables**: Event Engine, ScriptRunner, Modal Stack, Security Hardening
 
 #### v2.0 Extensions - 15/03/2026
+
 - **Issues**: #017-#025 (Extensions & Integrations)
 - **Goal**: Integrações e extensões avançadas  
 - **Duration**: 3-4 semanas
@@ -86,12 +96,14 @@
 ### 📊 GitHub Project: "Shantilly Roadmap"
 
 #### Project Structure
+
 - **Layout**: Table with 7 columns
 - **Columns**: Backlog | Prioritized | To Do | In Progress | Review | Blocked | Done
 - **Auto-add**: Issues automatically added when created
 - **Automation Rules**: 15+ automation rules configured
 
 #### Automation Rules
+
 1. **Auto-move to "In Progress"** when assigned
 2. **Auto-move to "Review"** when labeled "status::review"  
 3. **Auto-move to "Done"** when closed
@@ -101,6 +113,7 @@
 7. **Group by Epic** for roadmap tracking
 
 #### Views Configuration
+
 - **Sprint View**: Filter by current milestone
 - **Epic View**: Group by epic labels
 - **Priority View**: Sort by priority labels
@@ -112,17 +125,20 @@
 ### Opção 1: Interface Web (Recomendado para configuração manual)
 
 #### Labels Implementation
+
 1. Acessar repository `helton-godoy/shantilly`
 2. Ir em **Issues** → **Labels** → **New label**
 3. Criar labels conforme tabela acima
 4. Aplicar cores e descrições correspondentes
 
 #### Milestones Implementation  
+
 1. Ir em **Issues** → **Milestones** → **New milestone**
 2. Criar milestones com títulos e deadlines
 3. Aplicar descrições e estados
 
 #### Project Implementation
+
 1. **Settings** → **Features** → **Projects** → **Enable projects**
 2. **Projects** → **New project** → **Table**
 3. Configurar columns conforme estrutura
@@ -132,6 +148,7 @@
 ### Opção 2: GitHub CLI (gh) - Para Implementação Rápida
 
 #### Instalar e Configurar gh CLI
+
 ```bash
 # Instalar gh CLI
 sudo apt install gh  # Ubuntu/Debian
@@ -143,6 +160,7 @@ gh auth login
 ```
 
 #### Criar Labels em Lote
+
 ```bash
 #!/bin/bash
 
@@ -185,6 +203,7 @@ gh label create "epic::e5" --color "17a2b8" --description "E5 Security"
 ```
 
 #### Criar Milestones
+
 ```bash
 # v1.0 Alpha
 gh milestone create "v1.0 Alpha" \
@@ -212,6 +231,7 @@ gh milestone create "v2.0 Extensions" \
 ```
 
 #### Criar GitHub Project
+
 ```bash
 # Criar projeto via gh CLI
 gh project create "Shantilly Roadmap" --owner "helton-godoy/shantilly"
@@ -229,6 +249,7 @@ gh project create "Shantilly Roadmap" --owner "helton-godoy/shantilly"
 ### Opção 3: GitHub API Script (Para importação completa)
 
 #### Script de Configuração Automatizada
+
 ```bash
 #!/bin/bash
 
@@ -287,6 +308,7 @@ echo "Configuration complete!"
 ## 🎯 Próximos Passos
 
 ### Imediato (Sequência Recomendada)
+
 1. **Labels**: Criar todas as labels hierárquicas primeiro
 2. **Milestones**: Configurar milestones com deadlines
 3. **Project**: Criar "Shantilly Roadmap" project
@@ -294,12 +316,14 @@ echo "Configuration complete!"
 5. **Views**: Criar views personalizadas
 
 ### Após Estruturas Configuradas
+
 1. **Validar estrutura** - testar labels, milestones, project
 2. **Importar issues** - usar issues estruturadas preparadas
 3. **Sincronizar** - mover issues para project correto
 4. **Configurar automations** - ativar auto-labeling e auto-movement
 
 ### Validação Final
+
 - **Labels aplicados** em todas as 25 issues
 - **Milestones assignados** por sprint
 - **Issues no project** "Shantilly Roadmap"
@@ -309,18 +333,21 @@ echo "Configuration complete!"
 ## 🎯 Benefícios Esperados
 
 ### Para o Projeto
+
 - **Organização**: Issues categorizadas e priorizadas
 - **Visibilidade**: Roadmap claro e progress tracking
 - **Automation**: Redução de trabalho manual
 - **Collaboration**: Equipe pode se auto-organizar
 
 ### Para Contribuidores
+
 - **Clareza**: Template e guidelines claras
 - **Self-service**: Auto-assign e tracking
 - **Focus**: Milestones guiam desenvolvimento
 - **Quality**: Automation mantém padrões
 
 ### Para Gestão
+
 - **Metrics**: Progress tracking e velocity
 - **Planning**: Sprint planning estruturado
 - **Transparency**: Status visível para stakeholders

@@ -1,13 +1,16 @@
 package components
 
 import (
+	"strings"
 	"testing"
+
+	"shantilly/internal/tui"
 
 	"github.com/charmbracelet/lipgloss"
 )
 
 func TestProgressIndicator(t *testing.T) {
-	theme := &Theme{
+	theme := &tui.Theme{
 		FieldLabel: lipgloss.NewStyle().Foreground(lipgloss.Color("39")).Bold(true),
 	}
 	pi := NewProgressIndicator(theme)
@@ -37,10 +40,10 @@ func TestProgressIndicator(t *testing.T) {
 	}
 
 	render := pi.Render()
-	if !contains(render, "(100%)") {
+	if !strings.Contains(render, "(100%)") {
 		t.Errorf("Expected render to contain progress percentage '(100%%)', got '%s'", render)
 	}
-	if !contains(render, "4/4") {
+	if !strings.Contains(render, "4/4") {
 		t.Error("Expected render to contain completed/total count")
 	}
 }
@@ -48,7 +51,7 @@ func TestProgressIndicator(t *testing.T) {
 // ... (resto do arquivo de teste inalterado)
 
 func TestProgressIndicatorRenderCompact(t *testing.T) {
-	theme := &Theme{
+	theme := &tui.Theme{
 		FieldLabel: lipgloss.NewStyle().Foreground(lipgloss.Color("39")).Bold(true),
 	}
 	pi := NewProgressIndicator(theme)
@@ -58,13 +61,13 @@ func TestProgressIndicatorRenderCompact(t *testing.T) {
 	if render == "" {
 		t.Error("Expected non-empty compact render")
 	}
-	if !contains(render, "3/5") {
+	if !strings.Contains(render, "3/5") {
 		t.Error("Expected compact render to contain count")
 	}
 }
 
 func TestProgressIndicatorZeroTotal(t *testing.T) {
-	theme := &Theme{
+	theme := &tui.Theme{
 		FieldLabel: lipgloss.NewStyle().Foreground(lipgloss.Color("39")).Bold(true),
 	}
 	pi := NewProgressIndicator(theme)

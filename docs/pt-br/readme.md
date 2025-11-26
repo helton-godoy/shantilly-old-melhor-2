@@ -299,11 +299,10 @@ Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](../.
 
 ---
 
-<div align="center">
+### ⭐ Apoie o projeto
 
-**⭐ Se este projeto te ajudou, considere dar uma estrela! ⭐**
+Se este projeto te ajudou, considere dar uma estrela.
 
 Feito com ❤️ pela comunidade Shantilly
 
-</div>
-# Deploy trigger sáb 22 nov 2025 18:48:09 -04
+Deploy trigger sáb 22 nov 2025 18:48:09 -04

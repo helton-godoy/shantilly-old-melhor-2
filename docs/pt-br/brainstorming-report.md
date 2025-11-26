@@ -78,4 +78,4 @@ This session aimed to define the vision, architecture, requirements, and initial
 
 - Handoff to the Product Manager (PM - John) to initiate PRD creation based on the Project Brief.
 
-*Report generated using the BMAD-METHOD™ framework*
+>Report generated using the BMAD-METHOD™ framework

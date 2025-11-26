@@ -13,7 +13,7 @@ Este documento registra a **arquitetura de integrações externas** planejada pa
   - **Slack** (via Webhook).
   - **Discord** (via Webhook).
 
-> Por enquanto **apenas email** está realmente em uso (via sistema nativo do GitHub). 
+> Por enquanto **apenas email** está realmente em uso (via sistema nativo do GitHub).
 > Slack e Discord têm workflows esqueleto preparados, mas **não enviam nada** até que você configure os webhooks e ajuste os passos.
 
 ---
@@ -43,8 +43,8 @@ Em vez de configurar SMTP próprio, a arquitetura assume o uso de:
 2. Em **Settings → Notifications** (no seu perfil GitHub):
    - Garanta que **Email** está habilitado para issues/PRs/releases.
 
-> Futuro: se quiser, podemos adicionar workflows que criem issues/resumos específicos 
-> para certos eventos (por exemplo, falhas críticas de CI), e você receberá o email 
+> Futuro: se quiser, podemos adicionar workflows que criem issues/resumos específicos
+> para certos eventos (por exemplo, falhas críticas de CI), e você receberá o email
 > desses eventos automaticamente via GitHub.
 
 ---

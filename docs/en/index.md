@@ -3,6 +3,8 @@ layout: default
 title: Shantilly Docs (en)
 ---
 
+<!-- markdownlint-disable MD025 -->
+
 # Shantilly Documentation – English
 
 Welcome to the **English** documentation for Shantilly.

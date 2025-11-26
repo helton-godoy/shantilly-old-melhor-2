@@ -10,5 +10,5 @@ For now, please refer to:
 
 You can also visit:
 
-- **Official site**: https://helton-godoy.github.io/shantilly
-- **Releases**: https://github.com/helton-godoy/shantilly/releases
+- **Official site**: <https://helton-godoy.github.io/shantilly>
+- **Releases**: <https://github.com/helton-godoy/shantilly/releases>

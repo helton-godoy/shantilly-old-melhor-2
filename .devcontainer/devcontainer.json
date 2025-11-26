@@ -1,19 +1,26 @@
 {
   "name": "Shantilly Development",
-  "image": "mcr.microsoft.com/vscode/devcontainers/go:1.21",
+  "image": "mcr.microsoft.com/vscode/devcontainers/go:1.24",
   
+  "runArgs": [
+    "--add-host=host.docker.internal:host-gateway"
+  ],
+
   "customizations": {
     "vscode": {
       "extensions": [
         "ms-vscode.vscode-json",
         "ms-python.python",
         "ms-vscode-remote.remote-containers",
-        "github.copilot"
+        "github.copilot",
+        "golang.go",
+        "DavidAnson.vscode-markdownlint",
+        "esbenp.prettier-vscode"
       ]
     }
   },
   
-  "postCreateCommand": "go mod tidy && go build -o shantilly ./cmd/shantilly",
+  "postCreateCommand": "go install mvdan.cc/gofumpt@latest && go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest && go mod tidy && go build -o shantilly ./cmd/shantilly",
   
   "portsAttributes": {
     "8080": {

@@ -21,7 +21,7 @@ Esta arquitetura v2.0 não se baseia em um *template* inicial (starter) externo.
 
 Esta seção estabelece a fundação da arquitetura v2.0 do Runtime TUI.
 
-#### Resumo Técnico
+### Resumo Técnico
 
 A arquitetura do Shantilly v2.0 é um **Runtime TUI Declarativo orientado a eventos**. A aplicação consumirá um único arquivo YAML que define (1) um layout de UI complexo (usando `column`, `row`, `box` ), (2) os componentes TUI (`list`, `viewport`, `form` ) dentro desse layout, e (3) a lógica de automação (`on:`) que reage a eventos da UI. A arquitetura é baseada em Go, utilizando `bubbletea` para o ciclo de vida da UI, `lipgloss` para o motor de layout/estilo, e `huh` (refatorado do v1.0) para o componente de formulário.
 
@@ -57,7 +57,7 @@ A arquitetura do Shantilly v2.0 é um **Runtime TUI Declarativo orientado a even
 
 Snippet de código
 
-```
+```mermaid
 graph TD
     subgraph Shantilly Runtime
         direction TB
@@ -118,19 +118,60 @@ A pilha a seguir é a referência única para o Runtime TUI Declarativo v2.0 (É
 
 ### 3.2. Stack de Runtime e TUI
 
-| Categoria              | Tecnologia                    | Versão sugerida | Uso Arquitetural                                                                                      |
-|------------------------|------------------------------|-----------------|--------------------------------------------------------------------------------------------------------|
-| Linguagem              | Go                           | 1.24.2+         | Base do runtime, compilação estática.                                                                  |
-| CLI Framework          | `spf13/cobra`                | 1.8.x+          | Organização de comandos/flags; entrada `stdin/--file`.                                                 |
-| Motor TUI              | `charmbracelet/bubbletea`    | 0.26.x+         | Loop TEA; base para `LayoutManager`, `EventManager` e componentes.                                     |
-| Layout/Estilo          | `charmbracelet/lipgloss`     | 0.10.x+         | Layout `column/row/box`, estilos e responsividade.                                                     |
-| Formulários            | `charmbracelet/huh`          | 0.5.x+          | Base do `FormComponent` (wrapper v1.0 → v2.0).                                                         |
-| Componentes TUI        | `charmbracelet/bubbles`      | 0.18.x+         | `list`, `viewport`, etc. para componentes declarativos.                                                |
-| Markdown               | `charmbracelet/glamour`      | 0.7.x+          | Renderização de markdown em `viewport`.                                                               |
-| YAML                   | `gopkg.in/yaml.v3`           | 3.x             | Parser para layout + lógica (`Config`, `LayoutNode`, `Component`, `Logic`).                           |
-| Teste TUI              | `charmbracelet/teatest`      | 0.6.x+          | Testes de integração TUI automatizados (obrigatórios para layout/foco).                               |
-| Teste Unitário         | `testing` (stdlib)           | -               | Cobertura de `config`, `runtime`, componentes.                                                         |
-| Qualidade              | `golangci-lint`, `gofumpt`   | -               | Padrões de código e formatação obrigatórios.                                                           |
+- **Linguagem**
+  - Tecnologia: Go
+  - Versão sugerida: 1.24.2+
+  - Uso Arquitetural: Base do runtime, compilação estática.
+
+- **CLI Framework**
+  - Tecnologia: `spf13/cobra`
+  - Versão sugerida: 1.8.x+
+  - Uso Arquitetural: Organização de comandos/flags; entrada `stdin/--file`.
+
+- **Motor TUI**
+  - Tecnologia: `charmbracelet/bubbletea`
+  - Versão sugerida: 0.26.x+
+  - Uso Arquitetural: Loop TEA; base para `LayoutManager`, `EventManager` e componentes.
+
+- **Layout/Estilo**
+  - Tecnologia: `charmbracelet/lipgloss`
+  - Versão sugerida: 0.10.x+
+  - Uso Arquitetural: Layout `column/row/box`, estilos e responsividade.
+
+- **Formulários**
+  - Tecnologia: `charmbracelet/huh`
+  - Versão sugerida: 0.5.x+
+  - Uso Arquitetural: Base do `FormComponent` (wrapper v1.0 → v2.0).
+
+- **Componentes TUI**
+  - Tecnologia: `charmbracelet/bubbles`
+  - Versão sugerida: 0.18.x+
+  - Uso Arquitetural: `list`, `viewport`, etc. para componentes declarativos.
+
+- **Markdown**
+  - Tecnologia: `charmbracelet/glamour`
+  - Versão sugerida: 0.7.x+
+  - Uso Arquitetural: Renderização de markdown em `viewport`.
+
+- **YAML**
+  - Tecnologia: `gopkg.in/yaml.v3`
+  - Versão sugerida: 3.x
+  - Uso Arquitetural: Parser para layout + lógica (`Config`, `LayoutNode`, `Component`, `Logic`).
+
+- **Teste TUI**
+  - Tecnologia: `charmbracelet/teatest`
+  - Versão sugerida: 0.6.x+
+  - Uso Arquitetural: Testes de integração TUI automatizados (obrigatórios para layout/foco).
+
+- **Teste Unitário**
+  - Tecnologia: `testing` (stdlib)
+  - Versão sugerida: -
+  - Uso Arquitetural: Cobertura de `config`, `runtime`, componentes.
+
+- **Qualidade**
+  - Tecnologia: `golangci-lint`, `gofumpt`
+  - Versão sugerida: -
+  - Uso Arquitetural: Padrões de código e formatação obrigatórios.
 
 Decisões chave:
 
@@ -326,7 +367,7 @@ Esses eventos conectam componentes → `EventManager` → `ScriptRunner` sem aco
 
 ### 5.4. Motores do Runtime
 
-1) LayoutManager (`internal/runtime/layout/manager.go`)
+1. LayoutManager (`internal/runtime/layout/manager.go`)
 
 - Responsável por:
   - Interpretar `LayoutNode`.
@@ -336,7 +377,7 @@ Esses eventos conectam componentes → `EventManager` → `ScriptRunner` sem aco
   - Aplicar NFR2: recalcular layout em `tea.WindowSizeMsg` (flicker-free).
   - Renderizar pilha modal (Arquitetura de Pilha Modal).
 
-2) EventManager (`internal/runtime/event/manager.go`)
+1. EventManager (`internal/runtime/event/manager.go`)
 
 - Responsável por:
   - Receber `ShantillyEvent` dos componentes.
@@ -346,7 +387,7 @@ Esses eventos conectam componentes → `EventManager` → `ScriptRunner` sem aco
     - Se `PromptSecrets` não vazio, emitir modal para coleta de segredos.
   - Enfileirar `RunRequest` em canal para o `ScriptRunner`.
 
-3) ScriptRunner (`internal/runtime/runner/runner.go`)
+1. ScriptRunner (`internal/runtime/runner/runner.go`)
 
 - Responsável por:
   - Consumir `RunRequest` de um canal dedicado.
@@ -361,25 +402,25 @@ Esses eventos conectam componentes → `EventManager` → `ScriptRunner` sem aco
 
 ### 5.5. Componentes TUI Concretos
 
-1) FormComponent (Wrapper v1.0) (`internal/components/form/wrapper.go`)
+1. FormComponent (Wrapper v1.0) (`internal/components/form/wrapper.go`)
 
 - Embrulha o modelo v1.0 existente (`internal/tui/model.go`) para o contrato `ShantillyComponent`.
 - Traduz:
   - Submit → `ShantillyEvent{Type:"form_submit", Payload: formData}`.
 
-2) ListComponent (`internal/components/list/model.go`)
+1. ListComponent (`internal/components/list/model.go`)
 
 - Usa `bubbles/list`.
 - Emite:
   - `ShantillyEvent{Type:"list_select", Payload:{id:itemID}}` ao selecionar item.
 
-3) ButtonGroupComponent (`internal/components/buttongroup/model.go`)
+1. ButtonGroupComponent (`internal/components/buttongroup/model.go`)
 
 - Rende botões lógicos (ex: roles `primary`, `danger`).
 - Emite:
   - `ShantillyEvent{Type:"button_press", Payload:{id:buttonID}}`.
 
-4) ViewportComponent (`internal/components/viewport/model.go`)
+1. ViewportComponent (`internal/components/viewport/model.go`)
 
 - Usa `bubbles/viewport` + `glamour`.
 - Suporta:
@@ -667,13 +708,13 @@ graph TD
 - **Exit Code:** `util.ExitCancelled` (e.g., 2).
 - **Workflow:** See "Workflow 3: User Cancellation".
 
-**Unexpected TUI Errors (`TUIEngine`)**
+#### Unexpected TUI Errors (`TUIEngine`)
 
 - **Detection:** Internal `bubbletea`/`huh` errors.
 - **Output:** Detailed error message (maybe stack trace) to `stderr`.
 - **Exit Code:** `util.ExitError` (e.g., 1).
 
-**Other Errors (e.g., JSON Encoding)**
+#### Other Errors (e.g., JSON Encoding)
 
 - **Detection:** Standard library errors.
 - **Output:** Error message to `stderr`.
@@ -793,7 +834,7 @@ Defined primarily by the user-provided template files. Adherence is mandatory an
 
 ### Test Types and Organization
 
-**Unit Tests**
+#### Unit Tests
 
 - **Framework:** Go `testing` package (v1.24.2+).
 - **File Convention:** `_test.go` in the same package.
@@ -801,7 +842,7 @@ Defined primarily by the user-provided template files. Adherence is mandatory an
 - **Mocking:** No external dependencies to mock in MVP. Use interfaces for potential future manual fakes/stubs if needed between internal components.
 - **AI Agent Requirements:** Generate comprehensive tests for `internal/config/parser.go`, covering valid/invalid YAML cases. Follow AAA pattern. Maintain pure unit tests for `Update` logic in TUI components.
 
-**TUI Integration Tests (teatest)**
+#### TUI Integration Tests (teatest)
 
 - **Framework:** `charmbracelet/bubbles/teatest` for testing Bubble Tea components.
 - **Purpose:** Validate critical user flows and assert on textual output (string output), including basic layout and presence of styled elements via `lipgloss`.
@@ -812,11 +853,11 @@ Defined primarily by the user-provided template files. Adherence is mandatory an
 - **Location:** `internal/tui/` alongside unit tests.
 - **AI Agent Requirements:** Create integration tests for critical TUI flows using `teatest`, ensuring proper handling of `tea.WindowSizeMsg` and responsive layout across different terminal dimensions.
 
-**Integration Tests**
+#### Integration Tests
 
 - **N/A:** Out of scope for MVP.
 
-**E2E Tests**
+#### E2E Tests
 
 - **N/A:** Out of scope for MVP. Manual testing covers this.
 
@@ -857,7 +898,7 @@ Defined primarily by the user-provided template files. Adherence is mandatory an
 
 ## Checklist Results Report
 
-**Architect Solution Validation Checklist (`architect-checklist.md`) Execution Summary**
+### Architect Solution Validation Checklist (`architect-checklist.md`) Execution Summary
 
 - **Project Type:** Greenfield CLI/TUI (Backend Only focus for checklist)
 - **Overall Architecture Readiness:** High
@@ -865,7 +906,7 @@ Defined primarily by the user-provided template files. Adherence is mandatory an
 - **Key Strengths:** Clear alignment with PRD, leveraging standard Go practices and user-provided template, well-defined error handling, robust build/release process via GoReleaser.
 - **Sections Evaluated:** All sections except those marked `[[FRONTEND ONLY]]`.
 
-**Section Analysis (Summary)**
+#### Section Analysis (Summary)
 
 | Section                                | Status | Notes                                                                |
 |:---------------------------------------|:-------|:---------------------------------------------------------------------|
@@ -880,20 +921,20 @@ Defined primarily by the user-provided template files. Adherence is mandatory an
 | 9. AI Agent Implementation Suitability | ✅ PASS | Modular design, clear standards, template use aids AI consistency.   |
 | 10. Accessibility (Skipped)            | N/A    | TUI accessibility handled by underlying libraries (Charm).           |
 
-**Risk Assessment**
+#### Risk Assessment
 
 - No critical risks identified in the architecture itself.
 - Potential implementation risks (low):
   - Complexity in `TUIEngine` mapping `config.FormConfig` to `huh.Form` dynamically. Mitigation: Clear `mapper.go` component, unit tests for edge cases if possible.
   - Ensuring correct error propagation and exit codes for all scenarios in `ErrorHandler`. Mitigation: Specific unit tests for `ErrorHandler`, manual testing of error paths.
 
-**Recommendations**
+#### Recommendations
 
 - **Must-fix:** None.
 - **Should-fix:** None identified at architecture level.
 - **Nice-to-have:** Consider adding specific examples in `examples/` for each supported `Field.Type`.
 
-**AI Implementation Readiness**
+#### AI Implementation Readiness
 
 - **High.** The architecture is modular, uses standard Go patterns, relies on template files for tooling setup (`.golangci.yml`, `.goreleaser.yaml`), and provides clear separation of concerns. The `README.md` from the template gives direct instructions to AI agents.
 

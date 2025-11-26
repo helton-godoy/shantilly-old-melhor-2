@@ -20,17 +20,17 @@ shantilly fills this gap. It's a portable CLI tool (single static binary) enabli
 
 ### Change Log
 
-| Date       | Version | Description                                                                                                    | Author    |
-|:-----------|:--------|:---------------------------------------------------------------------------------------------------------------|:----------|
-| 2025-10-22 | 0.1.0   | Initial PRD draft based on Project Brief.                                                                      | John (PM) |
-| 2025-10-23 | 0.1.1   | Added UI/UX section and refined MVP layout.                                                                    | John (PM) |
-| 2025-10-23 | 0.1.2   | Added Technical Assumptions section.                                                                           | John (PM) |
-| 2025-10-23 | 0.1.3   | Added Epic List (MVP).                                                                                         | John (PM) |
-| 2025-10-23 | 0.1.4   | Added Epic 1 Details (MVP) with Stories.                                                                       | John (PM) |
-| 2025-10-23 | 0.1.5   | Completed PM Checklist and Next Steps section.                                                                 | John (PM) |
-| 2025-10-23 | 0.2.0   | Implemented PM Checklist recommendations (YAML Structure and Error Handling - NFR8). Updated Architect prompt. | John (PM) |
-| 2025-10-27 | 0.3.0   | Added preventive epics (3-7) for future roadmap planning and process improvement. | Sarah (PO) |
-| 2025-11-08 | 2.0.0   | Pivô para Runtime TUI Declarativo v2.0, incluindo layouts, componentes múltiplos, lógica de eventos.          | John (PM) |
+| Date       | Version | Description                                                                                                    | Author     |
+| :--------- | :------ | :------------------------------------------------------------------------------------------------------------- | :--------- |
+| 2025-10-22 | 0.1.0   | Initial PRD draft based on Project Brief.                                                                      | John (PM)  |
+| 2025-10-23 | 0.1.1   | Added UI/UX section and refined MVP layout.                                                                    | John (PM)  |
+| 2025-10-23 | 0.1.2   | Added Technical Assumptions section.                                                                           | John (PM)  |
+| 2025-10-23 | 0.1.3   | Added Epic List (MVP).                                                                                         | John (PM)  |
+| 2025-10-23 | 0.1.4   | Added Epic 1 Details (MVP) with Stories.                                                                       | John (PM)  |
+| 2025-10-23 | 0.1.5   | Completed PM Checklist and Next Steps section.                                                                 | John (PM)  |
+| 2025-10-23 | 0.2.0   | Implemented PM Checklist recommendations (YAML Structure and Error Handling - NFR8). Updated Architect prompt. | John (PM)  |
+| 2025-10-27 | 0.3.0   | Added preventive epics (3-7) for future roadmap planning and process improvement.                              | Sarah (PO) |
+| 2025-11-08 | 2.0.0   | Pivô para Runtime TUI Declarativo v2.0, incluindo layouts, componentes múltiplos, lógica de eventos.           | John (PM)  |
 
 ## Requirements
 
@@ -128,7 +128,7 @@ Given the MVP time constraints and the challenges of testing TUIs [cite: Project
 
 * **Assunção (Nova):** A estrutura YAML do v1.0 (lista simples de `fields:`) está obsoleta. A nova assunção de arquitetura é o YAML "Appsmith-style" que definimos, composto por **Layout**, **Componentes** e **Lógica**:
 
-```
+```yaml
 # 1. LAYOUT (Define o "onde")
 
 type: column
@@ -240,7 +240,7 @@ Este *roadmap* substitui a lista de épicos do PRD v1.0.
 
 **Como um** SysAdmin, **Eu quero** definir um layout TUI usando `column`, `row`, e `box` no meu YAML, **Para que** eu possa criar dashboards complexos e organizados.
 
-#### Critérios de Aceitação
+#### Critérios de Aceitação – Estória 1.1
 
 1. O parser DEVE suportar as chaves `type: column`, `type: row`, e `type: box` (FR1).
 2. O motor de renderização (`lipgloss`) DEVE respeitar as propriedades `height: <int>`, `width: 'N%'`, e `flex: <int>` (FR2).
@@ -251,7 +251,7 @@ Este *roadmap* substitui a lista de épicos do PRD v1.0.
 
 **Como um** SysAdmin, **Eu quero** que a minha UI TUI possa "ouvir" eventos e executar ações (`scripts`) em resposta, **Para que** o meu dashboard seja interativo e possa orquestrar automações.
 
-#### Critérios de Aceitação
+#### Critérios de Aceitação – Estória 1.2
 
 1. O `shantilly` DEVE analisar um bloco `on:` na raiz do YAML (FR8).
 2. O motor DEVE suportar o *runner* de fundação: `run: { script: "/path/to/script.sh" }` (FR9).
@@ -262,7 +262,7 @@ Este *roadmap* substitui a lista de épicos do PRD v1.0.
 
 **Como um** SysAdmin, **Eu quero** usar componentes de `list` (para menus), `viewport` (para saída de log) e `buttongroup` (para ações), **Para que** eu possa construir um dashboard funcional.
 
-#### Critérios de Aceitação
+#### Critérios de Aceitação – Estória 1.3
 
 1. DEVE implementar `component: { type: viewport }` (FR4), incluindo `source: { type: command, exec: "..." }` (ex: `tail -f`) e `content_type: markdown`.
 2. DEVE implementar `component: { type: list }` (FR5), que emite um evento `list_id:select` quando um item é selecionado.
@@ -273,7 +273,7 @@ Este *roadmap* substitui a lista de épicos do PRD v1.0.
 
 **Como um** SysAdmin, **Eu quero** usar o `type: form` (que já construímos no v1.0) como um componente *dentro* do meu novo layout, **Para que** eu possa coletar dados de forma organizada.
 
-#### Critérios de Aceitação
+#### Critérios de Aceitação – Estória 1.4
 
 1. Refatorar o código dos Épicos 1 e 2 (v1.0) para que funcione como um `component: { type: form }` (FR7).
 2. O `form` DEVE renderizar e funcionar corretamente quando colocado dentro de um `box` do layout.
@@ -284,7 +284,7 @@ Este *roadmap* substitui a lista de épicos do PRD v1.0.
 
 **Como um** SysAdmin, **Eu quero** passar os dados coletados no meu `form` (ou a seleção de uma `list`) para os meus `scripts` de forma robusta, **Para que** a minha automação possa usar a entrada do utilizador.
 
-#### Critérios de Aceitação
+#### Critérios de Aceitação – Estória 1.5
 
 1. O *runner* `script:` (FR9) DEVE suportar a chave `args: []string`, que passa argumentos "templatados" para a linha de comando do script (Refinamento FR10 / Opção C).
 2. O *runner* `script:` (FR9) DEVE suportar a chave `stdin: any`, que serializa o valor (ex: `{{ form }}`) como JSON e o passa para o `stdin` do script (Refinamento FR10 / Opção C).
@@ -328,7 +328,7 @@ Este *roadmap* substitui a lista de épicos do PRD v1.0.
 ### Category Analysis
 
 | Category                         | Status | Critical Issues                     |
-|:---------------------------------|:-------|:------------------------------------|
+| :------------------------------- | :----- | :---------------------------------- |
 | 1. Problem Definition & Context  | ✅ PASS |                                     |
 | 2. MVP Scope Definition          | ✅ PASS |                                     |
 | 3. User Experience Requirements  | ✅ PASS | (Simplified for TUI)                |

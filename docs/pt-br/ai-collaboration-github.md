@@ -27,19 +27,19 @@
 
 ## 🔧 OPERATIONS MATRIX
 
-| Operation Type | Primary (MCP) | Secondary (gh) | Fallback (Web/API) |
+|Operation Type|Primary (MCP)|Secondary (gh)|Fallback (Web/API)|
 |---|---|---|---|
-| **Repository Info** | `github_get_me`, `github_get_file_contents` | `gh repo view` | Web interface |
-| **Issues Management** | `github_issue_write`, `github_list_issues` | `gh issue create/list` | Web interface |
-| **Pull Requests** | `github_pull_request_*` | `gh pr create/list` | Web interface |
-| **Labels/Milestones** | `github_*_write` | `gh label/milestone create` | Web interface |
-| **Projects** | `github_project_*` | `gh project create` | Web interface |
-| **Branches** | `github_git_*` | `gh branch create/switch` | Web interface |
-| **Commits** | `github_git_commit` | `git commit` | Web interface |
+|**Repository Info**|`github_get_me`, `github_get_file_contents`|`gh repo view`|Web interface|
+|**Issues Management**|`github_issue_write`, `github_list_issues`|`gh issue create/list`|Web interface|
+|**Pull Requests**|`github_pull_request_*`|`gh pr create/list`|Web interface|
+|**Labels/Milestones**|`github_*_write`|`gh label/milestone create`|Web interface|
+|**Projects**|`github_project_*`|`gh project create`|Web interface|
+|**Branches**|`github_git_*`|`gh branch create/switch`|Web interface|
+|**Commits**|`github_git_commit`|`git commit`|Web interface|
 
 ## 📝 IMPLEMENTATION CHECKLIST
 
-### Para AI Agents:
+### Para AI Agents
 
 - [ ] **Verificar MCP GitHub**: `ps aux | grep github-mcp-server`
 - [ ] **Testar Conectividade**: `github_get_me` sempre como primeiro passo
@@ -47,7 +47,7 @@
 - [ ] **Documentar Fallbacks**: Quando MCP não disponível, documentar por quê
 - [ ] **Validar Resultados**: Confirmar que operações MCP funcionaram
 
-### Para Human Users:
+### Para Human Users
 
 - [ ] **Verificar Servidor**: Confirmar que `github-mcp-server` está rodando
 - [ ] **Validar Token**: Verificar se token GitHub está configurado
@@ -55,14 +55,14 @@
 
 ## 🔍 TROUBLESHOOTING
 
-### Se MCP não estiver disponível:
+### Se MCP não estiver disponível
 
 1. **Verificar processo**: `ps aux | grep github-mcp-server`
 2. **Reiniciar servidor**: Verificar configuração em `/home/helton/.config/cline/mcp_settings.json`
 3. **Validar token**: Confirmar `GITHUB_PERSONAL_ACCESS_TOKEN` configurado
 4. **Documentar indisponibilidade**: Registrar por que MCP não está funcionando
 
-### Comandos para verificar:
+### Comandos para verificar
 
 ```bash
 # Verificar se MCP GitHub está rodando
@@ -77,7 +77,7 @@ cat ~/.config/cline/mcp_settings.json
 
 ## 📊 BENEFÍCIOS DO MCP
 
-### Vantagens sobre CLI/API:
+### Vantagens sobre CLI/API
 
 - ✅ **Consistência**: Mesmas operações em todos os ambientes
 - ✅ **Segurança**: Token gerenciado centralizadamente
@@ -85,7 +85,7 @@ cat ~/.config/cline/mcp_settings.json
 - ✅ **Robustez**: Tratamento de erros padronizado
 - ✅ **Transparência**: Log de operações centralizado
 
-### Performance:
+### Performance
 
 - ⚡ **MCP**: ~200ms por operação
 - 🐌 **CLI**: ~800ms por operação (overhead shell)
@@ -93,7 +93,8 @@ cat ~/.config/cline/mcp_settings.json
 
 ## 🎯 EXEMPLO DE IMPLEMENTAÇÃO
 
-### ❌ ANTES (Método Ineficiente):
+### ❌ ANTES (Método Ineficiente)
+
 ```bash
 # Tentativa desnecessária de CLI
 gh auth status
@@ -101,7 +102,8 @@ gh repo view helton-godoy/shantilly
 gh issue list --limit 10
 ```
 
-### ✅ DEPOIS (Método Otimizado):
+### ✅ DEPOIS (Método Otimizado)
+
 ```javascript
 // Testar MCP primeiro
 github_get_me() // ← SEMPRE este primeiro
@@ -125,11 +127,13 @@ github_get_file_contents({owner: "helton-godoy", repo: "shantilly", path: "READM
 
 **Esta regra é OBRIGATÓRIA para todos os AI agents trabalhando no projeto Shantilly.**
 
-        update-type: "security"
-    scheduling: "weekly"
+```yaml
+update-type: "security"
+scheduling: "weekly"
 ```
 
-#### Secret Detection IA
+### Secret Detection IA
+
 - **Leaked Credentials**: Detecção via IA
 - **API Keys**: Scanning automático
 - **Compliance**: Verificação de padrões
@@ -137,6 +141,7 @@ github_get_file_contents({owner: "helton-godoy", repo: "shantilly", path: "READM
 ### 6. Documentation Automation
 
 #### GitHub Pages + IA
+
 ```yaml
 docs-generation:
   - name: Generate Docs with AI
@@ -150,6 +155,7 @@ docs-generation:
 ### 7. Monitoring e Analytics IA
 
 #### Dashboards Inteligentes
+
 - **Velocity Tracking**: Previsão via IA
 - **Risk Assessment**: Identificação automática
 - **Performance Metrics**: Análise contínua
@@ -157,6 +163,7 @@ docs-generation:
 ### 8. Colaboração Híbrida
 
 #### Para Agentes IA
+
 ```yaml
 ai-commands:
   - "@ai-review": Auto-review do código
@@ -167,6 +174,7 @@ ai-commands:
 ```
 
 #### Para Desenvolvedores Humanos
+
 - **AI Suggestions**: Sugestões inteligentes em PRs
 - **Auto-completion**: GitHub Copilot enhancement
 - **Smart Notifications**: Alertas contextuais
@@ -174,16 +182,19 @@ ai-commands:
 ## 🎯 Benefícios da Automação IA
 
 ### Produtividade
+
 - **80% redução** em tarefas repetitivas
 - **Review automático** de 90% dos PRs
 - **Documentation** gerada automaticamente
 
 ### Qualidade
+
 - **Security scanning** em tempo real
 - **Performance monitoring** contínuo
 - **Bug detection** proativa
 
 ### Colaboração
+
 - **Smart assignment** de tarefas
 - **Context-aware** notifications
 - **Cross-functional** insights

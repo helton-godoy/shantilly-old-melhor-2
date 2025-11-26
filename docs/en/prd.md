@@ -181,7 +181,7 @@ fields:
 **I want** to set up the initial Go project structure (monorepo) and the CLI using `cobra`, with a basic `form` subcommand,
 **So that** the application foundation is ready for subsequent features.
 
-#### Acceptance Criteria
+#### Acceptance Criteria – Story 1.1
 
 1. AC1: The Go repository MUST be initialized with `cmd/shantilly` and `internal/` directory structures.
 2. AC2: The CLI MUST be implemented using `spf13/cobra`.
@@ -197,7 +197,7 @@ fields:
 **So that** the TUI definition can be processed by the application.
 **Prerequisite:** Story 1.1
 
-#### Acceptance Criteria
+#### Acceptance Criteria – Story 1.2
 
 1. AC1: A Go struct (`internal/config` or similar) representing the expected YAML structure for a form (as defined in "Expected YAML Structure") MUST be defined.
 2. AC2: The `form` subcommand MUST use `gopkg.in/yaml.v3` to unmarshal `stdin` into the defined Go struct.
@@ -226,7 +226,7 @@ fields:
 **So that** the user-defined interface is displayed.
 **Prerequisites:** Story 1.2, Story 1.3
 
-#### Acceptance Criteria
+#### Acceptance Criteria – Story 1.4
 
 1. AC1: The project MUST include the `charmbracelet/huh` dependency.
 2. AC2: The TUI logic (`internal/tui`) MUST be able to receive the parsed Go struct (from Story 1.2).
@@ -242,7 +242,7 @@ fields:
 **So that** I can fill out the form efficiently.
 **Prerequisite:** Story 1.4
 
-#### Acceptance Criteria
+#### Acceptance Criteria – Story 1.5
 
 1. AC1: The `Tab` key MUST move focus to the next form field.
 2. AC2: `Shift+Tab` MUST move focus to the previous field.
@@ -258,7 +258,7 @@ fields:
 **So that** my script can easily consume the results.
 **Prerequisite:** Story 1.5
 
-#### Acceptance Criteria
+#### Acceptance Criteria – Story 1.6
 
 1. AC1: The `huh` library MUST be configured to allow form submission (typically after the last field or via an implicit button).
 2. AC2: After submission, the `bubbletea` application MUST terminate.
@@ -274,7 +274,7 @@ fields:
 **So that** the interface is visually pleasant and functional.
 **Prerequisite:** Story 1.4
 
-#### Acceptance Criteria
+#### Acceptance Criteria – Story 1.7
 
 1. AC1: The main container for the `huh` form MUST be styled using `lipgloss`.
 2. AC2: The form MUST be rendered horizontally centered within the terminal window if there is sufficient space.
@@ -289,7 +289,7 @@ fields:
 **So that** the application can be easily distributed.
 **Prerequisite:** Story 1.1
 
-#### Acceptance Criteria
+#### Acceptance Criteria – Story 1.8
 
 1. AC1: The `Makefile` (or build script) MUST include targets to compile the `shantilly` binary.
 2. AC2: The build process MUST use flags (`CGO_ENABLED=0`, `ldflags="-s -w"`) to ensure a static and optimized binary.

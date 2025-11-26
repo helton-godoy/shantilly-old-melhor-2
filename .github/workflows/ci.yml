@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+
+jobs:
+  lint-and-test:
+    name: Lint and Test (Go + Markdown)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.2'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Node dependencies (markdownlint-cli2)
+        run: |
+          if [ -f package-lock.json ] || [ -f package.json ]; then
+            npm install
+          fi
+
+      - name: Install Go tools (gofumpt, golangci-lint)
+        run: |
+          go install mvdan.cc/gofumpt@latest
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+      - name: Make lint.sh executable
+        run: chmod +x ./lint.sh
+
+      - name: Run Go + Markdown checks
+        run: ./lint.sh --markdown

@@ -34,17 +34,20 @@ Para sugerir uma nova funcionalidade, [crie uma issue](https://github.com/helton
 #### Setup do Ambiente
 
 1. **Fork e Clone:**
+
    ```bash
    git clone https://github.com/SEU_USUARIO/shantilly.git
    cd shantilly
    ```
 
 2. **Adicione o upstream:**
+
    ```bash
    git remote add upstream https://github.com/helton-godoy/shantilly.git
    ```
 
 3. **Instale dependências:**
+
    ```bash
    go mod tidy
    ```
@@ -70,11 +73,13 @@ Para sugerir uma nova funcionalidade, [crie uma issue](https://github.com/helton
 #### Processo de Pull Request
 
 1. **Crie uma branch:**
+
    ```bash
    git checkout -b feat/issue-XXX-minha-feature
    ```
 
 2. **Desenvolva e teste:**
+
    ```bash
    # Execute linters
    golangci-lint run ./...
@@ -87,12 +92,14 @@ Para sugerir uma nova funcionalidade, [crie uma issue](https://github.com/helton
    ```
 
 3. **Commit suas mudanças:**
+
    ```bash
    git add .
    git commit -m "feat: implement feature description"
    ```
 
 4. **Push e PR:**
+
    ```bash
    git push origin feat/issue-XXX-minha-feature
    ```
@@ -125,7 +132,7 @@ O projeto usa `golangci-lint` para garantir qualidade. O arquivo `.golangci.yml`
 
 ### Estrutura do Projeto
 
-```
+```shell
 shantilly/
 ├── cmd/                    # Comandos CLI
 │   └── shantilly/         # Entry point
@@ -147,6 +154,7 @@ shantilly/
 - **Example Tests:** Validação de exemplos YAML
 
 Execute todos os testes:
+
 ```bash
 go test ./...
 ```
@@ -194,6 +202,7 @@ Este projeto segue nosso [Código de Conduta](../pt-br/code-of-conduct.md). Ao p
 ## 🎉 Reconhecimento
 
 Contribuidores serão reconhecidos em:
+
 - README.md do projeto
 - Releases notes
 - Documentação

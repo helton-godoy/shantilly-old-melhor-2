@@ -35,23 +35,15 @@ jobs:
           EN_FILE="docs/en/release/${TAG}.md"
 
           if [ ! -f "$PT_FILE" ]; then
-            cat > "$PT_FILE" <<EOF
-# ${TAG} – Notas de lançamento (PT-BR)
-
-> Stub automático gerado para a versão ${TAG}.
-> Preencha aqui as notas detalhadas em português.
-
-EOF
+            printf '# %s – Notas de lançamento (PT-BR)\n\n' "$TAG" > "$PT_FILE"
+            printf '> Stub automático gerado para a versão %s.\n' "$TAG" >> "$PT_FILE"
+            printf '> Preencha aqui as notas detalhadas em português.\n' >> "$PT_FILE"
           fi
 
           if [ ! -f "$EN_FILE" ]; then
-            cat > "$EN_FILE" <<EOF
-# ${TAG} – Release notes (EN)
-
-> Automatically generated stub for version ${TAG}.
-> Add detailed release notes in English here.
-
-EOF
+            printf '# %s – Release notes (EN)\n\n' "$TAG" > "$EN_FILE"
+            printf '> Automatically generated stub for version %s.\n' "$TAG" >> "$EN_FILE"
+            printf '> Add detailed release notes in English here.\n' >> "$EN_FILE"
           fi
 
       - name: Commit and push changes (if any)

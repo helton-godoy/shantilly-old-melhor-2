@@ -139,21 +139,25 @@ For answers to common questions about this code of conduct, see the FAQ at
 ### Shantilly-Specific Standards
 
 #### Language and Communication
+
 * **Portuguese First:** While English is acceptable, Portuguese contributions are welcomed and encouraged
 * **Technical Discussions:** Keep technical discussions focused on the project goals and user needs
 * **Documentation:** Documentation should be clear, concise, and accessible to both beginners and experts
 
 #### Code Quality Standards
+
 * **Readable Code:** Prioritize code readability over clever optimizations
 * **Comments:** Use comments to explain "why" not "what" - let the code speak for itself
 * **Tests:** All new features must include appropriate tests
 
 #### Community Contributions
+
 * **Beginner-Friendly:** Help newcomers get started and feel welcome
 * **Constructive Reviews:** Provide helpful, specific, and actionable feedback in code reviews
 * **Documentation Help:** Contributions to documentation are highly valued
 
 #### Issue and PR Management
+
 * **Respectful Triage:** Handle all issues and PRs with respect and patience
 * **Clear Communication:** Be clear about decisions and reasoning
 * **Timely Responses:** Aim to respond to issues and PRs within 48 hours
@@ -161,6 +165,7 @@ For answers to common questions about this code of conduct, see the FAQ at
 ### Contact Information
 
 For questions or concerns about this Code of Conduct:
+
 * **GitHub Discussions:** Use project discussions for community-related questions
 * **Security Issues:** Follow the process outlined in [SECURITY.md](../../SECURITY.md)
 * **General Concerns:** Open an issue with the "question" label

@@ -8,6 +8,7 @@ GOTEST=$(GOCMD) test
 # Tools
 GOFUMPT=gofumpt
 GOLANGCI_LINT=golangci-lint
+MARKDOWNLINT_CLI2=npx markdownlint-cli2
 
 # Binaries
 BINARY_NAME=shantilly
@@ -16,8 +17,11 @@ BINARY_DIR=bin
 # Cross-compilation targets
 PLATFORMS := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64
 
+# Markdown sources
+MARKDOWN_SOURCES=README.md docs/**/*.md
+
 # Targets
-.PHONY: all build test lint fmt fmt-check check clean build-all $(PLATFORMS)
+.PHONY: all build test lint fmt fmt-check lint-md format-md check clean build-all $(PLATFORMS)
 
 all: build
 
@@ -46,11 +50,23 @@ lint:
 	@echo "Running linter..."
 	@$(GOLANGCI_LINT) run --config=.golangci.yml ./...
 
+lint-md:
+	@echo "Running markdownlint-cli2 on Markdown files..."
+	@$(MARKDOWNLINT_CLI2) $(MARKDOWN_SOURCES)
+
+format-md:
+	@echo "Running markdownlint-cli2 --fix on Markdown files..."
+	@$(MARKDOWNLINT_CLI2) --fix $(MARKDOWN_SOURCES)
+
 check:
 	@echo "Running full local checks (format, lint, tests)..."
 	@$(MAKE) fmt-check
 	@$(MAKE) lint
 	@$(MAKE) test
+
+ci-local:
+	@echo "Running local CI via act (job: lint-and-test)..."
+	@./bin/act -j lint-and-test
 
 clean:
 	@echo "Cleaning..."
