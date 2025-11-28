@@ -1,0 +1,60 @@
+version: "1.0"
+meta:
+    description: App com button restaurado
+    name: app_with_button
+
+layout:
+    id: root
+    type: column
+    items:
+        - id: main_row
+          type: row
+          items:
+            - id: menu_box
+              type: box
+              component: menu
+              flex: 1
+            - id: button_box
+              type: box
+              component: deploy_button
+              width: 20
+            - id: output_box
+              type: box
+              component: output
+              flex: 2
+
+components:
+    - id: menu
+      type: list
+      props:
+        items:
+            - id: check_legacy
+              text: Verificar legado
+            - id: noop
+              text: Não fazer nada
+    - id: deploy_button
+      type: button
+      props:
+        text: "DEPLOY"
+        style: "primary"
+    - id: output
+      type: viewport
+      props:
+        source:
+            content: |-
+                Bem-vindo ao Shantilly Runtime v2.0
+
+                Use o menu à esquerda para disparar ações.
+            content_type: text
+            type: static
+
+events:
+    - id: deploy_button_on_click
+      event: "deploy_button:click_deploy_now"
+      run:
+        script: ./scripts/deploy.sh
+        update_target: output
+        confirm: true
+        streaming: true
+
+security: {}

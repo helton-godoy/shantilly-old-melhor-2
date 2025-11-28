@@ -1,0 +1,21 @@
+version: "1.0"
+meta:
+    description: Teste minimalista
+    name: test_minimal
+
+layout:
+    id: root
+    type: row
+    items:
+        - id: left
+          type: box
+          component: deploy_button
+          width: 30
+
+components:
+    - id: deploy_button
+      type: button
+      props:
+        text: "DEPLOY"
+
+events: []

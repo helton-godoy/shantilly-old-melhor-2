@@ -1,0 +1,31 @@
+version: "1.0"
+meta:
+    description: Debug button com texto garantido
+    name: button_debug
+
+layout:
+    id: root
+    type: row
+    items:
+        - id: left
+          type: box
+          component: deploy_button
+          width: 20
+        - id: right
+          type: box
+          component: output
+          flex: 1
+
+components:
+    - id: deploy_button
+      type: button
+      props:
+        text: "DEPLOY"
+    - id: output
+      type: viewport
+      props:
+        source:
+            type: static
+            content: "Viewport de teste"
+
+events: []

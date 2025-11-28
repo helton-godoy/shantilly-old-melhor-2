@@ -195,7 +195,7 @@ func (c *AppConfig) Validate() error {
 			return fmt.Errorf("duplicate component id: %s", comp.ID)
 		}
 		switch comp.Type {
-		case "list", "viewport", "form", "buttongroup", "input", "select", "multiselect":
+		case "list", "viewport", "form", "buttongroup", "input", "select", "multiselect", "button":
 			// ok
 		default:
 			return fmt.Errorf("invalid component type for %s: %s", comp.ID, comp.Type)

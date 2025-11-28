@@ -3,6 +3,7 @@ package layout
 import (
 	"fmt"
 
+	"shantilly/internal/components/button"
 	components_buttongroup "shantilly/internal/components/buttongroup"
 	components_input "shantilly/internal/components/input"
 	components_list "shantilly/internal/components/list"
@@ -151,6 +152,24 @@ func (r *DefaultRegistry) Resolve(id string) ShantillyComponent {
 		initial, _ := comp.Props["default"].(string)
 		secret, _ := comp.Props["secret"].(bool)
 		return components_input.New(comp.ID, r.Theme, label, placeholder, initial, secret)
+
+	case "button":
+		// Extrair props do button
+		text, _ := comp.Props["text"].(string)
+		if text == "" {
+			text = "Button"
+		}
+		icon, _ := comp.Props["icon"].(string)
+		style, _ := comp.Props["style"].(string)
+		disabled, _ := comp.Props["disabled"].(bool)
+
+		props := button.Props{
+			Text:     text,
+			Icon:     icon,
+			Style:    style,
+			Disabled: disabled,
+		}
+		return button.New(comp.ID, r.Theme, props)
 
 	default:
 		// Fallback: viewport com mensagem sobre tipo desconhecido.

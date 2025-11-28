@@ -1,0 +1,25 @@
+version: "1.0"
+meta:
+    description: Teste menu apenas
+    name: test_menu_only
+
+layout:
+    id: root
+    type: row
+    items:
+        - id: left
+          type: box
+          component: menu
+          width: 12
+
+components:
+    - id: menu
+      type: list
+      props:
+        items:
+            - id: item1
+              text: "Item 1"
+            - id: item2
+              text: "Item 2"
+
+events: []

@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"fmt"
+	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
 
@@ -44,11 +45,10 @@ func Start(cfg *declarative.AppConfig) error {
 	mainModel := NewLayoutMainModel(lm)
 
 	// 7. Iniciar o programa Bubble Tea.
-	// Nesta fase, utilizamos AltScreen para fornecer uma experiência mais
-	// próxima da interface final para o usuário.
+	// Usamos output direto para compatibilidade com diferentes terminais.
 	p := tea.NewProgram(
 		mainModel,
-		tea.WithAltScreen(),
+		tea.WithOutput(os.Stdout),
 	)
 
 	if _, err := p.Run(); err != nil {

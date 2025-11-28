@@ -351,6 +351,12 @@ func (m *Manager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 
+		// Navegação entre componentes com Tab/Shift+Tab
+		if msg.Type == tea.KeyTab || msg.Type == tea.KeyShiftTab {
+			m.focusNextComponent(msg.Type == tea.KeyShiftTab)
+			return m, nil
+		}
+
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
@@ -388,11 +394,6 @@ func (m *Manager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmd = m.eventManager.HandleModalResult(msg)
 			cmds = append(cmds, cmd)
 		}
-
-	// Mensagem para exibir modal: devolvemos como tea.Cmd para o MainModel
-	// interceptar e renderizar o modal (overlay).
-	case tui.ShowModalMsg:
-		return m, func() tea.Msg { return msg }
 	}
 
 	// Roteamento mínimo para componente focado (se houver).
@@ -501,14 +502,58 @@ func (m *Manager) applyDimensionsNode(node *LayoutNodeRef, x, y, w, h int) {
 		}
 
 		if !hasFlex || totalFlex == 0 {
-			// Fallback: divisão em colunas iguais (comportamento anterior).
-			childWidth := w / count
+			// Primeiro, verifica se algum filho tem Width fixo
+			hasFixedWidth := false
+			fixedWidths := make([]int, count)
+			totalFixedWidth := 0
+
 			for i := range node.Items {
-				cw := childWidth
-				if i == count-1 {
-					cw = w - childWidth*(count-1)
+				if node.Items[i].Width != nil && *node.Items[i].Width > 0 {
+					fixedWidths[i] = *node.Items[i].Width
+					totalFixedWidth += *node.Items[i].Width
+					hasFixedWidth = true
 				}
-				m.applyDimensionsNode(&node.Items[i], x+i*cw, y, cw, h)
+			}
+
+			if hasFixedWidth {
+				// Distribui o espaço restante entre os sem Width fixo
+				remainingWidth := w - totalFixedWidth
+				flexCount := 0
+				for i := range node.Items {
+					if fixedWidths[i] == 0 {
+						flexCount++
+					}
+				}
+
+				currentX := x
+				for i := range node.Items {
+					if fixedWidths[i] > 0 {
+						// Usa Width fixo
+						cw := fixedWidths[i]
+						m.applyDimensionsNode(&node.Items[i], currentX, y, cw, h)
+						currentX += cw
+					} else {
+						// Divide o espaço restante
+						cw := remainingWidth / flexCount
+						if flexCount == 1 {
+							cw = remainingWidth
+						}
+						m.applyDimensionsNode(&node.Items[i], currentX, y, cw, h)
+						currentX += cw
+						remainingWidth -= cw
+						flexCount--
+					}
+				}
+			} else {
+				// Fallback: divisão em colunas iguais (comportamento anterior).
+				childWidth := w / count
+				for i := range node.Items {
+					cw := childWidth
+					if i == count-1 {
+						cw = w - childWidth*(count-1)
+					}
+					m.applyDimensionsNode(&node.Items[i], x+i*cw, y, cw, h)
+				}
 			}
 			return
 		}
@@ -594,6 +639,7 @@ func (m *Manager) renderNode(node LayoutNodeRef) string {
 		if node.ComponentID == "" {
 			return ""
 		}
+
 		inner := ""
 		if c, ok := m.components[node.ComponentID]; ok && c != nil {
 			inner = c.View()
@@ -614,9 +660,8 @@ func (m *Manager) renderNode(node LayoutNodeRef) string {
 			for i, l := range lines {
 				if len(l) < node.ComputedWidth {
 					lines[i] = l + strings.Repeat(" ", node.ComputedWidth-len(l))
-				} else if len(l) > node.ComputedWidth {
-					lines[i] = l[:node.ComputedWidth]
 				}
+				// Removido o corte de conteúdo para não truncar componentes
 			}
 			boxView = strings.Join(lines, "\n")
 		}
@@ -628,8 +673,16 @@ func (m *Manager) renderNode(node LayoutNodeRef) string {
 		// Renderização horizontal usando Lip Gloss, respeitando larguras/alturas
 		// calculadas para cada filho.
 		childViews := make([]string, 0, len(node.Items))
+
 		for _, child := range node.Items {
 			v := m.renderNode(child)
+			childViews = append(childViews, v)
+		}
+
+		// Renderiza com estilos de largura
+		styledViews := make([]string, 0, len(node.Items))
+		for i, child := range node.Items {
+			v := childViews[i]
 			style := lipgloss.NewStyle()
 			if child.ComputedWidth > 0 {
 				style = style.Width(child.ComputedWidth)
@@ -637,9 +690,9 @@ func (m *Manager) renderNode(node LayoutNodeRef) string {
 			if child.ComputedHeight > 0 {
 				style = style.Height(child.ComputedHeight)
 			}
-			childViews = append(childViews, style.Render(v))
+			styledViews = append(styledViews, style.Render(v))
 		}
-		return lipgloss.JoinHorizontal(lipgloss.Top, childViews...)
+		return lipgloss.JoinHorizontal(lipgloss.Top, styledViews...)
 	case "column":
 		if len(node.Items) == 0 {
 			return ""
@@ -682,4 +735,60 @@ func renderBox(content string, padding int, border bool) string {
 		style = style.Border(lipgloss.NormalBorder())
 	}
 	return style.Render(content)
+}
+
+// focusNextComponent move o foco para o próximo componente interativo
+func (m *Manager) focusNextComponent(reverse bool) {
+	if len(m.components) == 0 {
+		return
+	}
+
+	// Coleta todos os IDs de componentes em ordem
+	var ids []string
+	for id := range m.components {
+		ids = append(ids, id)
+	}
+
+	// Se não há foco atual, foca no primeiro
+	if m.focusedID == "" {
+		m.focusedID = ids[0]
+		m.updateComponentFocus()
+		return
+	}
+
+	// Encontra o índice do componente atual
+	currentIndex := -1
+	for i, id := range ids {
+		if id == m.focusedID {
+			currentIndex = i
+			break
+		}
+	}
+
+	// Calcula próximo índice
+	var nextIndex int
+	if reverse {
+		nextIndex = currentIndex - 1
+		if nextIndex < 0 {
+			nextIndex = len(ids) - 1
+		}
+	} else {
+		nextIndex = currentIndex + 1
+		if nextIndex >= len(ids) {
+			nextIndex = 0
+		}
+	}
+
+	m.focusedID = ids[nextIndex]
+	m.updateComponentFocus()
+}
+
+// updateComponentFocus atualiza o estado de foco dos componentes
+func (m *Manager) updateComponentFocus() {
+	for id, component := range m.components {
+		// Verifica se o componente tem método Focus (usando type assertion)
+		if focusable, ok := component.(interface{ Focus(bool) }); ok {
+			focusable.Focus(id == m.focusedID)
+		}
+	}
 }

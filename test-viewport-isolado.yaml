@@ -1,0 +1,22 @@
+version: "1.0"
+meta:
+    description: Viewport isolado
+    name: viewport_isolado
+
+layout:
+    id: root
+    type: row
+    items:
+        - id: center
+          type: box
+          component: output
+
+components:
+    - id: output
+      type: viewport
+      props:
+        source:
+            type: static
+            content: "TESTE VIEWPORT"
+
+events: []

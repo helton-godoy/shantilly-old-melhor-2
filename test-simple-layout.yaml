@@ -1,0 +1,43 @@
+version: "1.0"
+meta:
+    description: Layout simples com button
+    name: simple_layout
+
+layout:
+    id: root
+    type: row
+    items:
+        - id: left
+          type: box
+          component: simple_menu
+          width: 10
+        - id: center
+          type: box
+          component: deploy_button
+          width: 20
+        - id: right
+          type: box
+          component: output
+          flex: 1
+
+components:
+    - id: simple_menu
+      type: list
+      props:
+        items:
+            - id: item1
+              text: "A"
+            - id: item2
+              text: "B"
+    - id: deploy_button
+      type: button
+      props:
+        text: "DEPLOY"
+    - id: output
+      type: viewport
+      props:
+        source:
+            type: static
+            content: "Test"
+
+events: []

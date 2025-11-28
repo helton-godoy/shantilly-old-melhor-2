@@ -1,0 +1,43 @@
+version: "1.0"
+meta:
+    description: Layout com flex (padrão lipgloss)
+    name: flex_layout
+
+layout:
+    id: root
+    type: row
+    items:
+        - id: left
+          type: box
+          component: menu
+          flex: 1
+        - id: center
+          type: box
+          component: deploy_button
+          flex: 1
+        - id: right
+          type: box
+          component: output
+          flex: 2
+
+components:
+    - id: menu
+      type: list
+      props:
+        items:
+            - id: item1
+              text: "Item 1"
+            - id: item2
+              text: "Item 2"
+    - id: deploy_button
+      type: button
+      props:
+        text: "DEPLOY"
+    - id: output
+      type: viewport
+      props:
+        source:
+            type: static
+            content: "Viewport de teste"
+
+events: []

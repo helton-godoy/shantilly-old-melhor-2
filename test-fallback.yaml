@@ -1,0 +1,31 @@
+version: "1.0"
+meta:
+    description: Teste com viewport fallback
+    name: test_fallback
+
+layout:
+    id: root
+    type: row
+    items:
+        - id: left
+          type: box
+          component: test_component
+          width: 20
+        - id: right
+          type: box
+          component: output
+          flex: 1
+
+components:
+    - id: test_component
+      type: "tipo_invalido"
+      props:
+        text: "TESTE"
+    - id: output
+      type: viewport
+      props:
+        source:
+            type: static
+            content: "Viewport de teste"
+
+events: []

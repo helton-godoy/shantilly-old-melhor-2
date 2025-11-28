@@ -1,0 +1,35 @@
+version: "1.0"
+meta:
+    description: Teste simples de layout
+    name: test_layout_simple
+
+layout:
+    id: root
+    type: row
+    items:
+        - id: left
+          type: box
+          component: menu
+          flex: 1
+        - id: right
+          type: box
+          component: output
+          flex: 2
+
+components:
+    - id: menu
+      type: list
+      props:
+        items:
+            - id: item1
+              text: "Item 1"
+            - id: item2
+              text: "Item 2"
+    - id: output
+      type: viewport
+      props:
+        source:
+            type: static
+            content: "Viewport de teste"
+
+events: []

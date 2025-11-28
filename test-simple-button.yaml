@@ -1,0 +1,21 @@
+version: "1.0"
+meta:
+    description: Button simples isolado
+    name: simple_button
+
+layout:
+    id: root
+    type: row
+    items:
+        - id: center
+          type: box
+          component: deploy_button
+          width: 20
+
+components:
+    - id: deploy_button
+      type: button
+      props:
+        text: "DEPLOY"
+
+events: []
